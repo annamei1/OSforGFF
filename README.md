@@ -247,6 +247,11 @@ lake build
 
 Requires Lean 4 and Mathlib (pinned via `lake-manifest.json`).
 
+## Planned Generalizations
+
+1. Other spacetime dimensions, as discussed in [docs/dimension_dependence.md](docs/dimension_dependence.md)
+2. Explicit construction of the measure not using Minlos
+
 ## Authors
 
 Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim
