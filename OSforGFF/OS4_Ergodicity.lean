@@ -148,7 +148,7 @@ lemma gff_exp_time_translated_memLp_two (m : ℝ) [Fact (0 < m)] (s : ℝ) (f : 
       have h_pos : 0 ≤ Real.exp |ω (complex_testfunction_decompose g).1| := Real.exp_nonneg _
       rw [Real.norm_eq_abs, abs_of_nonneg h_pos, sq, ← Real.exp_add]
       ring_nf
-    · exact (Real.continuous_exp.comp (continuous_abs.comp (WeakDual.eval_continuous _))).aestronglyMeasurable
+    · exact MemLp.aestronglyMeasurable h_L2
   -- The bound: ‖exp(z)‖² = exp(2 Re z) ≤ exp(2|Re z|)
   have h_sq_norm_bound : ∀ ω : FieldConfiguration,
       ‖Complex.exp (distributionPairingℂ_real ω g)‖^2 ≤
@@ -630,8 +630,7 @@ lemma L2_time_average_variance_bound (m : ℝ) [Fact (0 < m)] (f : TestFunction�
     -- Use the proved theorem from L2TimeIntegral for L² on product space
     apply OSforGFF.memLp_prod_of_uniform_slicewise_bound μ A T h_meas
     · -- Each A_s is in L²(μ) by Fernique
-      intro s
-      exact gff_exp_time_translated_memLp_two m s f
+      exact fun s => gff_exp_time_translated_memLp_two m s f
     · -- L² norm is constant in s (stationarity from OS2)
       intro s
       simp only [A]
@@ -1045,7 +1044,7 @@ lemma variance_decay_from_clustering (m : ℝ) [Fact (0 < m)] (f : TestFunction�
 
   -- Squeeze theorem
   apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds h_tends
-  · filter_upwards with T; exact h_nonneg T
+  · exact Filter.Eventually.of_forall h_nonneg
   · filter_upwards [Filter.eventually_gt_atTop 0] with T hT; exact h_upper T hT
 
 /-! ## Main Theorem Chain -/
@@ -1258,7 +1257,7 @@ theorem OS4'_implies_OS4 (m : ℝ) [Fact (0 < m)] :
     simp only [mul_zero] at this; exact this
 
   apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds h_tends_upper
-  · filter_upwards with T; exact h_nonneg T
+  · exact Filter.Eventually.of_forall h_nonneg
   · filter_upwards [Filter.eventually_gt_atTop 0] with T hT; exact h_upper T hT
 
 /-- OS4'' → OS4': Polynomial clustering implies generating function ergodicity. -/
