@@ -208,7 +208,7 @@ for z ≥ ε, which is integrable.
 
 The formal proof uses MeasureTheory.continuousOn_of_dominated_of_compact:
 for z in compact K ⊆ (0, ∞), bound by exp(-min(K) * cosh(t)) * cosh(t). -/
-lemma besselK1_continuousOn : ContinuousOn besselK1 (Ioi 0) := by
+lemma continuousOn_besselK1 : ContinuousOn besselK1 (Ioi 0) := by
   -- Show ContinuousAt at each z₀ > 0 using dominated convergence
   rw [isOpen_Ioi.continuousOn_iff]
   intro z₀ hz₀
@@ -764,7 +764,7 @@ lemma besselK1_near_origin_bound (z : ℝ) (hz : 0 < z) (hz_small : z ≤ 1) :
 - At ∞: K₁(mr) ~ e^{-mr}/√(mr), so r² K₁(mr) decays exponentially
 
 This is a key ingredient for showing the free covariance kernel is L¹ in 4D. -/
-lemma radial_besselK1_integrable (m : ℝ) (hm : 0 < m) :
+lemma integrableOn_radial_besselK1 (m : ℝ) (hm : 0 < m) :
     IntegrableOn (fun r ↦ r ^ 2 * besselK1 (m * r)) (Set.Ioi 0) volume := by
   -- Split (0, ∞) = (0, 1/m] ∪ (1/m, ∞)
   have h_split : Ioi (0 : ℝ) = Ioc 0 (1/m) ∪ Ioi (1/m) := by
@@ -802,7 +802,7 @@ lemma radial_besselK1_integrable (m : ℝ) (hm : 0 < m) :
       have hcont : ContinuousOn
           (fun r ↦ r ^ 2 * besselK1 (m * r)) (Ioi 0) := by
         apply ContinuousOn.mul (continuous_pow 2).continuousOn
-        apply besselK1_continuousOn.comp (continuous_mul_left m).continuousOn
+        apply continuousOn_besselK1.comp (continuous_mul_left m).continuousOn
         intro r hr; simp only [mem_Ioi] at hr ⊢; exact mul_pos hm hr
       -- Ioc 0 (1/m) ⊆ Ioi 0 for the restriction
       have hsub : Ioc 0 (1/m) ⊆ Ioi 0 := fun r ⟨hr, _⟩ ↦ hr
@@ -903,7 +903,7 @@ lemma radial_besselK1_integrable (m : ℝ) (hm : 0 < m) :
       have hcont : ContinuousOn
           (fun r ↦ r ^ 2 * besselK1 (m * r)) (Ioi 0) := by
         apply ContinuousOn.mul (continuous_pow 2).continuousOn
-        apply besselK1_continuousOn.comp (continuous_mul_left m).continuousOn
+        apply continuousOn_besselK1.comp (continuous_mul_left m).continuousOn
         intro r hr; simp only [mem_Ioi] at hr ⊢
         exact mul_pos hm hr
       -- Ioi (1/m) ⊆ Ioi 0 for the restriction

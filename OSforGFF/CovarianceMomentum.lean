@@ -1597,7 +1597,7 @@ lemma aestronglyMeasurable_freeCovariance (m : ℝ) [Fact (0 < m)] :
         apply ContinuousOn.mul continuousOn_const continuousOn_id
         intro r hr; simp only [Set.mem_Ioi] at hr
         exact mul_ne_zero (by positivity : (4 : ℝ) * Real.pi^2 ≠ 0) (ne_of_gt hr)
-      · apply besselK1_continuousOn.comp (continuousOn_const.mul continuousOn_id)
+      · apply continuousOn_besselK1.comp (continuousOn_const.mul continuousOn_id)
         intro r hr; simp only [Set.mem_Ioi] at hr
         exact mul_pos hm hr
     -- Show the composed function is continuous on S
@@ -1691,7 +1691,7 @@ noncomputable def freeCovarianceKernel (m : ℝ) (z : SpaceTime) : ℝ :=
     In d=4 dimensions with f(r) = (m/(4π²r)) K₁(mr):
     ∫_{ℝ⁴} |K(z)| dz ↔ ∫₀^∞ r³ |f(r)| dr = (m/4π²) ∫₀^∞ r² K₁(mr) dr
 
-    This is finite by `radial_besselK1_integrable`. -/
+    This is finite by `integrableOn_radial_besselK1`. -/
 lemma freeCovarianceKernel_integrable (m : ℝ) (hm : 0 < m) :
     Integrable (freeCovarianceKernel m) volume := by
   -- The kernel is a radial function: K(z) = f(‖z‖) where
@@ -1713,7 +1713,7 @@ lemma freeCovarianceKernel_integrable (m : ℝ) (hm : 0 < m) :
     have hr_ne : r ≠ 0 := ne_of_gt hr
     field_simp
   rw [integrableOn_congr_fun h_intgd measurableSet_Ioi]
-  have h_radial := radial_besselK1_integrable m hm
+  have h_radial := integrableOn_radial_besselK1 m hm
   exact h_radial.const_mul (m / (4 * Real.pi^2))
 
 /-- **Polynomial decay bound for the free covariance kernel.**
@@ -1961,7 +1961,7 @@ lemma freeCovariance_exponential_bound' (m : ℝ) [Fact (0 < m)] (u v : SpaceTim
 
     This follows from:
     - ‖z‖ is continuous
-    - K₁ is continuous on (0, ∞) (see `besselK1_continuousOn`)
+    - K₁ is continuous on (0, ∞) (see `continuousOn_besselK1`)
     - Division by ‖z‖ is continuous for z ≠ 0
 
     This is essential for the double mollifier convergence theorem. -/
@@ -1982,7 +1982,7 @@ lemma freeCovarianceKernel_continuousOn (m : ℝ) (hm : 0 < m) :
         have h2 : 0 < 4 * Real.pi^2 * r := mul_pos h1 hr
         exact ne_of_gt h2
     · -- K₁(mr) is continuous on (0, ∞)
-      have h := besselK1_continuousOn.comp (continuousOn_const.mul continuousOn_id)
+      have h := continuousOn_besselK1.comp (continuousOn_const.mul continuousOn_id)
         (fun r hr => by simp only [Set.mem_Ioi] at hr ⊢; exact mul_pos hm hr)
       exact h
   -- Now compose with ‖·‖ and use that z ≠ 0 implies ‖z‖ ≠ 0

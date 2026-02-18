@@ -344,7 +344,7 @@ lemma glasser_tendsto_atBot_at_top (c : ℝ) (_hc : 0 < c) :
   simpa [sub_eq_add_neg] using h1.add_atBot tendsto_neg_atTop_atBot
 
 /-- The Glasser map is continuous on (0, ∞). -/
-lemma glasser_continuousOn (c : ℝ) : ContinuousOn (fun u ↦ c / u - u) (Ioi 0) :=
+lemma continuousOn_glasser (c : ℝ) : ContinuousOn (fun u ↦ c / u - u) (Ioi 0) :=
   (continuousOn_const.div continuousOn_id fun _ hu ↦ ne_of_gt hu).sub continuousOn_id
 
 /-- The Glasser map is strictly decreasing on (0, ∞). -/
@@ -377,7 +377,7 @@ lemma glasser_injOn (c : ℝ) (hc : 0 < c) : InjOn (fun u ↦ c / u - u) (Ioi 0)
   (glasser_strictAntiOn c hc).injOn
 
 /-- The Glasser map has the stated derivative on (0, ∞). -/
-lemma glasser_hasDerivWithinAt (c : ℝ) (u : ℝ) (hu : 0 < u) :
+lemma hasDerivWithinAt_glasser (c : ℝ) (u : ℝ) (hu : 0 < u) :
     HasDerivWithinAt (fun x ↦ c / x - x) (-c / u^2 - 1) (Ioi 0) u :=
   (hasDerivAt_glasser_map c u hu.ne').hasDerivWithinAt
 
@@ -387,7 +387,7 @@ lemma glasser_image_eq_univ (c : ℝ) (hc : 0 < c) :
   apply eq_univ_of_forall
   intro w
   let f := fun u ↦ c / u - u
-  have hcont := glasser_continuousOn c
+  have hcont := continuousOn_glasser c
   have htop := glasser_tendsto_atTop_at_zero c hc
   have hbot := glasser_tendsto_atBot_at_top c hc
   have h_at_sqrt : f (sqrt c) = 0 := by
@@ -434,7 +434,7 @@ theorem weighted_glasser_integral_eq_gaussian (c : ℝ) (hc : 0 < c) :
   let g := fun w ↦ exp (-w^2)
   -- Apply change of variables formula
   have h_cov := @integral_image_eq_integral_abs_deriv_smul ℝ _ _ (Ioi 0) f f'
-    measurableSet_Ioi (fun u hu ↦ glasser_hasDerivWithinAt c u hu) (glasser_injOn c hc) g
+    measurableSet_Ioi (fun u hu ↦ hasDerivWithinAt_glasser c u hu) (glasser_injOn c hc) g
   -- Rewrite using the image = ℝ
   have h_image := glasser_image_eq_univ c hc
   rw [h_image] at h_cov

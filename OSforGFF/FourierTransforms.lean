@@ -258,7 +258,7 @@ theorem integrableOn_exp_decay_Ioi (μ : ℝ) (hμ : 0 < μ) (k : ℝ) :
 
 /-- Exponential e^{bx} is integrable on (-∞, a) when b > 0.
 Proved by change of variables from exp_neg_integrableOn_Ioi. -/
-theorem exp_pos_integrableOn_Iio (a : ℝ) {b : ℝ} (h : 0 < b) :
+theorem integrableOn_exp_pos_Iio (a : ℝ) {b : ℝ} (h : 0 < b) :
     MeasureTheory.IntegrableOn (fun x ↦ Real.exp (b * x)) (Set.Iio a) MeasureTheory.volume := by
   have h_neg : MeasureTheory.IntegrableOn
       (fun x ↦ Real.exp (-b * x)) (Set.Ioi (-a)) MeasureTheory.volume :=
@@ -275,7 +275,7 @@ theorem exp_pos_integrableOn_Iio (a : ℝ) {b : ℝ} (h : 0 < b) :
 
 /-- Exponential e^{bx} is integrable on (-∞, a] when b > 0.
 Follows from Iio version since measure of a point is 0. -/
-theorem exp_pos_integrableOn_Iic (a : ℝ) {b : ℝ} (h : 0 < b) :
+theorem integrableOn_exp_pos_Iic (a : ℝ) {b : ℝ} (h : 0 < b) :
     MeasureTheory.IntegrableOn (fun x ↦ Real.exp (b * x)) (Set.Iic a) MeasureTheory.volume :=
   integrableOn_exp_mul_Iic h a
 
