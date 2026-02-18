@@ -555,10 +555,10 @@ for nonneg weights and functions. Proved by induction using Cauchy-Schwarz. -/
 
 section Minkowski
 
-variable {α : Type*} [MeasurableSpace α] {μ : Measure α}
+variable {X : Type*} [MeasurableSpace X] {μ : Measure X}
 
 private lemma cauchy_schwarz_integral
-    {f g : α → ℝ}
+    {f g : X → ℝ}
     (hf_nn : ∀ x, 0 ≤ f x) (hg_nn : ∀ x, 0 ≤ g x)
     (hf_int : Integrable (fun x => (f x)^2) μ)
     (hg_int : Integrable (fun x => (g x)^2) μ)
@@ -574,12 +574,12 @@ private lemma cauchy_schwarz_integral
     (show MemLp g (ENNReal.ofReal 2) μ from by
       rw [show ENNReal.ofReal 2 = 2 from by norm_num, memLp_two_iff_integrable_sq_norm hg_meas]
       exact hg_int.congr (by filter_upwards with x; simp [Real.norm_eq_abs, sq_abs]))
-  have conv : ∀ (φ : α → ℝ), (fun a => φ a ^ (2:ℝ)) = fun a => (φ a)^(2:ℕ) := by
+  have conv : ∀ (φ : X → ℝ), (fun a => φ a ^ (2:ℝ)) = fun a => (φ a)^(2:ℕ) := by
     intro φ; ext a; exact_mod_cast Real.rpow_natCast (φ a) 2
   simp only [conv, Real.sqrt_eq_rpow] at h ⊢; exact h
 
 private lemma integrable_mul_of_sq_integrable
-    {f g : α → ℝ}
+    {f g : X → ℝ}
     (hf_int : Integrable (fun x => (f x)^2) μ)
     (hg_int : Integrable (fun x => (g x)^2) μ)
     (hf_meas : AEStronglyMeasurable f μ)
@@ -593,7 +593,7 @@ private lemma integrable_mul_of_sq_integrable
     _ ≤ |((f x)^2 + (g x)^2) / 2| := le_abs_self _
 
 private lemma sqrt_integral_sq_add_le
-    {f g : α → ℝ}
+    {f g : X → ℝ}
     (hf_nn : ∀ x, 0 ≤ f x) (hg_nn : ∀ x, 0 ≤ g x)
     (hf_int : Integrable (fun x => (f x)^2) μ)
     (hg_int : Integrable (fun x => (g x)^2) μ)
@@ -641,7 +641,7 @@ private lemma memLp_two_weighted (w : ℝ) (f : α → ℝ)
   convert (hf_int.const_mul (w^2)) using 1
   ext x; simp [mul_pow, Real.norm_eq_abs, sq_abs]
 
-private lemma memLp_two_weighted_sum {n : ℕ} (w : Fin n → ℝ) (f : Fin n → α → ℝ)
+private lemma memLp_two_weighted_sum {n : ℕ} (w : Fin n → ℝ) (f : Fin n → X → ℝ)
     (hf_int : ∀ j, Integrable (fun x => (f j x)^2) μ)
     (hf_meas : ∀ j, AEStronglyMeasurable (f j) μ) :
     MemLp (fun x => ∑ j : Fin n, w j * f j x) 2 μ := by
@@ -662,32 +662,32 @@ private lemma integrable_sq_of_memLp_two {f : α → ℝ} (hf : MemLp f 2 μ) :
     √(∫ (∑ⱼ wⱼfⱼ)² dμ) ≤ ∑ⱼ wⱼ √(∫ fⱼ² dμ)
 
     Proof by induction on n, using Cauchy-Schwarz for integrals at each step. -/
-theorem minkowski_weighted_L2_sum_proved {n : ℕ} {w : Fin n → ℝ} {f : Fin n → α → ℝ}
-    (hw : ∀ j, 0 ≤ w j) (hf : ∀ j ω, 0 ≤ f j ω)
-    (hf_int : ∀ j, Integrable (fun ω => (f j ω)^2) μ)
+theorem minkowski_weighted_L2_sum_proved {n : ℕ} {w : Fin n → ℝ} {f : Fin n → X → ℝ}
+    (hw : ∀ j, 0 ≤ w j) (hf : ∀ j x, 0 ≤ f j x)
+    (hf_int : ∀ j, Integrable (fun x => (f j x)^2) μ)
     (hf_meas : ∀ j, AEStronglyMeasurable (f j) μ) :
-    Real.sqrt (∫ ω, (∑ j, w j * f j ω)^2 ∂μ) ≤ ∑ j, w j * Real.sqrt (∫ ω, (f j ω)^2 ∂μ) := by
+    Real.sqrt (∫ x, (∑ j, w j * f j x)^2 ∂μ) ≤ ∑ j, w j * Real.sqrt (∫ x, (f j x)^2 ∂μ) := by
   induction n with
   | zero => simp
   | succ n ih =>
     simp_rw [Fin.sum_univ_castSucc]
-    set S := fun ω => ∑ j : Fin n, w j.castSucc * f j.castSucc ω
-    set g := fun ω => w (Fin.last n) * f (Fin.last n) ω
-    have hS_nn : ∀ ω, 0 ≤ S ω := fun ω =>
-      Finset.sum_nonneg (fun j _ => mul_nonneg (hw j.castSucc) (hf j.castSucc ω))
-    have hg_nn : ∀ ω, 0 ≤ g ω := fun ω => mul_nonneg (hw _) (hf _ ω)
+    set S := fun x => ∑ j : Fin n, w j.castSucc * f j.castSucc x
+    set g := fun x => w (Fin.last n) * f (Fin.last n) x
+    have hS_nn : ∀ x, 0 ≤ S x := fun x =>
+      Finset.sum_nonneg (fun j _ => mul_nonneg (hw j.castSucc) (hf j.castSucc x))
+    have hg_nn : ∀ x, 0 ≤ g x := fun x => mul_nonneg (hw _) (hf _ x)
     have hS_memLp : MemLp S 2 μ :=
       memLp_two_weighted_sum _ _ (fun j => hf_int j.castSucc) (fun j => hf_meas j.castSucc)
     have hg_memLp : MemLp g 2 μ :=
       memLp_two_weighted _ _ (hf_int _) (hf_meas _)
-    have hS_int : Integrable (fun ω => (S ω)^2) μ := integrable_sq_of_memLp_two hS_memLp
-    have hg_int : Integrable (fun ω => (g ω)^2) μ := integrable_sq_of_memLp_two hg_memLp
-    calc Real.sqrt (∫ ω, (S ω + g ω)^2 ∂μ)
-        ≤ Real.sqrt (∫ ω, (S ω)^2 ∂μ) + Real.sqrt (∫ ω, (g ω)^2 ∂μ) :=
+    have hS_int : Integrable (fun x => (S x)^2) μ := integrable_sq_of_memLp_two hS_memLp
+    have hg_int : Integrable (fun x => (g x)^2) μ := integrable_sq_of_memLp_two hg_memLp
+    calc Real.sqrt (∫ x, (S x + g x)^2 ∂μ)
+        ≤ Real.sqrt (∫ x, (S x)^2 ∂μ) + Real.sqrt (∫ x, (g x)^2 ∂μ) :=
           sqrt_integral_sq_add_le hS_nn hg_nn hS_int hg_int
             hS_memLp.aestronglyMeasurable hg_memLp.aestronglyMeasurable
-      _ ≤ (∑ j : Fin n, w j.castSucc * Real.sqrt (∫ ω, (f j.castSucc ω)^2 ∂μ)) +
-          (w (Fin.last n) * Real.sqrt (∫ ω, (f (Fin.last n) ω)^2 ∂μ)) := by
+      _ ≤ (∑ j : Fin n, w j.castSucc * Real.sqrt (∫ x, (f j.castSucc x)^2 ∂μ)) +
+          (w (Fin.last n) * Real.sqrt (∫ x, (f (Fin.last n) x)^2 ∂μ)) := by
           gcongr
           · exact ih (fun j => hw j.castSucc) (fun j => hf j.castSucc)
               (fun j => hf_int j.castSucc) (fun j => hf_meas j.castSucc)
@@ -857,8 +857,8 @@ private lemma ennreal_mul_le_add_sq (a b : ℝ≥0∞) : a * b ≤ a ^ 2 + b ^ 2
     _ = a ^ 2 := (sq a).symm
     _ ≤ a ^ 2 + b ^ 2 := le_add_right (le_refl _)
 
-private lemma memLp_two_lintegral_nnnorm_sq {α ε : Type*} [MeasurableSpace α]
-    [NormedAddCommGroup ε] {f : α → ε} {μ : Measure α} (hf : MemLp f 2 μ) :
+private lemma memLp_two_lintegral_nnnorm_sq {X E : Type*} [MeasurableSpace X]
+    [NormedAddCommGroup E] {f : X → E} {μ : Measure X} (hf : MemLp f 2 μ) :
     ∫⁻ x, ↑‖f x‖₊ ^ (2 : ℕ) ∂μ < ⊤ := by
   have h := hf.eLpNorm_lt_top
   rw [eLpNorm_eq_lintegral_rpow_enorm (by norm_num : (2 : ℝ≥0∞) ≠ 0)

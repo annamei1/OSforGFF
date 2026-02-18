@@ -5,7 +5,7 @@ Authors: Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim
 -/
 /-
 Frobenius positivity: if G is PSD and nonzero, and B is PD, then
-⟪G, B⟫ = ∑ j ∑ l G j l * B j l > 0.
+⟪G, B⟫ = ∑ j ∑ k G j k * B j k > 0.
 
 We work over ℝ with finite index type ι.
 -/
@@ -35,20 +35,20 @@ variable {ι : Type u} [Fintype ι] [DecidableEq ι]
 /-- Helper: Frobenius inner product equals `trace (Gᵀ * B)` (real case). -/
 lemma frobenius_eq_trace_transpose_mul
   (G B : Matrix ι ι ℝ) :
-  (∑ j, ∑ l, G j l * B j l) = Matrix.trace (G.transpose * B) := by
+  (∑ j, ∑ k, G j k * B j k) = Matrix.trace (G.transpose * B) := by
   classical
   -- Expand the trace of Gᵀ * B
   have htrace : Matrix.trace (G.transpose * B) = ∑ i, ∑ k, G k i * B k i := by
     simp [Matrix.trace, Matrix.mul_apply]
   -- Reorder the Frobenius double sum and rename indices to match htrace
   calc
-    (∑ j, ∑ l, G j l * B j l)
-        = ∑ l, ∑ j, G j l * B j l := by
+    (∑ j, ∑ k, G j k * B j k)
+        = ∑ k, ∑ j, G j k * B j k := by
           simpa using
             (Finset.sum_comm :
-              (∑ j, ∑ l, G j l * B j l) = (∑ l, ∑ j, G j l * B j l))
+              (∑ j, ∑ k, G j k * B j k) = (∑ k, ∑ j, G j k * B j k))
     _ = ∑ i, ∑ k, G k i * B k i := by
-          -- rename bound variables (l→i) in the outer sum, (j→k) in the inner sum
+          -- rename bound variables (k→i) in the outer sum, (j→k) in the inner sum
           apply Finset.sum_congr rfl; intro i _; rfl
     _ = Matrix.trace (G.transpose * B) := htrace.symm
 
@@ -77,52 +77,52 @@ lemma psd_cauchy_schwarz
   -- Note: The suggested replacement CStarAlgebra.nonneg_iff_eq_star_mul_self requires
   -- PartialOrder on matrices which doesn't exist in general
   obtain ⟨B, rfl⟩ := (Matrix.posSemidef_iff_eq_conjTranspose_mul_self (A := H)).mp hH_psd
-  set u : ι → ℝ := B.mulVec x with hu
-  set v : ι → ℝ := B.mulVec y with hv
+  set Bx : ι → ℝ := B.mulVec x with hBx
+  set By : ι → ℝ := B.mulVec y with hBy
   -- xᵀ (Bᵀ B) y = (Bx)⋅(By)
-  have hxy : x ⬝ᵥ (B.transpose * B).mulVec y = u ⬝ᵥ v := by
-    have h1 : (B.transpose * B).mulVec y = B.transpose.mulVec v := by
-      simp [hv, Matrix.mulVec_mulVec]
+  have hxy : x ⬝ᵥ (B.transpose * B).mulVec y = Bx ⬝ᵥ By := by
+    have h1 : (B.transpose * B).mulVec y = B.transpose.mulVec By := by
+      simp [hBy, Matrix.mulVec_mulVec]
     calc
       x ⬝ᵥ (B.transpose * B).mulVec y
-          = x ⬝ᵥ B.transpose.mulVec v := by simp [h1]
-      _ = (Matrix.vecMul x B.transpose) ⬝ᵥ v := by
-        exact dotProduct_mulVec x Bᵀ v
-      _ = (B.mulVec x) ⬝ᵥ v := by
-        -- rewrite vecMul x Bᵀ = B *ᵥ x, then apply to dotProduct _ ⬝ᵥ v
+          = x ⬝ᵥ B.transpose.mulVec By := by simp [h1]
+      _ = (Matrix.vecMul x B.transpose) ⬝ᵥ By := by
+        exact dotProduct_mulVec x Bᵀ By
+      _ = (B.mulVec x) ⬝ᵥ By := by
+        -- rewrite vecMul x Bᵀ = B *ᵥ x, then apply to dotProduct _ ⬝ᵥ By
         have := (Matrix.vecMul_transpose (A := B) (x := x))
-        simpa [hu] using congrArg (fun w => w ⬝ᵥ v) this
+        simpa [hBx] using congrArg (fun w => w ⬝ᵥ By) this
   -- xᵀ (Bᵀ B) x = (Bx)⋅(Bx)
-  have hxx : x ⬝ᵥ (B.transpose * B).mulVec x = u ⬝ᵥ u := by
-    have h1 : (B.transpose * B).mulVec x = B.transpose.mulVec u := by
-      simp [hu, Matrix.mulVec_mulVec]
+  have hxx : x ⬝ᵥ (B.transpose * B).mulVec x = Bx ⬝ᵥ Bx := by
+    have h1 : (B.transpose * B).mulVec x = B.transpose.mulVec Bx := by
+      simp [hBx, Matrix.mulVec_mulVec]
     calc
       x ⬝ᵥ (B.transpose * B).mulVec x
-          = x ⬝ᵥ B.transpose.mulVec u := by simp [h1]
-      _ = (Matrix.vecMul x B.transpose) ⬝ᵥ u := by
-        exact dotProduct_mulVec x Bᵀ u
-      _ = u ⬝ᵥ u := by
+          = x ⬝ᵥ B.transpose.mulVec Bx := by simp [h1]
+      _ = (Matrix.vecMul x B.transpose) ⬝ᵥ Bx := by
+        exact dotProduct_mulVec x Bᵀ Bx
+      _ = Bx ⬝ᵥ Bx := by
         have := (Matrix.vecMul_transpose (A := B) (x := x))
-        simpa [hu] using congrArg (fun w => w ⬝ᵥ u) this
+        simpa [hBx] using congrArg (fun w => w ⬝ᵥ Bx) this
   -- yᵀ (Bᵀ B) y = (By)⋅(By)
-  have hyy : y ⬝ᵥ (B.transpose * B).mulVec y = v ⬝ᵥ v := by
-    have h1 : (B.transpose * B).mulVec y = B.transpose.mulVec v := by
-      simp [hv, Matrix.mulVec_mulVec]
+  have hyy : y ⬝ᵥ (B.transpose * B).mulVec y = By ⬝ᵥ By := by
+    have h1 : (B.transpose * B).mulVec y = B.transpose.mulVec By := by
+      simp [hBy, Matrix.mulVec_mulVec]
     calc
       y ⬝ᵥ (B.transpose * B).mulVec y
-          = y ⬝ᵥ B.transpose.mulVec v := by simp [h1]
-      _ = (Matrix.vecMul y B.transpose) ⬝ᵥ v := by
-        exact dotProduct_mulVec y Bᵀ v
-      _ = v ⬝ᵥ v := by
+          = y ⬝ᵥ B.transpose.mulVec By := by simp [h1]
+      _ = (Matrix.vecMul y B.transpose) ⬝ᵥ By := by
+        exact dotProduct_mulVec y Bᵀ By
+      _ = By ⬝ᵥ By := by
         have := (Matrix.vecMul_transpose (A := B) (x := y))
-        simpa [hv] using congrArg (fun w => w ⬝ᵥ v) this
-  -- Cauchy–Schwarz in ℝ^ι: |u⋅v|^2 ≤ (u⋅u)(v⋅v)
-  have hCS : (u ⬝ᵥ v)^2 ≤ (u ⬝ᵥ u) * (v ⬝ᵥ v) := by
+        simpa [hBy] using congrArg (fun w => w ⬝ᵥ By) this
+  -- Cauchy–Schwarz in ℝ^ι: |Bx⋅By|^2 ≤ (Bx⋅Bx)(By⋅By)
+  have hCS : (Bx ⬝ᵥ By)^2 ≤ (Bx ⬝ᵥ Bx) * (By ⬝ᵥ By) := by
     classical
     -- Finset version of Cauchy–Schwarz with s = univ
     simpa [dotProduct, sq] using
       (Finset.sum_mul_sq_le_sq_mul_sq (s := (Finset.univ : Finset ι))
-        (f := fun i => u i) (g := fun i => v i))
+        (f := fun i => Bx i) (g := fun i => By i))
   simpa [hxy, hxx, hyy] using hCS
 
 /-- If H is PSD over ℝ and H ii = H jj = 0 then H ij = 0. -/
@@ -170,7 +170,7 @@ lemma posSemidef_diag_pos_exists_of_ne_zero
 
 /-- Frobenius positivity for a nonzero PSD matrix against a PD matrix (real case).
 If `G` is positive semidefinite and nonzero, and `B` is positive definite,
-then the Frobenius inner product `∑ j, ∑ l, G j l * B j l` is strictly positive.
+then the Frobenius inner product `∑ j, ∑ k, G j k * B j k` is strictly positive.
 
 High-level proof sketch (to be formalized):
 - Use spectral theorem for real symmetric PD matrices: B = U D Uᵀ with D diagonal, diag(λ), λ > 0.
@@ -182,10 +182,10 @@ High-level proof sketch (to be formalized):
 -/
 lemma frobenius_pos_of_psd_posdef
   (G B : Matrix ι ι ℝ) (hG_psd : G.PosSemidef) (hG_ne_zero : G ≠ 0) (hB : B.PosDef) :
-  0 < ∑ j, ∑ l, G j l * B j l := by
+  0 < ∑ j, ∑ k, G j k * B j k := by
   classical
   -- Step 1: rewrite as a trace
-  have hfrob_trace : (∑ j, ∑ l, G j l * B j l) = Matrix.trace (G.transpose * B) :=
+  have hfrob_trace : (∑ j, ∑ k, G j k * B j k) = Matrix.trace (G.transpose * B) :=
     frobenius_eq_trace_transpose_mul G B
   -- Step 2: spectral decomposition of B using positive definite eigenvalues
   have hB_herm : B.IsHermitian := hB.1

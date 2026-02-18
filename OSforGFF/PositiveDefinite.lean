@@ -34,8 +34,8 @@ open BigOperators
 
     This is the standard definition in harmonic analysis and probability theory. -/
 def IsPositiveDefinite {α : Type*} [AddGroup α] (φ : α → ℂ) : Prop :=
-  ∀ (m : ℕ) (x : Fin m → α) (c : Fin m → ℂ),
-    0 ≤ (∑ i, ∑ j, (starRingEnd ℂ) (c i) * c j * φ (x i - x j)).re
+  ∀ (m : ℕ) (x : Fin m → α) (ξ : Fin m → ℂ),
+    0 ≤ (∑ i, ∑ j, (starRingEnd ℂ) (ξ i) * ξ j * φ (x i - x j)).re
 
 /-- Composition preserves positive definiteness: if ψ is positive definite on H and
     T : E →ₗ[ℝ] H is linear, then ψ ∘ T is positive definite on E. -/
@@ -43,5 +43,5 @@ lemma isPositiveDefinite_precomp_linear
   {E H : Type*} [AddCommGroup E] [AddCommGroup H]
   [Module ℝ E] [Module ℝ H]
   (ψ : H → ℂ) (hPD : IsPositiveDefinite ψ) (T : E →ₗ[ℝ] H) :
-  IsPositiveDefinite (fun f : E => ψ (T f)) := fun m x c => by
-  simpa using hPD m (fun i => T (x i)) c
+  IsPositiveDefinite (fun v : E => ψ (T v)) := fun m x ξ => by
+  simpa using hPD m (fun i => T (x i)) ξ

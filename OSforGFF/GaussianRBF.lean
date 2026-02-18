@@ -106,9 +106,9 @@ lemma innerProduct_is_pd_kernel :
   rw [sum_a_eq, sum_b_eq]
 
   -- Both inner products are nonneg (‖·‖² ≥ 0)
-  have h1 : 0 ≤ ⟪v_a, v_a⟫_ℝ := real_inner_self_nonneg
-  have h2 : 0 ≤ ⟪v_b, v_b⟫_ℝ := real_inner_self_nonneg
-  exact add_nonneg h1 h2
+  have h₁ : 0 ≤ ⟪v_a, v_a⟫_ℝ := real_inner_self_nonneg
+  have h₂ : 0 ≤ ⟪v_b, v_b⟫_ℝ := real_inner_self_nonneg
+  exact add_nonneg h₁ h₂
 
 /-- Helper: For a real-valued PD kernel, the kernel matrix is PSD.
     Forward direction of the bridge between complex kernels and real matrices. -/
@@ -289,10 +289,10 @@ theorem gaussian_rbf_pd_innerProduct_proof :
   rw [h_sum']
 
   -- Now apply that exp(⟨·,·⟩) is a PD kernel
-  have h_inner_pd : IsPositiveDefiniteKernel (fun (u v : H) => (⟪u, v⟫_ℝ : ℂ)) := innerProduct_is_pd_kernel
-  have h_exp_inner_pd : IsPositiveDefiniteKernel (fun (u v : H) => cexp (⟪u, v⟫_ℝ : ℂ)) := by
+  have h_inner_pd : IsPositiveDefiniteKernel (fun (x y : H) => (⟪x, y⟫_ℝ : ℂ)) := innerProduct_is_pd_kernel
+  have h_exp_inner_pd : IsPositiveDefiniteKernel (fun (x y : H) => cexp (⟪x, y⟫_ℝ : ℂ)) := by
     apply exp_is_pd_kernel _ h_inner_pd
     · exact fun _ _ => ofReal_im ⟪_, _⟫_ℝ
-    · intro u v
+    · intro x y
       simp only [real_inner_comm]
   exact h_exp_inner_pd m x d

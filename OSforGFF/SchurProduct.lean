@@ -232,19 +232,19 @@ lemma gram_psd_from_A_posdef
   · -- Nonnegative quadratic form
     intro z
     -- The quadratic form is ∑_j z_j * ∑_l G_{jl} * z_l where G_{jl} = ∑_i colSlice(y,j)_i * (A * colSlice(y,l))_i
-    -- This can be written as ⟨w, A w⟩ where w = ∑_j z_j * colSlice(y, j)
-    let w : ι → ℝ := fun i => ∑ j, z j * (colSlice (ι:=ι) y j) i
+    -- This can be written as ⟨x, A x⟩ where x = ∑_j z_j * colSlice(y, j)
+    let x : ι → ℝ := fun i => ∑ j, z j * (colSlice (ι:=ι) y j) i
 
     suffices h : star z ⬝ᵥ Matrix.mulVec (fun j l : ι => ∑ i, (colSlice (ι:=ι) y j) i * (A.mulVec (colSlice (ι:=ι) y l)) i) z
-                = star w ⬝ᵥ A.mulVec w by
+                = star x ⬝ᵥ A.mulVec x by
       rw [h]
-      -- Since A is positive semidefinite, star w ⬝ᵥ A.mulVec w ≥ 0
+      -- Since A is positive semidefinite, star x ⬝ᵥ A.mulVec x ≥ 0
       have hA_psd : A.PosSemidef := hA.posSemidef
-      exact hA_psd.dotProduct_mulVec_nonneg w
+      exact hA_psd.dotProduct_mulVec_nonneg x
 
     -- Prove the equality by expanding both sides to the same expression
-    -- Key helper: rewrite the inner sum on the right into (A.mulVec w) i
-    have hinner : ∀ i : ι, (∑ l, z l * (A.mulVec (colSlice (ι:=ι) y l)) i) = (A.mulVec w) i := by
+    -- Key helper: rewrite the inner sum on the right into (A.mulVec x) i
+    have hinner : ∀ i : ι, (∑ l, z l * (A.mulVec (colSlice (ι:=ι) y l)) i) = (A.mulVec x) i := by
       intro i; classical
       calc
         ∑ l, z l * (A.mulVec (colSlice (ι:=ι) y l)) i
@@ -264,13 +264,13 @@ lemma gram_psd_from_A_posdef
         _ = ∑ k, A i k * (∑ l, z l * (colSlice (ι:=ι) y l) k) := by
                 apply Finset.sum_congr rfl; intro k _
                 ring
-        _ = (A.mulVec w) i := by
-                simp only [Matrix.mulVec, w, colSlice, dotProduct]
+        _ = (A.mulVec x) i := by
+                simp only [Matrix.mulVec, x, colSlice, dotProduct]
 
-    -- Left-hand side expands to Σ_i w i * (Σ_l z l * (A.mulVec (colSlice y l)) i)
+    -- Left-hand side expands to Σ_i x i * (Σ_l z l * (A.mulVec (colSlice y l)) i)
     have hL :
         star z ⬝ᵥ Matrix.mulVec (fun j l : ι => ∑ i, (colSlice (ι:=ι) y j) i * (A.mulVec (colSlice (ι:=ι) y l)) i) z
-        = ∑ i, w i * (∑ l, z l * (A.mulVec (colSlice (ι:=ι) y l)) i) := by
+        = ∑ i, x i * (∑ l, z l * (A.mulVec (colSlice (ι:=ι) y l)) i) := by
       classical
       -- Start from the LHS and expand to a triple sum
       have h0 :
@@ -344,18 +344,18 @@ lemma gram_psd_from_A_posdef
         -- combine
         have := halign.trans hprod
         simpa [hcomm_l] using this
-      -- Put the pieces together and rewrite `w`, using h0 for the LHS expansion
-      -- Recall w i = ∑ j, z j * (colSlice y j)
+      -- Put the pieces together and rewrite `x`, using h0 for the LHS expansion
+      -- Recall x i = ∑ j, z j * (colSlice y j)
       -- Also expand the left-hand side dotProduct form via h0
-      simpa [w] using h0.trans (h1.trans h2)
+      simpa [x] using h0.trans (h1.trans h2)
 
-    -- Right-hand side is ∑ i, w i * (A.mulVec w) i
-    have hR : star w ⬝ᵥ A.mulVec w = ∑ i, w i * (A.mulVec w) i := by
+    -- Right-hand side is ∑ i, x i * (A.mulVec x) i
+    have hR : star x ⬝ᵥ A.mulVec x = ∑ i, x i * (A.mulVec x) i := by
       simp [dotProduct, star, Matrix.mulVec]
 
     -- Combine the two by rewriting the inner sum using hinner
-    have : ∑ i, w i * (∑ l, z l * (A.mulVec (colSlice (ι:=ι) y l)) i)
-           = ∑ i, w i * (A.mulVec w) i := by
+    have : ∑ i, x i * (∑ l, z l * (A.mulVec (colSlice (ι:=ι) y l)) i)
+           = ∑ i, x i * (A.mulVec x) i := by
       classical
       apply Finset.sum_congr rfl; intro i _
       simp [hinner i]
