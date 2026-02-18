@@ -198,18 +198,18 @@ section LiftMeasure
   complex Lp functions, with support on the real subspace.
   -/
   noncomputable def liftMeasure_real_to_complex
-      (dμ_real : ProbabilityMeasure (Lp ℝ 2 μ)) :
+      (ν : ProbabilityMeasure (Lp ℝ 2 μ)) :
       ProbabilityMeasure (Lp ℂ 2 μ) :=
-    let dμ_complex_measure : Measure (Lp ℂ 2 μ) :=
-      Measure.map embedding_real_to_complex dμ_real
-    have h_ae : AEMeasurable embedding_real_to_complex dμ_real := by
+    let ν' : Measure (Lp ℂ 2 μ) :=
+      Measure.map embedding_real_to_complex ν
+    have h_ae : AEMeasurable embedding_real_to_complex ν := by
       apply Continuous.aemeasurable
       unfold embedding_real_to_complex composed_function
       have : Continuous (fun φ : Lp ℝ 2 μ => Complex.ofRealCLM.compLp φ : Lp ℝ 2 μ → Lp ℂ 2 μ) :=
         Complex.ofRealCLM_continuous_compLp
       exact this
     have h_is_prob := isProbabilityMeasure_map h_ae
-    ⟨dμ_complex_measure, h_is_prob⟩
+    ⟨ν', h_is_prob⟩
 
 end LiftMeasure
 
@@ -299,13 +299,13 @@ noncomputable def linfty_mul_L2_CLM {μ : Measure α}
   have hg_mem : MemLp g ∞ μ := memLp_top_of_bound hg_meas.aestronglyMeasurable C hg_bound
   refine LinearMap.mkContinuous
     { toFun := fun f => (MemLp.mul (p:=∞) (q:=2) (r:=2) (Lp.memLp f) hg_mem).toLp (g * ⇑f)
-      map_add' := fun f1 f2 => by
+      map_add' := fun f₁ f₂ => by
         ext1
-        filter_upwards [MemLp.coeFn_toLp (MemLp.mul (p:=∞) (q:=2) (r:=2) (Lp.memLp (f1 + f2)) hg_mem),
-                        MemLp.coeFn_toLp (MemLp.mul (p:=∞) (q:=2) (r:=2) (Lp.memLp f1) hg_mem),
-                        MemLp.coeFn_toLp (MemLp.mul (p:=∞) (q:=2) (r:=2) (Lp.memLp f2) hg_mem),
-                        Lp.coeFn_add f1 f2,
-                        Lp.coeFn_add ((MemLp.mul (p:=∞) (q:=2) (r:=2) (Lp.memLp f1) hg_mem).toLp (g * ⇑f1)) ((MemLp.mul (p:=∞) (q:=2) (r:=2) (Lp.memLp f2) hg_mem).toLp (g * ⇑f2))] with x h1 h2 h3 h4 h5
+        filter_upwards [MemLp.coeFn_toLp (MemLp.mul (p:=∞) (q:=2) (r:=2) (Lp.memLp (f₁ + f₂)) hg_mem),
+                        MemLp.coeFn_toLp (MemLp.mul (p:=∞) (q:=2) (r:=2) (Lp.memLp f₁) hg_mem),
+                        MemLp.coeFn_toLp (MemLp.mul (p:=∞) (q:=2) (r:=2) (Lp.memLp f₂) hg_mem),
+                        Lp.coeFn_add f₁ f₂,
+                        Lp.coeFn_add ((MemLp.mul (p:=∞) (q:=2) (r:=2) (Lp.memLp f₁) hg_mem).toLp (g * ⇑f₁)) ((MemLp.mul (p:=∞) (q:=2) (r:=2) (Lp.memLp f₂) hg_mem).toLp (g * ⇑f₂))] with x h1 h2 h3 h4 h5
         simp only [h1, h2, h3, h4, h5, Pi.add_apply, Pi.mul_apply, mul_add]
       map_smul' := fun c f => by
         ext1
@@ -582,18 +582,18 @@ theorem schwartz_bilinear_integrable_of_translationInvariant_L1
     Integrable (fun p : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n) =>
       f p.1 * K₀ (p.1 - p.2) * g p.2) volume := by
   -- Get boundedness of f: Schwartz functions are bounded continuous
-  have hf_bdd : ∃ Cf, ∀ x, ‖f x‖ ≤ Cf := by
+  have hf_bdd : ∃ M, ∀ x, ‖f x‖ ≤ M := by
     use ‖f.toBoundedContinuousFunction‖
     intro x
     exact BoundedContinuousFunction.norm_coe_le_norm f.toBoundedContinuousFunction x
-  obtain ⟨Cf, hCf⟩ := hf_bdd
+  obtain ⟨M, hM⟩ := hf_bdd
 
   -- Get integrability of g (Schwartz functions are integrable)
   have hg_int : Integrable g volume := g.integrable
 
-  -- The dominating function: Cf * |K₀(x-y)| * |g(y)|
+  -- The dominating function: M * |K₀(x-y)| * |g(y)|
   let bound : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n) → ℝ :=
-    fun p => Cf * ‖K₀ (p.1 - p.2)‖ * ‖g p.2‖
+    fun p => M * ‖K₀ (p.1 - p.2)‖ * ‖g p.2‖
 
   -- Use Integrable.mono' with the bound
   apply Integrable.mono'
@@ -633,8 +633,8 @@ theorem schwartz_bilinear_integrable_of_translationInvariant_L1
         rfl
       rw [heq, he_preserves.integrable_comp_emb e.measurableEmbedding]
       exact hprod
-    -- Multiply by constant Cf
-    exact hchange.const_mul Cf
+    -- Multiply by constant M
+    exact hchange.const_mul M
 
   · -- AEStronglyMeasurable of the integrand
     apply AEStronglyMeasurable.mul
@@ -660,20 +660,20 @@ theorem schwartz_bilinear_integrable_of_translationInvariant_L1
       exact hK_fst.comp_measurePreserving he_sub_preserves
     · exact g.continuous.aestronglyMeasurable.comp_measurable measurable_snd
 
-  · -- Pointwise bound: ‖f(x) K₀(x-y) g(y)‖ ≤ Cf * ‖K₀(x-y)‖ * ‖g(y)‖
+  · -- Pointwise bound: ‖f(x) K₀(x-y) g(y)‖ ≤ M * ‖K₀(x-y)‖ * ‖g(y)‖
     filter_upwards with p
     rw [norm_mul, norm_mul]
     calc ‖f p.1‖ * ‖K₀ (p.1 - p.2)‖ * ‖g p.2‖
-        ≤ Cf * ‖K₀ (p.1 - p.2)‖ * ‖g p.2‖ := by
-          have h := hCf p.1
+        ≤ M * ‖K₀ (p.1 - p.2)‖ * ‖g p.2‖ := by
+          have h := hM p.1
           have h1 : 0 ≤ ‖K₀ (p.1 - p.2)‖ := norm_nonneg _
           have h2 : 0 ≤ ‖g p.2‖ := norm_nonneg _
           have h12 : 0 ≤ ‖K₀ (p.1 - p.2)‖ * ‖g p.2‖ := mul_nonneg h1 h2
           calc ‖f p.1‖ * ‖K₀ (p.1 - p.2)‖ * ‖g p.2‖
               = ‖f p.1‖ * (‖K₀ (p.1 - p.2)‖ * ‖g p.2‖) := by ring
-            _ ≤ Cf * (‖K₀ (p.1 - p.2)‖ * ‖g p.2‖) := mul_le_mul_of_nonneg_right h h12
-            _ = Cf * ‖K₀ (p.1 - p.2)‖ * ‖g p.2‖ := by ring
-      _ = Cf * (‖K₀ (p.1 - p.2)‖ * ‖g p.2‖) := by ring
+            _ ≤ M * (‖K₀ (p.1 - p.2)‖ * ‖g p.2‖) := mul_le_mul_of_nonneg_right h h12
+            _ = M * ‖K₀ (p.1 - p.2)‖ * ‖g p.2‖ := by ring
+      _ = M * (‖K₀ (p.1 - p.2)‖ * ‖g p.2‖) := by ring
 
 /-! ## Schwartz Functions Times Bounded Functions
 
@@ -751,15 +751,15 @@ theorem schwartz_vanishing_linear_bound_general
   have h_diff : Differentiable ℝ f := f.differentiable
 
   -- Use the first order seminorm to bound the derivative
-  let C_deriv := (SchwartzMap.seminorm ℝ 0 1).toFun f + 1
+  let M := (SchwartzMap.seminorm ℝ 0 1).toFun f + 1
 
-  have h_deriv_bound : ∀ y : ℝ × E, ‖iteratedFDeriv ℝ 1 f y‖ ≤ C_deriv := by
+  have h_deriv_bound : ∀ y : ℝ × E, ‖iteratedFDeriv ℝ 1 f y‖ ≤ M := by
     intro y
     have h := SchwartzMap.le_seminorm ℝ 0 1 f y
     simp only [pow_zero, one_mul] at h
     calc ‖iteratedFDeriv ℝ 1 (⇑f) y‖ ≤ (SchwartzMap.seminorm ℝ 0 1) f := h
       _ ≤ (SchwartzMap.seminorm ℝ 0 1) f + 1 := by linarith
-      _ = C_deriv := rfl
+      _ = M := rfl
 
   -- The convex set (whole space)
   have h_convex : Convex ℝ (Set.univ : Set (ℝ × E)) := convex_univ
@@ -771,14 +771,14 @@ theorem schwartz_vanishing_linear_bound_general
     exact f.differentiableAt.hasFDerivAt.hasFDerivWithinAt
 
   -- Connection: ‖fderiv ℝ f y‖ = ‖iteratedFDeriv ℝ 1 f y‖
-  have h_fderiv_bound : ∀ y ∈ (Set.univ : Set (ℝ × E)), ‖fderiv ℝ f y‖ ≤ C_deriv := by
+  have h_fderiv_bound : ∀ y ∈ (Set.univ : Set (ℝ × E)), ‖fderiv ℝ f y‖ ≤ M := by
     intro y _
     have h_norm_eq : ‖iteratedFDeriv ℝ 1 f y‖ = ‖fderiv ℝ f y‖ := by
       rw [← iteratedFDerivWithin_univ, ← fderivWithin_univ]
       exact norm_iteratedFDerivWithin_one f uniqueDiffWithinAt_univ
     linarith [h_deriv_bound y]
 
-  use C_deriv
+  use M
   intro t ht x
 
   -- 2. The reference point: (0, x) where f vanishes
@@ -799,7 +799,7 @@ theorem schwartz_vanishing_linear_bound_general
   have h_mvt := h_convex.norm_image_sub_le_of_norm_hasFDerivWithin_le
     h_hasFDeriv h_fderiv_bound (Set.mem_univ A) (Set.mem_univ B)
 
-  -- Simplify: f A = 0, so ‖f B‖ ≤ C_deriv * ‖B - A‖
+  -- Simplify: f A = 0, so ‖f B‖ ≤ M * ‖B - A‖
   rw [h_zero, sub_zero] at h_mvt
 
   -- Compute ‖B - A‖ = ‖(t, x) - (0, x)‖ = ‖(t, 0)‖ = |t| = t
@@ -867,21 +867,21 @@ open Real
 /-- **Schwartz L¹ bound**: Schwartz functions are integrable with explicit decay.
     For f ∈ 𝓢(ℝⁿ), we have ∫ |f(x)| dx < ∞.
 
-    More precisely, for any N, there exists C such that
-    |f(x)| ≤ C / (1 + |x|)^N. If N > dim(V), this implies integrability.
+    More precisely, for any m, there exists C such that
+    |f(x)| ≤ C / (1 + |x|)^m. If m > dim(V), this implies integrability.
 
     **Reference**: Stein-Weiss, Chapter 1, Proposition 1.1 -/
 theorem schwartz_integrable_decay {V : Type*} [NormedAddCommGroup V]
     [NormedSpace ℝ V] [FiniteDimensional ℝ V] [MeasureSpace V] [BorelSpace V]
-    (f : SchwartzMap V ℂ) (N : ℕ) (_hN : Module.finrank ℝ V < N) :
-    ∃ C : ℝ, 0 < C ∧ ∀ x : V, ‖f x‖ ≤ C / (1 + ‖x‖)^N := by
-  -- Get bounds for each k ≤ N
+    (f : SchwartzMap V ℂ) (m : ℕ) (_hm : Module.finrank ℝ V < m) :
+    ∃ C : ℝ, 0 < C ∧ ∀ x : V, ‖f x‖ ≤ C / (1 + ‖x‖)^m := by
+  -- Get bounds for each k ≤ m
   have h_decay : ∀ k, ∃ C_k > 0, ∀ x, ‖x‖^k * ‖iteratedFDeriv ℝ 0 f x‖ ≤ C_k := fun k => SchwartzMap.decay f k 0
   choose C hC_pos hC using h_decay
 
-  let total_C := Finset.sum (Finset.range (N + 1)) (fun k => (N.choose k : ℝ) * C k)
+  let B := Finset.sum (Finset.range (m + 1)) (fun k => (m.choose k : ℝ) * C k)
 
-  use total_C
+  use B
   constructor
   · apply Finset.sum_pos
     · intro k hk
@@ -892,8 +892,8 @@ theorem schwartz_integrable_decay {V : Type*} [NormedAddCommGroup V]
   · intro x
     rw [div_eq_mul_inv, le_mul_inv_iff₀ (pow_pos (by linarith [norm_nonneg x]) _)]
 
-    -- Expand (1 + ‖x‖)^N
-    have h_binom : (1 + ‖x‖)^N = Finset.sum (Finset.range (N + 1)) (fun k => (N.choose k : ℝ) * ‖x‖^k) := by
+    -- Expand (1 + ‖x‖)^m
+    have h_binom : (1 + ‖x‖)^m = Finset.sum (Finset.range (m + 1)) (fun k => (m.choose k : ℝ) * ‖x‖^k) := by
       rw [add_comm, add_pow]
       simp only [one_pow, mul_one]
       congr; ext k
@@ -911,7 +911,7 @@ theorem schwartz_integrable_decay {V : Type*} [NormedAddCommGroup V]
        rw [norm_iteratedFDeriv_zero]
 
     -- Rearrange to match hC
-    have h_rearrange : ‖f x‖ * ((N.choose k : ℝ) * ‖x‖^k) = (N.choose k : ℝ) * (‖x‖^k * ‖iteratedFDeriv ℝ 0 f x‖) := by
+    have h_rearrange : ‖f x‖ * ((m.choose k : ℝ) * ‖x‖^k) = (m.choose k : ℝ) * (‖x‖^k * ‖iteratedFDeriv ℝ 0 f x‖) := by
        rw [h_norm]
        ring
     rw [h_rearrange]
@@ -1156,9 +1156,9 @@ theorem double_mollifier_convergence
          rw [h_eq]
        · -- Prove integrability of F(t, v) = ψ v * ψ(t-v) * C(x₀-t)
          let F := fun (p : E × E) => ψ p.2 * ψ (p.1 - p.2) * C (x₀ - p.1)
-         let K_t := Metric.closedBall (0 : E) (2 * (φ i).rOut)
-         let K_v := Metric.closedBall (0 : E) ((φ i).rOut)
-         let K := K_t ×ˢ K_v
+         let s₁ := Metric.closedBall (0 : E) (2 * (φ i).rOut)
+         let s₂ := Metric.closedBall (0 : E) ((φ i).rOut)
+         let K := s₁ ×ˢ s₂
          have hK_compact : IsCompact K := IsCompact.prod (isCompact_closedBall 0 _) (isCompact_closedBall 0 _)
 
          -- Support is in K
@@ -1177,7 +1177,7 @@ theorem double_mollifier_convergence
              dsimp [ψ]
              simp only [(φ i).support_normed_eq]
            rw [h_supp_psi, Metric.mem_ball, dist_zero_right] at hv htv
-           dsimp [K, K_t, K_v]
+           dsimp [K, s₁, s₂]
            rw [mem_prod, Metric.mem_closedBall, Metric.mem_closedBall, dist_zero_right, dist_zero_right]
            constructor
            · calc ‖t‖ = ‖(t-v) + v‖ := by abel_nf
@@ -1197,7 +1197,7 @@ theorem double_mollifier_convergence
             · apply ContinuousOn.comp hC
               · exact Continuous.continuousOn (continuous_const.sub continuous_fst)
               · intro ⟨t, v⟩ htv
-                dsimp [K, K_t, K_v] at htv
+                dsimp [K, s₁, s₂] at htv
                 simp only [mem_prod, Metric.mem_closedBall, dist_zero_right, mem_setOf_eq, sub_ne_zero] at htv ⊢
                 by_contra h_tx₀
                 rw [← h_tx₀] at htv

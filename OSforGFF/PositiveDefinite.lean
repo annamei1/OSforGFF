@@ -16,7 +16,7 @@ This file contains the definition of positive definite functions and basic lemma
 Extracted from Minlos.lean to avoid circular imports with GaussianRBF.lean.
 
 Key definitions:
-- `IsPositiveDefinite`: A function φ : α → ℂ is positive definite if for any finite
+- `IsPositiveDefinite`: A function φ : G → ℂ is positive definite if for any finite
   collection of points and complex coefficients, ∑ᵢⱼ c̄ᵢ cⱼ φ(xᵢ - xⱼ) ≥ 0
 
 Key lemmas:
@@ -28,13 +28,13 @@ open BigOperators
 
 /-! ## Positive Definiteness -/
 
-/-- A function φ : α → ℂ is positive definite if for any finite collection
+/-- A function φ : G → ℂ is positive definite if for any finite collection
     of points x₁, ..., xₘ and complex coefficients c₁, ..., cₘ, we have
     ∑ᵢⱼ c̄ᵢ cⱼ φ(xᵢ - xⱼ) ≥ 0
 
     This is the standard definition in harmonic analysis and probability theory. -/
-def IsPositiveDefinite {α : Type*} [AddGroup α] (φ : α → ℂ) : Prop :=
-  ∀ (m : ℕ) (x : Fin m → α) (ξ : Fin m → ℂ),
+def IsPositiveDefinite {G : Type*} [AddGroup G] (φ : G → ℂ) : Prop :=
+  ∀ (m : ℕ) (x : Fin m → G) (ξ : Fin m → ℂ),
     0 ≤ (∑ i, ∑ j, (starRingEnd ℂ) (ξ i) * ξ j * φ (x i - x j)).re
 
 /-- Composition preserves positive definiteness: if ψ is positive definite on H and

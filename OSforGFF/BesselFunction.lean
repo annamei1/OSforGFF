@@ -410,9 +410,9 @@ lemma besselK1_asymptotic (z : ℝ) (hz : 1 ≤ z) :
         _ = exp t * exp (-z * exp t / 2) := by ring_nf
     have hF_deriv : ∀ t, HasDerivAt F (g t) t := by
       intro t
-      have h1 : HasDerivAt (fun s => -z * exp s / 2) (-z / 2 * exp t) t := by
+      have h1 : HasDerivAt (fun x => -z * exp x / 2) (-z / 2 * exp t) t := by
         have := (hasDerivAt_exp t).const_mul (-z / 2); convert this using 1; funext; ring
-      have h2 : HasDerivAt (fun s => exp (-z * exp s / 2)) (exp (-z * exp t / 2) * (-z / 2 * exp t)) t :=
+      have h2 : HasDerivAt (fun x => exp (-z * exp x / 2)) (exp (-z * exp t / 2) * (-z / 2 * exp t)) t :=
         (hasDerivAt_exp _).comp t h1
       simp only [g]; convert h2.const_mul (-2/z) using 1; field_simp
     have hF_cont : ContinuousWithinAt F (Ici 1) 1 := by
@@ -606,10 +606,10 @@ lemma besselK1_mul_self_le (z : ℝ) (hz : 0 < z) (hz_le : z ≤ 1) :
     -- F'(t) = g(t)
     have hF_deriv : ∀ t, HasDerivAt F (g t) t := by
       intro t
-      have h1 : HasDerivAt (fun s => -z * exp s / 2) (-z / 2 * exp t) t := by
+      have h1 : HasDerivAt (fun x => -z * exp x / 2) (-z / 2 * exp t) t := by
         have := (hasDerivAt_exp t).const_mul (-z / 2)
         convert this using 1; funext; ring
-      have h2 : HasDerivAt (fun s => exp (-z * exp s / 2)) (exp (-z * exp t / 2) * (-z / 2 * exp t)) t :=
+      have h2 : HasDerivAt (fun x => exp (-z * exp x / 2)) (exp (-z * exp t / 2) * (-z / 2 * exp t)) t :=
         (hasDerivAt_exp _).comp t h1
       have h3 := h2.const_mul (-2/z)
       simp only [g] at *
@@ -905,22 +905,22 @@ lemma bessel_symmetry_integral (z : ℝ) (hz : 0 < z) :
           have h : exp 4 = exp 2 * exp 2 := by rw [← exp_add]; norm_num
           nlinarith [h]
         -- exp(u) - u²/2 is strictly increasing for u ≥ 4 (derivative = exp(u) - u > 0)
-        have h_strict_mono : StrictMonoOn (fun v => exp v - v^2 / 2) (Set.Ici 4) := by
+        have h_strict_mono : StrictMonoOn (fun y => exp y - y^2 / 2) (Set.Ici 4) := by
           apply strictMonoOn_of_deriv_pos (convex_Ici 4)
           · exact (continuous_exp.sub (continuous_pow 2 |>.div_const 2)).continuousOn
           · intro x hx
             simp only [Set.nonempty_Iio, interior_Ici', Set.mem_Ioi] at hx
             have hx4 : x > 4 := hx
-            -- Derivative of exp(v) - v²/2 is exp(v) - v
-            have hderiv : deriv (fun v => exp v - v^2 / 2) x = exp x - x := by
-              have hd1 : DifferentiableAt ℝ (fun v => exp v) x := differentiableAt_exp
-              have hd2 : DifferentiableAt ℝ (fun v => v^2 / 2) x := (differentiableAt_pow 2).div_const 2
-              have heq : (fun v => exp v - v^2 / 2) = (fun v => exp v) - (fun v => v^2 / 2) := by
-                ext v; simp [sub_eq_add_neg]
+            -- Derivative of exp(y) - y²/2 is exp(y) - y
+            have hderiv : deriv (fun y => exp y - y^2 / 2) x = exp x - x := by
+              have hd1 : DifferentiableAt ℝ (fun y => exp y) x := differentiableAt_exp
+              have hd2 : DifferentiableAt ℝ (fun y => y^2 / 2) x := (differentiableAt_pow 2).div_const 2
+              have heq : (fun y => exp y - y^2 / 2) = (fun y => exp y) - (fun y => y^2 / 2) := by
+                ext y; simp [sub_eq_add_neg]
               rw [heq, deriv_sub hd1 hd2, deriv_div_const]
               simp only [Real.deriv_exp]
-              -- deriv (fun v => v^2) x = 2 * x
-              have hpow : deriv (fun v : ℝ => v^(2 : ℕ)) x = (2 : ℝ) * x^(2-1) := deriv_pow_field 2
+              -- deriv (fun y => y^2) x = 2 * x
+              have hpow : deriv (fun y : ℝ => y^(2 : ℕ)) x = (2 : ℝ) * x^(2-1) := deriv_pow_field 2
               simp only [pow_one, Nat.add_one_sub_one] at hpow
               rw [hpow]; ring
             rw [hderiv]
@@ -1129,8 +1129,8 @@ lemma schwingerIntegral_eq_besselK1 (m r : ℝ) (hm : 0 < m) (hr : 0 < r) :
     -- Using the Jacobian formula with φ'(u) = c * exp(u)
     let φ := fun u => c * exp u
     have hφ_mono : StrictMono φ := by
-      intro a b hab
-      exact mul_lt_mul_of_pos_left (exp_lt_exp.mpr hab) hc
+      intro x y hxy
+      exact mul_lt_mul_of_pos_left (exp_lt_exp.mpr hxy) hc
     have hφ_surj : φ '' Set.univ = Ioi 0 := by
       ext t
       simp only [Set.mem_image, Set.mem_univ, true_and, mem_Ioi, φ]

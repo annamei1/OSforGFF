@@ -18,7 +18,7 @@ import OSforGFF.HadamardExp
 
 open Complex BigOperators Real InnerProductSpace Matrix
 
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H]
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
 /-- Definition of a positive definite kernel K : α × α → ℂ. -/
 def IsPositiveDefiniteKernel {α : Type*} (K : α → α → ℂ) : Prop :=
@@ -27,7 +27,7 @@ def IsPositiveDefiniteKernel {α : Type*} (K : α → α → ℂ) : Prop :=
 
 /-- Step 2: The inner product kernel is positive definite. -/
 lemma innerProduct_is_pd_kernel :
-    IsPositiveDefiniteKernel (fun (x y : H) => (⟪x, y⟫_ℝ : ℂ)) := by
+    IsPositiveDefiniteKernel (fun (x y : E) => (⟪x, y⟫_ℝ : ℂ)) := by
   -- Strategy:
   -- The sum ∑∑ c_i* c_j <x_i, x_j> expands to ||∑ a_i x_i||^2 + ||∑ b_i x_i||^2 ≥ 0
   -- where c_i = a_i + i b_i.
@@ -36,8 +36,8 @@ lemma innerProduct_is_pd_kernel :
   let a : Fin m → ℝ := fun i => (c i).re
   let b : Fin m → ℝ := fun i => (c i).im
   -- Define weighted sums of x's
-  let v_a : H := ∑ i : Fin m, a i • x i
-  let v_b : H := ∑ i : Fin m, b i • x i
+  let v_a : E := ∑ i : Fin m, a i • x i
+  let v_b : E := ∑ i : Fin m, b i • x i
 
   -- Key computation: Re(∑∑ c̄ᵢcⱼ⟪xᵢ,xⱼ⟫) = ⟪v_a, v_a⟫ + ⟪v_b, v_b⟫ = ‖v_a‖² + ‖v_b‖²
   -- First, expand star(c_i) * c_j = (a_i - ib_i)(a_j + ib_j) = (a_i a_j + b_i b_j) + i(a_i b_j - b_i a_j)
@@ -221,7 +221,7 @@ lemma exp_is_pd_kernel {α : Type*} (K : α → α → ℂ) (hK : IsPositiveDefi
 
 /-- The Gaussian RBF kernel is positive definite on any inner product space. -/
 theorem gaussian_rbf_pd_innerProduct_proof :
-    IsPositiveDefinite (fun h : H => cexp (-(1/2 : ℂ) * (‖h‖^2 : ℝ))) := by
+    IsPositiveDefinite (fun h : E => cexp (-(1/2 : ℂ) * (‖h‖^2 : ℝ))) := by
   -- Strategy:
   -- 1. Use the polarization identity: ‖x - y‖² = ‖x‖² + ‖y‖² - 2⟨x, y⟩
   -- 2. Factor the Gaussian kernel:
@@ -289,8 +289,8 @@ theorem gaussian_rbf_pd_innerProduct_proof :
   rw [h_sum']
 
   -- Now apply that exp(⟨·,·⟩) is a PD kernel
-  have h_inner_pd : IsPositiveDefiniteKernel (fun (x y : H) => (⟪x, y⟫_ℝ : ℂ)) := innerProduct_is_pd_kernel
-  have h_exp_inner_pd : IsPositiveDefiniteKernel (fun (x y : H) => cexp (⟪x, y⟫_ℝ : ℂ)) := by
+  have h_inner_pd : IsPositiveDefiniteKernel (fun (x y : E) => (⟪x, y⟫_ℝ : ℂ)) := innerProduct_is_pd_kernel
+  have h_exp_inner_pd : IsPositiveDefiniteKernel (fun (x y : E) => cexp (⟪x, y⟫_ℝ : ℂ)) := by
     apply exp_is_pd_kernel _ h_inner_pd
     · exact fun _ _ => ofReal_im ⟪_, _⟫_ℝ
     · intro x y

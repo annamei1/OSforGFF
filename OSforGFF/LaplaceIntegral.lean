@@ -453,9 +453,9 @@ theorem glasser_gaussian_integral (c : ℝ) (hc : 0 < c) :
 /-- Completing the square: a/t² + b·t² = (√a/t - √b·t)² + 2√(ab) -/
 lemma complete_square (a b : ℝ) (ha : 0 < a) (hb : 0 < b) (t : ℝ) (ht : 0 < t) :
     a / t^2 + b * t^2 = (sqrt a / t - sqrt b * t)^2 + 2 * sqrt (a * b) := by
-  have expand : (sqrt a / t - sqrt b * t)^2 = a / t^2 - 2 * sqrt a * sqrt b + b * t^2 := by
+  have h_expand : (sqrt a / t - sqrt b * t)^2 = a / t^2 - 2 * sqrt a * sqrt b + b * t^2 := by
     field_simp; ring_nf; rw [sq_sqrt ha.le, sq_sqrt hb.le]; ring
-  rw [expand, Real.sqrt_mul ha.le b]; ring
+  rw [h_expand, Real.sqrt_mul ha.le b]; ring
 
 /-! ## Part 5: The main substitutions -/
 
@@ -483,11 +483,11 @@ lemma laplace_integral_subst_sq (a b : ℝ) (_ha : 0 < a) (_hb : 0 < b) :
     rw [show (2 : ℝ) - 1 = 1 by norm_num, rpow_one]
   rw [h1]
   -- Key: (t^2)^(-1/2) = t⁻¹
-  have key : (t ^ (2 : ℝ)) ^ (-(1/2) : ℝ) = t⁻¹ := by
+  have h_key : (t ^ (2 : ℝ)) ^ (-(1/2) : ℝ) = t⁻¹ := by
     rw [← rpow_mul ht_nonneg]
     norm_num
     exact rpow_neg_one t
-  simp only [key]
+  simp only [h_key]
   -- Goal: 2 * t * (t⁻¹ * exp(...)) = 2 * exp(...)
   -- Rearrange: (2 * t) * (t⁻¹ * E) = 2 * (t * t⁻¹) * E = 2 * E
   -- Direct calculation using field_simp

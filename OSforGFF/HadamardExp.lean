@@ -275,7 +275,7 @@ lemma summable_hadamardQuadSeries
   have h_outer : Summable (fun n : ℕ => ∑ i : ι, ∑ j : ι,
       (1 / (Nat.factorial n : ℝ)) * (x i * (A i j) ^ n * x j)) := by
     classical
-    exact summable_sum fun i a => h_inner i
+    exact summable_sum fun i _ => h_inner i
 
   -- Identify the quadratic form with the double sum built above.
   have h_eq :
