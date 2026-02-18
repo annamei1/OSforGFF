@@ -46,6 +46,7 @@ STEP 4 — Execution
 Modify {lean_file} directly.
 - Make no unrelated edits.
 - Preserve formatting and structure.
+- After editing, build the file to ensure no errors are introduced.
 
 STEP 5 — Reporting
 Write a brief section summarizing the rules applied in {report_file}, in a section titled "{lean_file}".

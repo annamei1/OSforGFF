@@ -3,12 +3,7 @@ Copyright (c) 2025 Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim. All r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim
 -/
-/-
-Frobenius positivity: if G is PSD and nonzero, and B is PD, then
-⟪G, B⟫ = ∑ j ∑ k G j k * B j k > 0.
 
-We work over ℝ with finite index type ι.
--/
 
 import Mathlib.Data.Matrix.Basic
 import Mathlib.LinearAlgebra.Matrix.PosDef
@@ -22,6 +17,13 @@ import Mathlib.Data.Matrix.Mul
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Mathlib.Analysis.Matrix.Order
 
+/-!
+Frobenius positivity: if G is PSD and nonzero, and B is PD, then
+⟪G, B⟫ = ∑ j ∑ k G j k * B j k > 0.
+
+We work over ℝ with finite index type ι.
+-/
+
 open Matrix
 
 open scoped BigOperators
@@ -34,8 +36,8 @@ variable {ι : Type u} [Fintype ι] [DecidableEq ι]
 
 /-- Helper: Frobenius inner product equals `trace (Gᵀ * B)` (real case). -/
 lemma frobenius_eq_trace_transpose_mul
-  (G B : Matrix ι ι ℝ) :
-  (∑ j, ∑ k, G j k * B j k) = Matrix.trace (G.transpose * B) := by
+    (G B : Matrix ι ι ℝ) :
+    (∑ j, ∑ k, G j k * B j k) = Matrix.trace (G.transpose * B) := by
   classical
   -- Expand the trace of Gᵀ * B
   have htrace : Matrix.trace (G.transpose * B) = ∑ i, ∑ k, G k i * B k i := by
@@ -55,8 +57,8 @@ lemma frobenius_eq_trace_transpose_mul
 /-- Congruence by an orthogonal/invertible matrix preserves nonzeroness (real case).
 If `U * Uᵀ = 1`, then `Uᵀ G U ≠ 0` whenever `G ≠ 0`. -/
 lemma congr_transpose_mul_mul_ne_zero
-  (U G : Matrix ι ι ℝ) (hU_right : U * U.transpose = 1) (hG_ne_zero : G ≠ 0) :
-  U.transpose * G * U ≠ 0 := by
+    (U G : Matrix ι ι ℝ) (hU_right : U * U.transpose = 1) (hG_ne_zero : G ≠ 0) :
+    U.transpose * G * U ≠ 0 := by
   intro hH
   -- Conjugate back with U on the left and Uᵀ on the right to recover G
   have hcalc : U * (U.transpose * G * U) * U.transpose
@@ -71,8 +73,8 @@ set_option linter.deprecated false in
 /-- Cauchy–Schwarz for the semi-inner product induced by a PSD real matrix.
 For all vectors x,y: (xᵀ H y)^2 ≤ (xᵀ H x) (yᵀ H y). -/
 lemma psd_cauchy_schwarz
-  (H : Matrix ι ι ℝ) (hH_psd : H.PosSemidef) (x y : ι → ℝ) :
-  ((x ⬝ᵥ H.mulVec y)^2) ≤ (x ⬝ᵥ H.mulVec x) * (y ⬝ᵥ H.mulVec y) := by
+    (H : Matrix ι ι ℝ) (hH_psd : H.PosSemidef) (x y : ι → ℝ) :
+    ((x ⬝ᵥ H.mulVec y)^2) ≤ (x ⬝ᵥ H.mulVec x) * (y ⬝ᵥ H.mulVec y) := by
   classical
   -- Note: The suggested replacement CStarAlgebra.nonneg_iff_eq_star_mul_self requires
   -- PartialOrder on matrices which doesn't exist in general
@@ -91,7 +93,7 @@ lemma psd_cauchy_schwarz
       _ = (B.mulVec x) ⬝ᵥ By := by
         -- rewrite vecMul x Bᵀ = B *ᵥ x, then apply to dotProduct _ ⬝ᵥ By
         have := (Matrix.vecMul_transpose (A := B) (x := x))
-        simpa [hBx] using congrArg (fun w => w ⬝ᵥ By) this
+        simpa [hBx] using congrArg (fun w ↦ w ⬝ᵥ By) this
   -- xᵀ (Bᵀ B) x = (Bx)⋅(Bx)
   have hxx : x ⬝ᵥ (B.transpose * B).mulVec x = Bx ⬝ᵥ Bx := by
     have h1 : (B.transpose * B).mulVec x = B.transpose.mulVec Bx := by
@@ -103,7 +105,7 @@ lemma psd_cauchy_schwarz
         exact dotProduct_mulVec x Bᵀ Bx
       _ = Bx ⬝ᵥ Bx := by
         have := (Matrix.vecMul_transpose (A := B) (x := x))
-        simpa [hBx] using congrArg (fun w => w ⬝ᵥ Bx) this
+        simpa [hBx] using congrArg (fun w ↦ w ⬝ᵥ Bx) this
   -- yᵀ (Bᵀ B) y = (By)⋅(By)
   have hyy : y ⬝ᵥ (B.transpose * B).mulVec y = By ⬝ᵥ By := by
     have h1 : (B.transpose * B).mulVec y = B.transpose.mulVec By := by
@@ -115,30 +117,29 @@ lemma psd_cauchy_schwarz
         exact dotProduct_mulVec y Bᵀ By
       _ = By ⬝ᵥ By := by
         have := (Matrix.vecMul_transpose (A := B) (x := y))
-        simpa [hBy] using congrArg (fun w => w ⬝ᵥ By) this
+        simpa [hBy] using congrArg (fun w ↦ w ⬝ᵥ By) this
   -- Cauchy–Schwarz in ℝ^ι: |Bx⋅By|^2 ≤ (Bx⋅Bx)(By⋅By)
   have hCS : (Bx ⬝ᵥ By)^2 ≤ (Bx ⬝ᵥ Bx) * (By ⬝ᵥ By) := by
     classical
     -- Finset version of Cauchy–Schwarz with s = univ
     simpa [dotProduct, sq] using
       (Finset.sum_mul_sq_le_sq_mul_sq (s := (Finset.univ : Finset ι))
-        (f := fun i => Bx i) (g := fun i => By i))
+        (f := fun i ↦ Bx i) (g := fun i ↦ By i))
   simpa [hxy, hxx, hyy] using hCS
 
 /-- If H is PSD over ℝ and H ii = H jj = 0 then H ij = 0. -/
 lemma psd_offdiag_zero_of_diag_zero
-  (H : Matrix ι ι ℝ) (hH_psd : H.PosSemidef) {i j : ι}
-  (hii : H i i = 0) (hjj : H j j = 0) : H i j = 0 := by
+    (H : Matrix ι ι ℝ) (hH_psd : H.PosSemidef) {i j : ι}
+    (hii : H i i = 0) (hjj : H j j = 0) : H i j = 0 := by
   classical
   -- Apply Cauchy–Schwarz with x = e_i, y = e_j
-  have hcs := psd_cauchy_schwarz H hH_psd (Pi.single i (1:ℝ)) (Pi.single j (1:ℝ))
+  have hcs := psd_cauchy_schwarz H hH_psd (Pi.single i (1 : ℝ)) (Pi.single j (1 : ℝ))
   -- Rewrite each quadratic form
-  have hx : (Pi.single i (1:ℝ)) ⬝ᵥ H.mulVec (Pi.single i 1) = H i i := by simp
-  have hy : (Pi.single j (1:ℝ)) ⬝ᵥ H.mulVec (Pi.single j 1) = H j j := by simp
-  have hxy : (Pi.single i (1:ℝ)) ⬝ᵥ H.mulVec (Pi.single j 1) = H i j := by simp
+  have hx : (Pi.single i (1 : ℝ)) ⬝ᵥ H.mulVec (Pi.single i 1) = H i i := by simp
+  have hy : (Pi.single j (1 : ℝ)) ⬝ᵥ H.mulVec (Pi.single j 1) = H j j := by simp
+  have hxy : (Pi.single i (1 : ℝ)) ⬝ᵥ H.mulVec (Pi.single j 1) = H i j := by simp
   -- Substitute and use hii, hjj
-  have : (H i j)^2 ≤ (H i i) * (H j j) := by simpa [hx, hy, hxy]
-    using hcs
+  have : (H i j)^2 ≤ (H i i) * (H j j) := by simpa [hx, hy, hxy] using hcs
   -- Right side is 0, left is square ≥ 0, hence equality and H i j = 0 over ℝ
   have : (H i j)^2 ≤ 0 := by simpa [hii, hjj]
   have hsq_nonneg : 0 ≤ (H i j)^2 := by have := sq_nonneg (H i j); simpa using this
@@ -147,14 +148,14 @@ lemma psd_offdiag_zero_of_diag_zero
 
 /-- For a real PSD matrix, if it is nonzero then some diagonal entry is strictly positive. -/
 lemma posSemidef_diag_pos_exists_of_ne_zero
-  (H : Matrix ι ι ℝ) (hH_psd : H.PosSemidef) (hH_ne_zero : H ≠ 0) :
-  ∃ i, 0 < H i i := by
+    (H : Matrix ι ι ℝ) (hH_psd : H.PosSemidef) (hH_ne_zero : H ≠ 0) :
+    ∃ i, 0 < H i i := by
   classical
   -- Suppose all diagonal entries are ≤ 0; PSD gives ≥ 0, hence all zeros
   by_contra h
   push_neg at h
-  have hdiag_nonneg : ∀ i, 0 ≤ H i i := fun i => hH_psd.diag_nonneg
-  have hdiag_zero : ∀ i, H i i = 0 := fun i => le_antisymm (h i) (hdiag_nonneg i)
+  have hdiag_nonneg : ∀ i, 0 ≤ H i i := fun i ↦ hH_psd.diag_nonneg
+  have hdiag_zero : ∀ i, H i i = 0 := fun i ↦ le_antisymm (h i) (hdiag_nonneg i)
   -- Show all off-diagonals are zero
   have hoff : ∀ i j, H i j = 0 := by
     intro i j
@@ -181,8 +182,8 @@ High-level proof sketch (to be formalized):
 - This avoids Cholesky and uses spectral decomposition/unitary congruence invariance.
 -/
 lemma frobenius_pos_of_psd_posdef
-  (G B : Matrix ι ι ℝ) (hG_psd : G.PosSemidef) (hG_ne_zero : G ≠ 0) (hB : B.PosDef) :
-  0 < ∑ j, ∑ k, G j k * B j k := by
+    (G B : Matrix ι ι ℝ) (hG_psd : G.PosSemidef) (hG_ne_zero : G ≠ 0) (hB : B.PosDef) :
+    0 < ∑ j, ∑ k, G j k * B j k := by
   classical
   -- Step 1: rewrite as a trace
   have hfrob_trace : (∑ j, ∑ k, G j k * B j k) = Matrix.trace (G.transpose * B) :=
@@ -200,7 +201,8 @@ lemma frobenius_pos_of_psd_posdef
   have hB_decomp : B = U * Matrix.diagonal d * U.transpose := by
     rw [hB_spectral]
     simp only [Unitary.conjStarAlgAut_apply, Matrix.star_eq_conjTranspose,
-               Matrix.conjTranspose_eq_transpose_of_trivial, Function.comp_def, RCLike.ofReal_real_eq_id, id]
+      Matrix.conjTranspose_eq_transpose_of_trivial, Function.comp_def,
+      RCLike.ofReal_real_eq_id, id]
     rfl
   -- Define H := Uᵀ * G * U and show PSD
   let H : Matrix ι ι ℝ := U.transpose * G * U
@@ -215,13 +217,10 @@ lemma frobenius_pos_of_psd_posdef
       -- Uu is a unitary group element, coerce to show membership
       rw [show U = Uu.val from rfl]
       exact Uu.property
-
     have hU_unitary : U * U.conjTranspose = 1 := by
       exact Matrix.mem_unitaryGroup_iff.mp hU_mem
-
     have hU_right : U * U.transpose = 1 := by
       simpa [Matrix.conjTranspose_eq_transpose_of_trivial] using hU_unitary
-
     exact congr_transpose_mul_mul_ne_zero U G hU_right hG_ne_zero
   -- Trace cyclicity: reduce to trace(H * diagonal d)
   have hG_herm : G.IsHermitian := by
@@ -241,9 +240,9 @@ lemma frobenius_pos_of_psd_posdef
   have htrace_sum : Matrix.trace (H * Matrix.diagonal d) = ∑ i, d i * H i i := by
     classical
     simp [Matrix.trace, Matrix.mul_apply, Matrix.diagonal]
-    exact Finset.sum_congr rfl (fun i _ => mul_comm _ _)
+    exact Finset.sum_congr rfl (fun i _ ↦ mul_comm _ _)
   -- Diagonal entries of H are ≥ 0 from PSD
-  have hdiag_nonneg : ∀ i, 0 ≤ H i i := fun i => hH_psd.diag_nonneg
+  have hdiag_nonneg : ∀ i, 0 ≤ H i i := fun i ↦ hH_psd.diag_nonneg
   -- From nonzero PSD, some diagonal is positive (local lemma)
   have hdiag_pos_exists : ∃ i, 0 < H i i :=
     posSemidef_diag_pos_exists_of_ne_zero H hH_psd hH_ne_zero
@@ -251,7 +250,7 @@ lemma frobenius_pos_of_psd_posdef
   rcases hdiag_pos_exists with ⟨i0, hi0pos⟩
   have hsum_pos : 0 < ∑ i, d i * H i i := by
     have h_pos : 0 < d i0 * H i0 i0 := mul_pos (hd_pos i0) hi0pos
-    rw [← Finset.add_sum_erase Finset.univ (fun i => d i * H i i) (Finset.mem_univ i0)]
+    rw [← Finset.add_sum_erase Finset.univ (fun i ↦ d i * H i i) (Finset.mem_univ i0)]
     have h_nonneg : 0 ≤ ∑ x ∈ Finset.univ.erase i0, d x * H x x := by
       apply Finset.sum_nonneg; intro i _
       exact mul_nonneg (le_of_lt (hd_pos i)) (hdiag_nonneg i)

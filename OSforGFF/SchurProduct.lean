@@ -3,7 +3,7 @@ Copyright (c) 2025 Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim. All r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim
 -/
-/-
+/-!
 Schur product theorem (Hadamard product preserves positive semidefiniteness).
 
 We prove/record that if A and B are positive semidefinite Hermitian matrices, then their
@@ -39,7 +39,7 @@ notation:100 A "∘ₕ" B => Matrix.hadamard A B
 
 /-- Auxiliary: diagonal embedding of a vector `x : ι → ℝ` into `ι×ι` used for the restriction
 argument: only the diagonal entries are nonzero and equal to `x`. -/
-@[simp] def diagEmbed (x : ι → ℝ) : ι × ι → ℝ := fun p => if p.2 = p.1 then x p.1 else 0
+@[simp] def diagEmbed (x : ι → ℝ) : ι × ι → ℝ := fun p ↦ if p.2 = p.1 then x p.1 else 0
 
 @[simp] lemma diagEmbed_diag (x : ι → ℝ) (i : ι) : diagEmbed (ι:=ι) x (i, i) = x i := by
   simp [diagEmbed]
@@ -50,15 +50,15 @@ lemma diagEmbed_ne_zero_of_ne_zero {x : ι → ℝ} (hx : x ≠ 0) : diagEmbed (
   intro h
   apply hx
   funext i
-  have := congrArg (fun f => f (i, i)) h
+  have := congrArg (fun f ↦ f (i, i)) h
   simpa [diagEmbed] using this
 
 /-- Kronecker-like product kernel on the product index: (i,j),(k,l) ↦ A i k * B j l. -/
 @[simp] def kronLike (A B : Matrix ι ι ℝ) : Matrix (ι × ι) (ι × ι) ℝ :=
-  fun p q => A p.1 q.1 * B p.2 q.2
+  fun p q ↦ A p.1 q.1 * B p.2 q.2
 
 /-- Column slice of a vector indexed by ι×ι: take j and view i ↦ y (i,j). -/
-@[simp] def colSlice (y : ι × ι → ℝ) (j : ι) : ι → ℝ := fun i => y (i, j)
+@[simp] def colSlice (y : ι × ι → ℝ) (j : ι) : ι → ℝ := fun i ↦ y (i, j)
 
 /-- Finite sum over pairs equals iterated double sum over coordinates (binderless sums). -/
 lemma sum_pairs_eq_double (g : ι × ι → ℝ) :
@@ -74,7 +74,7 @@ lemma kronLike_mulVec
   -- Start from definition
   have : (∑ q, (A i q.1 * B j q.2) * y q)
       = ∑ k, ∑ l, (A i k * B j l) * y (k, l) := by
-    simpa using sum_pairs_eq_double (g := fun q => (A i q.1 * B j q.2) * y q)
+    simpa using sum_pairs_eq_double (g := fun q ↦ (A i q.1 * B j q.2) * y q)
   simpa [Matrix.mulVec, kronLike] using this
 
 /-- Helper: swap sums and factor the `B` term in the Kronecker quadratic expansion. -/
@@ -124,7 +124,7 @@ lemma swap_sums_factor_B
       _ = (∑ i, (∑ k, y (i, j) * (A i k * y (k, l)))) * B j l := by
             simp [Finset.sum_mul]
       _ = (∑ i, y (i, j) * (∑ k, A i k * y (k, l))) * B j l := by
-            apply congrArg (fun t => t * B j l)
+            apply congrArg (fun t ↦ t * B j l)
             apply Finset.sum_congr rfl; intro i _
             simp [Finset.mul_sum]
   -- Assemble the pieces
@@ -154,7 +154,7 @@ lemma kronLike_quadratic_sum
   have hsum_pairs :
       (∑ p, y p * ((kronLike (ι:=ι) A B).mulVec y) p)
       = ∑ i, ∑ j, y (i, j) * ((kronLike (ι:=ι) A B).mulVec y) (i, j) := by
-    simpa using sum_pairs_eq_double (g := fun p => y p * ((kronLike (ι:=ι) A B).mulVec y) p)
+    simpa using sum_pairs_eq_double (g := fun p ↦ y p * ((kronLike (ι:=ι) A B).mulVec y) p)
   have hmul :
       (∑ i, ∑ j, y (i, j) * ((kronLike (ι:=ι) A B).mulVec y) (i, j))
       = ∑ i, ∑ j, y (i, j) * (∑ k, ∑ l, (A i k * B j l) * y (k, l)) := by
@@ -193,7 +193,9 @@ lemma frobenius_pos_of_psd_posdef
 `G j l = ∑ i, (colSlice y j) i * (A * colSlice y l)_i` is positive semidefinite. -/
 lemma gram_psd_from_A_posdef
   (A : Matrix ι ι ℝ) (hA : A.PosDef) (y : ι × ι → ℝ) :
-  Matrix.PosSemidef (fun j l : ι => ∑ i, (colSlice (ι:=ι) y j) i * (A.mulVec (colSlice (ι:=ι) y l)) i) := by
+  Matrix.PosSemidef (fun j l : ι ↦
+    ∑ i, (colSlice (ι:=ι) y j) i *
+      (A.mulVec (colSlice (ι:=ι) y l)) i) := by
   classical
   -- Use the characterization via dotProduct_mulVec
   rw [Matrix.posSemidef_iff_dotProduct_mulVec]
@@ -231,11 +233,12 @@ lemma gram_psd_from_A_posdef
             simp [Finset.mul_sum, mul_left_comm]
   · -- Nonnegative quadratic form
     intro z
-    -- The quadratic form is ∑_j z_j * ∑_l G_{jl} * z_l where G_{jl} = ∑_i colSlice(y,j)_i * (A * colSlice(y,l))_i
+    -- The quadratic form is ∑_j z_j * ∑_l G_{jl} * z_l where
+    -- G_{jl} = ∑_i colSlice(y,j)_i * (A * colSlice(y,l))_i
     -- This can be written as ⟨x, A x⟩ where x = ∑_j z_j * colSlice(y, j)
-    let x : ι → ℝ := fun i => ∑ j, z j * (colSlice (ι:=ι) y j) i
+    let x : ι → ℝ := fun i ↦ ∑ j, z j * (colSlice (ι:=ι) y j) i
 
-    suffices h : star z ⬝ᵥ Matrix.mulVec (fun j l : ι => ∑ i, (colSlice (ι:=ι) y j) i * (A.mulVec (colSlice (ι:=ι) y l)) i) z
+    suffices h : star z ⬝ᵥ Matrix.mulVec (fun j l : ι ↦ ∑ i, (colSlice (ι:=ι) y j) i * (A.mulVec (colSlice (ι:=ι) y l)) i) z
                 = star x ⬝ᵥ A.mulVec x by
       rw [h]
       -- Since A is positive semidefinite, star x ⬝ᵥ A.mulVec x ≥ 0
@@ -269,12 +272,12 @@ lemma gram_psd_from_A_posdef
 
     -- Left-hand side expands to Σ_i x i * (Σ_l z l * (A.mulVec (colSlice y l)) i)
     have hL :
-        star z ⬝ᵥ Matrix.mulVec (fun j l : ι => ∑ i, (colSlice (ι:=ι) y j) i * (A.mulVec (colSlice (ι:=ι) y l)) i) z
+        star z ⬝ᵥ Matrix.mulVec (fun j l : ι ↦ ∑ i, (colSlice (ι:=ι) y j) i * (A.mulVec (colSlice (ι:=ι) y l)) i) z
         = ∑ i, x i * (∑ l, z l * (A.mulVec (colSlice (ι:=ι) y l)) i) := by
       classical
       -- Start from the LHS and expand to a triple sum
       have h0 :
-        star z ⬝ᵥ Matrix.mulVec (fun j l : ι => ∑ i, (colSlice (ι:=ι) y j) i * (A.mulVec (colSlice (ι:=ι) y l)) i) z
+        star z ⬝ᵥ Matrix.mulVec (fun j l : ι ↦ ∑ i, (colSlice (ι:=ι) y j) i * (A.mulVec (colSlice (ι:=ι) y l)) i) z
         = ∑ j, z j * ∑ l, (∑ i, (colSlice (ι:=ι) y j) i * (A.mulVec (colSlice (ι:=ι) y l)) i) * z l := by
         simp [dotProduct, star, Matrix.mulVec]
       -- Turn into a quadruple sum and regroup by i
@@ -388,7 +391,8 @@ lemma kronLike_posDef
   · -- Now show positivity of the quadratic form
     intro y hy
     -- Use the spectral theorem approach, but simplified
-    -- Key insight: use kronLike_quadratic_sum to express quadratic form in terms of A-quadratic forms
+    -- Key insight: use kronLike_quadratic_sum to express quadratic form
+    -- in terms of A-quadratic forms
 
     -- Since we have kronLike_quadratic_sum available (even if it has sorry), use it conceptually
     have hquad_form : y ⬝ᵥ (kronLike (ι:=ι) A B).mulVec y =
@@ -405,15 +409,20 @@ lemma kronLike_posDef
     rw [star_y_eq, hquad_form]
 
     -- Define the Gram matrix G_{jl} = ∑_i colSlice(y,j)_i * (A * colSlice(y,l))_i
-    let G : Matrix ι ι ℝ := fun j l => ∑ i, (colSlice (ι:=ι) y j) i * (A.mulVec (colSlice (ι:=ι) y l)) i
+    let G : Matrix ι ι ℝ := fun j l ↦
+      ∑ i, (colSlice (ι:=ι) y j) i *
+        (A.mulVec (colSlice (ι:=ι) y l)) i
 
     -- The quadratic form becomes ∑_{j,l} G_{jl} * B_{jl}
     change 0 < ∑ j, ∑ l, G j l * B j l
 
-    -- Key insight: This is the Frobenius inner product ⟨G, B⟩ = trace(G^T * B) = trace(G * B) (since G real)
+    -- Key insight: This is the Frobenius inner product
+    -- ⟨G, B⟩ = trace(G^T * B) = trace(G * B) (since G real)
     -- Since B is positive definite, its eigenvalues are positive
-    -- Since G arises from A (positive definite) acting on colSlice vectors, G is positive semidefinite
-    -- The Frobenius product of two positive semidefinite matrices with one being positive definite is positive
+    -- Since G arises from A (positive definite) acting on colSlice
+    -- vectors, G is positive semidefinite
+    -- The Frobenius product of two positive semidefinite matrices
+    -- with one being positive definite is positive
     -- if the first matrix is nonzero
 
     -- Show G ≠ 0
@@ -421,7 +430,8 @@ lemma kronLike_posDef
       -- If G = 0, then for all j,l: ∑_i colSlice(y,j)_i * (A * colSlice(y,l))_i = 0
       -- Taking j = l and summing over j: ∑_j ∑_i colSlice(y,j)_i * (A * colSlice(y,j))_i = 0
       -- But this equals ∑_j ⟨colSlice(y,j), A * colSlice(y,j)⟩ = 0
-      -- Since A is positive definite, this implies all colSlice(y,j) = 0, hence y = 0, contradiction
+      -- Since A is positive definite, this implies
+      -- all colSlice(y,j) = 0, hence y = 0, contradiction
       intro hG_zero
       apply hy
       ext ⟨i, j⟩
@@ -444,7 +454,8 @@ lemma kronLike_posDef
         have heq_zero : (colSlice (ι:=ι) y j) ⬝ᵥ (A.mulVec (colSlice (ι:=ι) y j)) = 0 := by
           simp [dotProduct, colSlice] at hGjj ⊢
           exact hGjj
-        -- Over reals, star (colSlice y j) = colSlice y j, so we need star colSlice y j ⬝ᵥ A.mulVec colSlice y j = 0
+        -- Over reals, star (colSlice y j) = colSlice y j,
+        -- so we need star colSlice y j ⬝ᵥ A.mulVec colSlice y j = 0
         have star_col : star (colSlice (ι:=ι) y j) = colSlice (ι:=ι) y j := by
           ext k
           simp [star]
@@ -510,7 +521,7 @@ If A B are positive definite matrices over ℝ, then the Hadamard product is pos
             = ∑ p, y p * ((kronLike (ι:=ι) A B).mulVec y) p := by
               simp [dotProduct]
         _ = ∑ i, ∑ j, y (i, j) * ((kronLike (ι:=ι) A B).mulVec y) (i, j) := by
-              exact sum_pairs_eq_double fun p => y p * (kronLike A B).mulVec y p
+              exact sum_pairs_eq_double fun p ↦ y p * (kronLike A B).mulVec y p
         _ = ∑ i, ∑ j, y (i, j) * (∑ k, ∑ l, (A i k * B j l) * y (k, l)) := by
               apply Finset.sum_congr rfl; intro i _; apply Finset.sum_congr rfl; intro j _
               simp [kronLike_mulVec]
@@ -519,7 +530,8 @@ If A B are positive definite matrices over ℝ, then the Hadamard product is pos
               simp [y, diagEmbed, Finset.mul_sum, eq_comm]
         _ = x ⬝ᵥ (A ∘ₕ B).mulVec x := by
               -- expand RHS: Hadamard mulVec then dot
-              simp [dotProduct, Matrix.mulVec, Matrix.hadamard, Finset.mul_sum, mul_comm, mul_left_comm]
+              simp [dotProduct, Matrix.mulVec, Matrix.hadamard,
+                Finset.mul_sum, mul_comm, mul_left_comm]
     -- transport positivity
     simpa [hquad_eq] using hk
 

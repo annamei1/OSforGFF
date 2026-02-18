@@ -120,7 +120,6 @@ The following L∞ × L² multiplication theorems are fully proven (2025-12-13):
 
 open MeasureTheory.Measure
 
-
 variable {n : ℕ} [NeZero n]
 
 -- Add inner product space structure
@@ -165,7 +164,7 @@ lemma Complex.ofRealCLM_isometry : Isometry (Complex.ofRealCLM : ℝ →L[ℝ] �
 
 -- Use this to prove our specific case
 lemma Complex.ofRealCLM_continuous_compLp {α : Type*} [MeasurableSpace α] {μ : Measure α} :
-  Continuous (fun φ : Lp ℝ 2 μ => Complex.ofRealCLM.compLp ����� : Lp ℝ 2 μ → Lp ℂ 2 μ) := by
+    Continuous (fun φ : Lp ℝ 2 μ => Complex.ofRealCLM.compLp φ : Lp ℝ 2 μ → Lp ℂ 2 μ) := by
   -- The function φ ↦ L.compLp φ is the application of the continuous linear map
   -- ContinuousLinearMap.compLpL p μ L, which is continuous
   exact (ContinuousLinearMap.compLpL 2 μ Complex.ofRealCLM).continuous
@@ -175,7 +174,7 @@ Compose an Lp function with a continuous linear map.
 This should be the canonical way to lift real Lp functions to complex Lp functions.
 -/
 noncomputable def composed_function {α : Type*} [MeasurableSpace α] {μ : Measure α}
-    (f : Lp ℝ 2 μ) (A : ℝ →L[ℝ] ℂ): Lp ℂ 2 μ :=
+    (f : Lp ℝ 2 μ) (A : ℝ →L[ℝ] ℂ) : Lp ℂ 2 μ :=
   A.compLp f
 
 -- Check that we get the expected norm bound
@@ -191,29 +190,27 @@ noncomputable def embedding_real_to_complex {α : Type*} [MeasurableSpace α] {�
   composed_function φ (Complex.ofRealCLM)
 
 section LiftMeasure
-  variable {α : Type*} [MeasurableSpace α] {μ : Measure α}
+variable {α : Type*} [MeasurableSpace α] {μ : Measure α}
 
-  /--
-  Lifts a probability measure from the space of real Lp functions to the space of
-  complex Lp functions, with support on the real subspace.
-  -/
-  noncomputable def liftMeasure_real_to_complex
-      (ν : ProbabilityMeasure (Lp ℝ 2 μ)) :
-      ProbabilityMeasure (Lp ℂ 2 μ) :=
-    let ν' : Measure (Lp ℂ 2 μ) :=
-      Measure.map embedding_real_to_complex ν
-    have h_ae : AEMeasurable embedding_real_to_complex ν := by
-      apply Continuous.aemeasurable
-      unfold embedding_real_to_complex composed_function
-      have : Continuous (fun φ : Lp ℝ 2 μ => Complex.ofRealCLM.compLp φ : Lp ℝ 2 μ → Lp ℂ 2 μ) :=
-        Complex.ofRealCLM_continuous_compLp
-      exact this
-    have h_is_prob := isProbabilityMeasure_map h_ae
-    ⟨ν', h_is_prob⟩
+/--
+Lifts a probability measure from the space of real Lp functions to the space of
+complex Lp functions, with support on the real subspace.
+-/
+noncomputable def liftMeasure_real_to_complex
+    (ν : ProbabilityMeasure (Lp ℝ 2 μ)) :
+    ProbabilityMeasure (Lp ℂ 2 μ) :=
+  let ν' : Measure (Lp ℂ 2 μ) :=
+    Measure.map embedding_real_to_complex ν
+  have h_ae : AEMeasurable embedding_real_to_complex ν := by
+    apply Continuous.aemeasurable
+    unfold embedding_real_to_complex composed_function
+    have : Continuous (fun φ : Lp ℝ 2 μ => Complex.ofRealCLM.compLp φ : Lp ℝ 2 μ → Lp ℂ 2 μ) :=
+      Complex.ofRealCLM_continuous_compLp
+    exact this
+  have h_is_prob := isProbabilityMeasure_map h_ae
+  ⟨ν', h_is_prob⟩
 
 end LiftMeasure
-
-
 
 /-! ## Fourier Transform as Linear Isometry on L² Spaces
 
@@ -239,18 +236,19 @@ abbrev L2Complex (n : ℕ) := Lp ℂ 2 (volume : Measure (EuclideanRd n))
 
 /-! ### Core construction components (using Mathlib APIs) -/
 
-
 /-- Embedding Schwartz functions into L² space using Mathlib's toLpCLM.
-    This is a continuous linear map from Schwartz space to L²(ℝᵈ, ℂ).
-    ✅ IMPLEMENTED: Uses SchwartzMap.toLpCLM from Mathlib -/
+This is a continuous linear map from Schwartz space to L²(ℝᵈ, ℂ).
+IMPLEMENTED: Uses SchwartzMap.toLpCLM from Mathlib -/
 noncomputable def schwartzToL2 (n : ℕ) : SchwartzRd n →L[ℂ] L2Complex n :=
   SchwartzMap.toLpCLM ℂ ℂ 2 (volume : Measure (EuclideanRd n))
 
 /-- Alternative embedding that produces the exact L² type expected by the unprimed theorems.
-    This maps Schwartz functions to Lp ℂ 2 (volume : Measure (EuclideanSpace ℝ (Fin n))).
-    The difference from schwartzToL2 is only in the type representation, not the mathematical content. -/
+This maps Schwartz functions to Lp ℂ 2 (volume : Measure (EuclideanSpace ℝ (Fin n))).
+The difference from schwartzToL2 is only in the type representation,
+not the mathematical content. -/
 noncomputable def schwartzToL2' (n : ℕ) [NeZero n] [Fintype (Fin n)] :
-  SchwartzMap (EuclideanSpace ℝ (Fin n)) ℂ →L[ℂ] Lp ℂ 2 (volume : Measure (EuclideanSpace ℝ (Fin n))) :=
+    SchwartzMap (EuclideanSpace ℝ (Fin n)) ℂ →L[ℂ]
+    Lp ℂ 2 (volume : Measure (EuclideanSpace ℝ (Fin n))) :=
   SchwartzMap.toLpCLM ℂ ℂ 2 (volume : Measure (EuclideanSpace ℝ (Fin n)))
 
 /-! ## L∞ Multiplication on L² Spaces
@@ -291,7 +289,7 @@ lemma linfty_mul_L2_bound_aux {μ : Measure α}
     _ ≤ ENNReal.ofReal C * eLpNorm f 2 μ := by gcongr
 
 /-- Given a measurable function `g` that is essentially bounded by `C`,
-    multiplication by `g` defines a bounded linear operator on `L²`. -/
+multiplication by `g` defines a bounded linear operator on `L²`. -/
 noncomputable def linfty_mul_L2_CLM {μ : Measure α}
     (g : α → ℂ) (hg_meas : Measurable g) (C : ℝ) (hC : 0 < C)
     (hg_bound : ∀ᵐ x ∂μ, ‖g x‖ ≤ C) :
@@ -322,8 +320,7 @@ noncomputable def linfty_mul_L2_CLM {μ : Measure α}
       refine (linfty_mul_L2_bound_aux g hg_meas C hC hg_bound f).trans ?_
       rw [ENNReal.ofReal_mul (le_of_lt hC)]
       gcongr
-      exact le_of_eq (ENNReal.ofReal_toReal (Lp.memLp f).eLpNorm_ne_top).symm
-    )
+      exact le_of_eq (ENNReal.ofReal_toReal (Lp.memLp f).eLpNorm_ne_top).symm)
 
 /-- The multiplication operator acts pointwise almost everywhere on `L²`. -/
 lemma linfty_mul_L2_CLM_spec {μ : Measure α}
@@ -335,13 +332,16 @@ lemma linfty_mul_L2_CLM_spec {μ : Measure α}
   exact MemLp.coeFn_toLp _
 
 /-- The operator norm of the multiplication operator is bounded by C.
-    This gives ‖Mg f‖₂ ≤ C · ‖f‖₂ for all f ∈ L². -/
+This gives ‖Mg f‖₂ ≤ C · ‖f‖₂ for all f ∈ L². -/
 theorem linfty_mul_L2_CLM_norm_bound {μ : Measure α}
     (g : α → ℂ) (hg_meas : Measurable g) (C : ℝ) (hC : 0 < C)
     (hg_bound : ∀ᵐ x ∂μ, ‖g x‖ ≤ C)
     (f : Lp ℂ 2 μ) :
     ‖linfty_mul_L2_CLM g hg_meas C hC hg_bound f‖ ≤ C * ‖f‖ := by
-  have eq : linfty_mul_L2_CLM g hg_meas C hC hg_bound f = (MemLp.mul (p:=∞) (q:=2) (r:=2) (Lp.memLp f) (memLp_top_of_bound hg_meas.aestronglyMeasurable C hg_bound)).toLp (g * ⇑f) := rfl
+  have eq : linfty_mul_L2_CLM g hg_meas C hC hg_bound f =
+      (MemLp.mul (p:=∞) (q:=2) (r:=2) (Lp.memLp f)
+        (memLp_top_of_bound hg_meas.aestronglyMeasurable C hg_bound)).toLp
+        (g * ⇑f) := rfl
   rw [eq, Lp.norm_toLp]
   apply ENNReal.toReal_le_of_le_ofReal (by positivity)
   refine (linfty_mul_L2_bound_aux g hg_meas C hC hg_bound f).trans ?_
@@ -356,12 +356,12 @@ Functions with polynomial decay are locally integrable in finite dimensions.
 
 open Set Metric in
 /-- Local version of `integrable_fun_norm_addHaar`: integrability of radial functions on balls.
-    If the radial part is integrable on (0, r), then the function is integrable on ball 0 r.
+If the radial part is integrable on (0, r), then the function is integrable on ball 0 r.
 
-    Key technique: Use indicator functions to reduce to the global `integrable_fun_norm_addHaar`.
-    - Define g := indicator (Iio ρ) f, so g(y) = f(y) for y < ρ, else 0
-    - Then indicator (ball 0 ρ) (f ∘ ‖·‖) = g ∘ ‖·‖
-    - Apply global lemma to g -/
+Key technique: Use indicator functions to reduce to the global `integrable_fun_norm_addHaar`.
+- Define g := indicator (Iio ρ) f, so g(y) = f(y) for y < ρ, else 0
+- Then indicator (ball 0 ρ) (f ∘ ‖·‖) = g ∘ ‖·‖
+- Apply global lemma to g -/
 lemma integrableOn_ball_of_radial {E F : Type*}
     [NormedAddCommGroup E] [NormedSpace ℝ E] [Nontrivial E]
     [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
@@ -396,7 +396,7 @@ lemma integrableOn_ball_of_radial {E F : Type*}
 
 open Set Metric in
 /-- Integrability on balls for power-law decay functions.
-    If |f(x)| ≤ C‖x‖^{-σ} with σ < n, then f is integrable on any ball centered at 0. -/
+If |f(x)| ≤ C‖x‖^{-σ} with σ < n, then f is integrable on any ball centered at 0. -/
 lemma integrableOn_ball_of_rpow_decay {n : ℕ} (hn : n ≥ 1)
     {f : EuclideanSpace ℝ (Fin n) → ℝ} {C σ ρ : ℝ}
     (_hC : 0 < C) (hσ : σ < n) (hρ : 0 < ρ)
@@ -411,12 +411,16 @@ lemma integrableOn_ball_of_rpow_decay {n : ℕ} (hn : n ≥ 1)
   -- which converges when n-1-σ > -1, i.e., σ < n
 
   -- First show the bound function is radially integrable
-  have hint : IntegrableOn (fun y => y ^ (Module.finrank ℝ (EuclideanSpace ℝ (Fin n)) - 1) • (C * y ^ (-σ)))
+  have hint : IntegrableOn
+      (fun y => y ^ (Module.finrank ℝ (EuclideanSpace ℝ (Fin n)) - 1)
+        • (C * y ^ (-σ)))
       (Ioo 0 ρ) volume := by
     have hfinrank : Module.finrank ℝ (EuclideanSpace ℝ (Fin n)) = n := by simp
     simp only [hfinrank, smul_eq_mul]
     -- Simplify y^(n-1) * (C * y^(-σ)) = C * y^(n-1-σ)
-    have h_simp : ∀ y ∈ Ioo (0 : ℝ) ρ, (y : ℝ) ^ (n - 1) * (C * y ^ (-σ)) = C * y ^ ((n : ℝ) - 1 - σ) := by
+    have h_simp : ∀ y ∈ Ioo (0 : ℝ) ρ,
+        (y : ℝ) ^ (n - 1) * (C * y ^ (-σ)) =
+        C * y ^ ((n : ℝ) - 1 - σ) := by
       intro y hy
       have hy_pos : 0 < y := hy.1
       rw [mul_comm (y ^ _), mul_assoc]
@@ -501,7 +505,7 @@ lemma integrableOn_compact_diff_ball {n : ℕ}
     exact integrableOn_empty
 
 /-- Functions with polynomial decay are locally integrable.
-    For n-dimensional space, if σ < n and |f(x)| ≤ C‖x‖^{-σ}, then f is locally integrable. -/
+For n-dimensional space, if σ < n and |f(x)| ≤ C‖x‖^{-σ}, then f is locally integrable. -/
 theorem locallyIntegrable_of_rpow_decay_real {n : ℕ} (hn : n ≥ 3)
     {f : EuclideanSpace ℝ (Fin n) → ℝ} {C : ℝ} {σ : ℝ}
     (hC : C > 0) (hσ : σ < n)
@@ -531,24 +535,25 @@ theorem locallyIntegrable_of_rpow_decay_real {n : ℕ} (hn : n ≥ 3)
     exact integrableOn_compact_diff_ball hK hC (by norm_num : (0:ℝ) < 1/2) h_decay h_meas
 
 /-- **Polynomial decay is integrable in 3D**: The function 1/(1+‖x‖)^4 is integrable
-    over SpatialCoords = EuclideanSpace ℝ (Fin 3).
+over SpatialCoords = EuclideanSpace ℝ (Fin 3).
 
-    This is a standard result: decay rate 4 > dimension 3 ensures integrability.
+This is a standard result: decay rate 4 > dimension 3 ensures integrability.
 
-    **Mathematical content**: In ℝ³ with spherical coordinates,
-    ∫ 1/(1+r)^4 · r² dr dΩ = 4π ∫₀^∞ r²/(1+r)^4 dr < ∞
-    since the integrand decays as r⁻² for large r.
+**Mathematical content**: In ℝ³ with spherical coordinates,
+∫ 1/(1+r)^4 · r² dr dΩ = 4π ∫₀^∞ r²/(1+r)^4 dr < ∞
+since the integrand decays as r⁻² for large r.
 
-    **Used by**: `spatialNormIntegral_linear_bound` and `F_norm_bound_via_linear_vanishing`
-    to show that spatial integrals of Schwartz functions with linear time vanishing
-    are bounded by C·t. -/
+**Used by**: `spatialNormIntegral_linear_bound` and `F_norm_bound_via_linear_vanishing`
+to show that spatial integrals of Schwartz functions with linear time vanishing
+are bounded by C·t. -/
 lemma polynomial_decay_integrable_3d :
     Integrable (fun x : EuclideanSpace ℝ (Fin 3) => 1 / (1 + ‖x‖)^4) volume := by
   -- Use integrable_one_add_norm: (1 + ‖x‖)^(-r) is integrable when r > dim
   have hdim : Module.finrank ℝ (EuclideanSpace ℝ (Fin 3)) = 3 := finrank_euclideanSpace
   have hdim_lt : (Module.finrank ℝ (EuclideanSpace ℝ (Fin 3)) : ℝ) < (4 : ℝ) := by
     rw [hdim]; norm_num
-  have h_int := integrable_one_add_norm (E := EuclideanSpace ℝ (Fin 3)) (μ := volume) (r := 4) hdim_lt
+  have h_int := integrable_one_add_norm
+    (E := EuclideanSpace ℝ (Fin 3)) (μ := volume) (r := 4) hdim_lt
   -- Convert (1 + ‖x‖)^(-4) to 1 / (1 + ‖x‖)^4
   convert h_int using 1
   ext x
@@ -566,14 +571,14 @@ This applies to exponentially decaying kernels like the massive free covariance.
 -/
 
 /-- For translation-invariant kernels K₀ that are **integrable** (L¹), the bilinear form
-    with Schwartz test functions is integrable. This is the easiest case and applies to
-    exponentially decaying kernels like the massive free covariance.
+with Schwartz test functions is integrable. This is the easiest case and applies to
+exponentially decaying kernels like the massive free covariance.
 
-    Proof idea:
-    - Schwartz functions are bounded: ‖f‖_∞ < ∞ (via toBoundedContinuousFunction)
-    - Schwartz functions are integrable: ‖g‖_{L¹} < ∞
-    - K₀ is integrable: ‖K₀‖_{L¹} < ∞
-    - Then: ∫∫ |f(x) K₀(x-y) g(y)| dx dy ≤ ‖f‖_∞ · ‖K₀‖_{L¹} · ‖g‖_{L¹} < ∞ -/
+Proof idea:
+- Schwartz functions are bounded: ‖f‖_∞ < ∞ (via toBoundedContinuousFunction)
+- Schwartz functions are integrable: ‖g‖_{L¹} < ∞
+- K₀ is integrable: ‖K₀‖_{L¹} < ∞
+- Then: ∫∫ |f(x) K₀(x-y) g(y)| dx dy ≤ ‖f‖_∞ · ‖K₀‖_{L¹} · ‖g‖_{L¹} < ∞ -/
 theorem schwartz_bilinear_integrable_of_translationInvariant_L1
     {n : ℕ}
     (K₀ : EuclideanSpace ℝ (Fin n) → ℂ)
@@ -624,7 +629,8 @@ theorem schwartz_bilinear_integrable_of_translationInvariant_L1
         ‖K₀ (p.1 - p.2)‖ * ‖g p.2‖) (volume.prod volume) := by
       -- We have hprod : Integrable (fun p => ‖K₀ p.1‖ * ‖g p.2‖)
       -- We want: Integrable (fun p => ‖K₀ (p.1 - p.2)‖ * ‖g p.2‖)
-      -- These are related by: (fun p => ‖K₀ p.1‖ * ‖g p.2‖) ∘ e = (fun p => ‖K₀ (p.1 - p.2)‖ * ‖g p.2‖)
+      -- These are related by:
+      -- (fun p => ‖K₀ p.1‖ * ‖g p.2‖) ∘ e = (fun p => ‖K₀ (p.1 - p.2)‖ * ‖g p.2‖)
       -- where e(p) = (p.1 - p.2, p.2)
       -- Use integrable_comp_emb: (Integrable g μb ↔ Integrable (g ∘ f) μa) for MeasurePreserving f
       have heq : (fun p : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n) =>
@@ -644,8 +650,10 @@ theorem schwartz_bilinear_integrable_of_translationInvariant_L1
       -- Use that the shear map (x,y) ↦ (x-y, y) is measure-preserving
       have hK_ae : AEStronglyMeasurable K₀ volume := hK₀_int.1
       -- K₀ ∘ fst is AEStronglyMeasurable on volume.prod volume
-      have hK_fst : AEStronglyMeasurable (fun p : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n) =>
-          K₀ p.1) (volume.prod volume) := hK_ae.comp_fst
+      have hK_fst : AEStronglyMeasurable
+          (fun p : EuclideanSpace ℝ (Fin n) ×
+            EuclideanSpace ℝ (Fin n) => K₀ p.1)
+          (volume.prod volume) := hK_ae.comp_fst
       -- The shear map e(x,y) = (x-y, y) is measure-preserving
       have he_sub_preserves : MeasurePreserving
           (fun p : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n) => (p.1 - p.2, p.2))
@@ -687,7 +695,7 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace
   [SecondCountableTopology E] {μ : Measure E} [μ.HasTemperateGrowth]
 
 /-- A Schwartz function times a bounded measurable function is integrable.
-    This is the key technical lemma for Fourier-type integrals. -/
+This is the key technical lemma for Fourier-type integrals. -/
 lemma SchwartzMap.integrable_mul_bounded (f : SchwartzMap E ℂ) (g : E → ℂ)
     (hg_meas : Measurable g) (hg_bdd : ∀ x, ‖g x‖ ≤ 1) :
     Integrable (fun x => f x * g x) μ := by
@@ -737,10 +745,10 @@ namespace SchwartzLinearBound
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
 /-- The Linear Vanishing Bound (general version).
-    If f : 𝓢(ℝ × E, ℂ) vanishes for t ≤ 0, it grows at most linearly in t for t > 0.
+If f : 𝓢(ℝ × E, ℂ) vanishes for t ≤ 0, it grows at most linearly in t for t > 0.
 
-    This follows from the Mean Value Theorem: f(t,x) - f(0,x) = ∫₀ᵗ ∂ₜf dt,
-    and since ∂ₜf is bounded (Schwartz), we get |f(t,x)| ≤ C·t.
+This follows from the Mean Value Theorem: f(t,x) - f(0,x) = ∫₀ᵗ ∂ₜf dt,
+and since ∂ₜf is bounded (Schwartz), we get |f(t,x)| ≤ C·t.
 -/
 theorem schwartz_vanishing_linear_bound_general
     (f : SchwartzMap (ℝ × E) ℂ)
@@ -838,15 +846,16 @@ lemma sub_const_antilipschitz {E : Type*} [NormedAddCommGroup E] (y : E) :
   simp [edist_dist, dist_eq_norm]
 
 /-- **Schwartz functions are invariant under translation.**
-    For f ∈ 𝒮(E, F) and y ∈ E, the translated function f(· - y) is also in 𝒮(E, F).
+For f ∈ 𝒮(E, F) and y ∈ E, the translated function f(· - y) is also in 𝒮(E, F).
 
-    This is proved using Mathlib's `compCLMOfAntilipschitz`: translation is composition
-    with `x ↦ x - y`, which has temperate growth and is antilipschitz (an isometry). -/
+This is proved using Mathlib's `compCLMOfAntilipschitz`: translation is composition
+with `x ↦ x - y`, which has temperate growth and is antilipschitz (an isometry). -/
 noncomputable def SchwartzMap.translate {E F : Type*}
     [NormedAddCommGroup E] [NormedSpace ℝ E]
     [NormedAddCommGroup F] [NormedSpace ℝ F]
     (f : SchwartzMap E F) (y : E) : SchwartzMap E F :=
-  SchwartzMap.compCLMOfAntilipschitz ℝ (sub_const_hasTemperateGrowth y) (sub_const_antilipschitz y) f
+  SchwartzMap.compCLMOfAntilipschitz ℝ
+    (sub_const_hasTemperateGrowth y) (sub_const_antilipschitz y) f
 
 @[simp]
 theorem SchwartzMap.translate_apply {E F : Type*}
@@ -865,18 +874,20 @@ section SchwartzDecay
 open Real
 
 /-- **Schwartz L¹ bound**: Schwartz functions are integrable with explicit decay.
-    For f ∈ 𝓢(ℝⁿ), we have ∫ |f(x)| dx < ∞.
+For f ∈ 𝓢(ℝⁿ), we have ∫ |f(x)| dx < ∞.
 
-    More precisely, for any m, there exists C such that
-    |f(x)| ≤ C / (1 + |x|)^m. If m > dim(V), this implies integrability.
+More precisely, for any m, there exists C such that
+|f(x)| ≤ C / (1 + |x|)^m. If m > dim(V), this implies integrability.
 
-    **Reference**: Stein-Weiss, Chapter 1, Proposition 1.1 -/
+**Reference**: Stein-Weiss, Chapter 1, Proposition 1.1 -/
 theorem schwartz_integrable_decay {V : Type*} [NormedAddCommGroup V]
     [NormedSpace ℝ V] [FiniteDimensional ℝ V] [MeasureSpace V] [BorelSpace V]
     (f : SchwartzMap V ℂ) (m : ℕ) (_hm : Module.finrank ℝ V < m) :
     ∃ C : ℝ, 0 < C ∧ ∀ x : V, ‖f x‖ ≤ C / (1 + ‖x‖)^m := by
   -- Get bounds for each k ≤ m
-  have h_decay : ∀ k, ∃ C_k > 0, ∀ x, ‖x‖^k * ‖iteratedFDeriv ℝ 0 f x‖ ≤ C_k := fun k => SchwartzMap.decay f k 0
+  have h_decay : ∀ k, ∃ C_k > 0,
+      ∀ x, ‖x‖^k * ‖iteratedFDeriv ℝ 0 f x‖ ≤ C_k :=
+    fun k => SchwartzMap.decay f k 0
   choose C hC_pos hC using h_decay
 
   let B := Finset.sum (Finset.range (m + 1)) (fun k => (m.choose k : ℝ) * C k)
@@ -893,7 +904,9 @@ theorem schwartz_integrable_decay {V : Type*} [NormedAddCommGroup V]
     rw [div_eq_mul_inv, le_mul_inv_iff₀ (pow_pos (by linarith [norm_nonneg x]) _)]
 
     -- Expand (1 + ‖x‖)^m
-    have h_binom : (1 + ‖x‖)^m = Finset.sum (Finset.range (m + 1)) (fun k => (m.choose k : ℝ) * ‖x‖^k) := by
+    have h_binom : (1 + ‖x‖)^m =
+        Finset.sum (Finset.range (m + 1))
+          (fun k => (m.choose k : ℝ) * ‖x‖^k) := by
       rw [add_comm, add_pow]
       simp only [one_pow, mul_one]
       congr; ext k
@@ -908,12 +921,13 @@ theorem schwartz_integrable_decay {V : Type*} [NormedAddCommGroup V]
     -- Use the bound for each term
     -- We need to know ‖iteratedFDeriv ℝ 0 f x‖ = ‖f x‖
     have h_norm : ‖iteratedFDeriv ℝ 0 f x‖ = ‖f x‖ := by
-       rw [norm_iteratedFDeriv_zero]
+      rw [norm_iteratedFDeriv_zero]
 
     -- Rearrange to match hC
-    have h_rearrange : ‖f x‖ * ((m.choose k : ℝ) * ‖x‖^k) = (m.choose k : ℝ) * (‖x‖^k * ‖iteratedFDeriv ℝ 0 f x‖) := by
-       rw [h_norm]
-       ring
+    have h_rearrange : ‖f x‖ * ((m.choose k : ℝ) * ‖x‖^k) =
+        (m.choose k : ℝ) * (‖x‖^k * ‖iteratedFDeriv ℝ 0 f x‖) := by
+      rw [h_norm]
+      ring
     rw [h_rearrange]
 
     apply mul_le_mul_of_nonneg_left (hC k x) (Nat.cast_nonneg _)
@@ -1018,16 +1032,16 @@ lemma bumpSelfConv_support_tendsto {ι : Type*} {l : Filter ι} [l.NeBot]
 
 /-- **Main theorem: Double mollifier convergence via associativity.**
 
-    For C continuous on {x ≠ 0}, the double mollifier integral converges:
-    ∫∫ φ_ε(x-x₀) C(x-y) φ_ε(y) dx dy → C(x₀) as ε → 0
+For C continuous on {x ≠ 0}, the double mollifier integral converges:
+∫∫ φ_ε(x-x₀) C(x-y) φ_ε(y) dx dy → C(x₀) as ε → 0
 
-    **Proof strategy:**
-    1. Recognize that ψ := φ ⋆ φ (self-convolution) is an approximate identity:
-       - Nonnegative (integral of product of nonneg functions)
-       - Mass 1: ∫ψ = (∫φ)² = 1
-       - Shrinking support: supp(ψ) ⊆ B(0, 2·rOut)
-    2. By associativity: ∫∫ φ(x-x₀) C(x-y) φ(y) dx dy = (ψ ⋆ C)(x₀)
-    3. Apply single-convolution theorem: (ψ ⋆ C)(x₀) → C(x₀)
+**Proof strategy:**
+1. Recognize that ψ := φ ⋆ φ (self-convolution) is an approximate identity:
+   - Nonnegative (integral of product of nonneg functions)
+   - Mass 1: ∫ψ = (∫φ)² = 1
+   - Shrinking support: supp(ψ) ⊆ B(0, 2·rOut)
+2. By associativity: ∫∫ φ(x-x₀) C(x-y) φ(y) dx dy = (ψ ⋆ C)(x₀)
+3. Apply single-convolution theorem: (ψ ⋆ C)(x₀) → C(x₀)
 -/
 theorem double_mollifier_convergence
     (C : E → ℝ)
@@ -1159,7 +1173,9 @@ theorem double_mollifier_convergence
          let s₁ := Metric.closedBall (0 : E) (2 * (φ i).rOut)
          let s₂ := Metric.closedBall (0 : E) ((φ i).rOut)
          let K := s₁ ×ˢ s₂
-         have hK_compact : IsCompact K := IsCompact.prod (isCompact_closedBall 0 _) (isCompact_closedBall 0 _)
+         have hK_compact : IsCompact K :=
+           IsCompact.prod (isCompact_closedBall 0 _)
+             (isCompact_closedBall 0 _)
 
          -- Support is in K
          have h_supp_F : support F ⊆ K := by
