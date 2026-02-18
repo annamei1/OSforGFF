@@ -49,6 +49,7 @@ Modify {lean_file} directly.
 
 STEP 5 — Reporting
 Write a brief section summarizing the rules applied in {report_file}, in a section titled "{lean_file}".
+If no violations were found, write a single line: "No violations found." Do not include any other content.
 """
 
 

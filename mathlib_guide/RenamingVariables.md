@@ -121,31 +121,6 @@
 
 No violations found. All variable binders comply with the naming conventions in style.md lines 9-24.
 
-### Analysis
-
-| Variable | Type / Role | Convention | Status |
-|----------|-------------|------------|--------|
-| `u` | universe | `u`, `v`, `w`, ... | Compliant |
-| `ι` | finite index type | Conventional Mathlib notation for index types | Compliant |
-| `G`, `B` | `Matrix ι ι ℝ` | Uppercase for types with mathematical content | Compliant |
-| `U` | `Matrix ι ι ℝ` (orthogonal/unitary) | Uppercase for types with mathematical content | Compliant |
-| `H` | `Matrix ι ι ℝ` (PSD matrix) | Uppercase for types with mathematical content | Compliant |
-| `x`, `y` | `ι → ℝ` (vectors) | `x`, `y`, `z`, ... for elements | Compliant |
-| `i`, `j`, `k` | `ι` (indices in sums) | `i`, `j`, `k` for indices | Compliant |
-| `i0` | `ι` (witness index) | Index variable with subscript | Compliant |
-| `d` | `ι → ℝ` (eigenvalues/diagonal) | Conventional mathematical notation for diagonal | Compliant |
-| `Uu` | eigenvector unitary element | Compound descriptive name | Compliant |
-| `Bx`, `By` | `ι → ℝ` (B·x, B·y) | Compound descriptive names | Compliant |
-| `h*` prefixed | assumptions/hypotheses | `h`, `h₁`, ... for assumptions | Compliant |
-
-### Notes
-
-- **Matrices** (`G`, `B`, `H`, `U`) all correctly use uppercase letters per the mathematical content convention (style.md lines 22-24).
-- **Vectors** (`x`, `y`) correctly use the element convention (style.md line 14).
-- **Index variables** (`i`, `j`, `k`) follow standard mathematical convention for indices over a finite type.
-- **Compound names** (`Bx`, `By`, `Uu`, `i0`) are descriptive multi-character names that fall outside the single-letter conventions and are not in violation.
-- **Eigenvalue function** `d` uses conventional mathematical notation for diagonal/eigenvalue entries.
-- **All hypothesis names** follow the `h`-prefix convention consistently.
 
 ## SchurProduct.lean
 
@@ -153,30 +128,6 @@ No violations found. All variable binders comply with the naming conventions in 
 
 No violations found. All variable binders comply with the naming conventions in style.md lines 9-24.
 
-### Analysis
-
-| Variable | Type / Role | Convention | Status |
-|----------|-------------|------------|--------|
-| `u` | universe | `u`, `v`, `w`, ... | Compliant |
-| `ι` | finite index type | Conventional Mathlib notation for index types | Compliant |
-| `A`, `B` | `Matrix ι ι ℝ` | Uppercase for types with mathematical content | Compliant |
-| `G` | `Matrix ι ι ℝ` (Gram matrix, local let) | Uppercase for types with mathematical content | Compliant |
-| `x`, `y`, `z` | `ι → ℝ` or `ι × ι → ℝ` (vectors) | `x`, `y`, `z`, ... for elements | Compliant |
-| `i`, `j`, `k`, `l` | `ι` (indices in sums) | `i`, `j`, `k` for indices | Compliant |
-| `p`, `q` | `ι × ι` (pair indices in `ext`, `fun`) | Idiomatic Mathlib for product-type elements | Compliant |
-| `g` | `ι × ι → ℝ` (function parameter) | Descriptive name, no convention for function parameters | Compliant |
-| `h*` prefixed | assumptions/hypotheses | `h`, `h₁`, ... for assumptions | Compliant |
-| `hA*`, `hB*`, `hG*` | hypotheses about matrices | `h`-prefix with matrix name | Compliant |
-
-### Notes
-
-- **Matrices** (`A`, `B`, `G`) all correctly use uppercase letters per the mathematical content convention (style.md lines 22-24).
-- **Vectors** (`x`, `y`, `z`) correctly use the element convention (style.md line 14).
-- **Index variables** (`i`, `j`, `k`, `l`) follow standard mathematical convention for indices over a finite type `ι`.
-- **Pair indices** (`p`, `q`) are used idiomatically in Mathlib for elements of product types (`ι × ι`). While `p`, `q` are listed under "predicates and relations" in the style guide, they are not being used as predicates here — the convention specifies what to name predicates, not that `p` is reserved exclusively for predicates. Using `p`, `q` for product-type elements avoids confusion with single-index variables `i`, `j`.
-- **Function parameter** `g` in `sum_pairs_eq_double` is a descriptive name for a function argument. No convention exists for function parameters in the style guide.
-- **Compound hypothesis names** (`star_y_eq`, `star_col`, `hquad_form`, `hquad_eq`, `hsum_pairs`, etc.) are multi-character descriptive names that fall outside single-letter conventions and are not in violation.
-- **All hypothesis names** consistently follow the `h`-prefix convention.
 
 ## FunctionalAnalysis.lean
 
