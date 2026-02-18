@@ -443,4 +443,4 @@ Phase 16: Comments and documentation
 ```
 
 After all phases, re-read the full file and do a final review pass for any
-remaining issues. Report a summary of all changes made and write it into a md file.
+remaining issues. Report a summary of all changes made and write it into a md file called style_fix_{filename}.md

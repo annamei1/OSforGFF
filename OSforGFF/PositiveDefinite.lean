@@ -29,19 +29,19 @@ open BigOperators
 /-! ## Positive Definiteness -/
 
 /-- A function φ : G → ℂ is positive definite if for any finite collection
-    of points x₁, ..., xₘ and complex coefficients c₁, ..., cₘ, we have
-    ∑ᵢⱼ c̄ᵢ cⱼ φ(xᵢ - xⱼ) ≥ 0
+of points x₁, ..., xₘ and complex coefficients c₁, ..., cₘ, we have
+∑ᵢⱼ c̄ᵢ cⱼ φ(xᵢ - xⱼ) ≥ 0
 
-    This is the standard definition in harmonic analysis and probability theory. -/
+This is the standard definition in harmonic analysis and probability theory. -/
 def IsPositiveDefinite {G : Type*} [AddGroup G] (φ : G → ℂ) : Prop :=
   ∀ (m : ℕ) (x : Fin m → G) (ξ : Fin m → ℂ),
     0 ≤ (∑ i, ∑ j, (starRingEnd ℂ) (ξ i) * ξ j * φ (x i - x j)).re
 
 /-- Composition preserves positive definiteness: if ψ is positive definite on H and
-    T : E →ₗ[ℝ] H is linear, then ψ ∘ T is positive definite on E. -/
+T : E →ₗ[ℝ] H is linear, then ψ ∘ T is positive definite on E. -/
 lemma isPositiveDefinite_precomp_linear
-  {E H : Type*} [AddCommGroup E] [AddCommGroup H]
-  [Module ℝ E] [Module ℝ H]
-  (ψ : H → ℂ) (hPD : IsPositiveDefinite ψ) (T : E →ₗ[ℝ] H) :
-  IsPositiveDefinite (fun v : E => ψ (T v)) := fun m x ξ => by
-  simpa using hPD m (fun i => T (x i)) ξ
+    {E H : Type*} [AddCommGroup E] [AddCommGroup H]
+    [Module ℝ E] [Module ℝ H]
+    (ψ : H → ℂ) (hPD : IsPositiveDefinite ψ) (T : E →ₗ[ℝ] H) :
+    IsPositiveDefinite (fun v : E ↦ ψ (T v)) := fun m x ξ ↦ by
+  simpa using hPD m (fun i ↦ T (x i)) ξ

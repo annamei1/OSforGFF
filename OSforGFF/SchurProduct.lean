@@ -3,16 +3,6 @@ Copyright (c) 2025 Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim. All r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim
 -/
-/-!
-Schur product theorem (Hadamard product preserves positive semidefiniteness).
-
-We prove/record that if A and B are positive semidefinite Hermitian matrices, then their
-entrywise (Hadamard) product D with entries D i j = A i j * B i j is also positive semidefinite.
-
-This is used in the OS3 reflection positivity argument to deduce positivity of exp(R) from
-positivity of R via power series and Schur products.
--/
-
 import Mathlib.Data.Matrix.Basic
 import Mathlib.Data.Complex.Basic
 import Mathlib.LinearAlgebra.Matrix.Hadamard
@@ -22,6 +12,16 @@ import Mathlib.Data.Finset.Basic
 import Mathlib.Data.Finset.Prod
 import Mathlib.Analysis.SpecialFunctions.Exp
 import OSforGFF.FrobeniusPositivity
+
+/-!
+Schur product theorem (Hadamard product preserves positive semidefiniteness).
+
+We prove/record that if A and B are positive semidefinite Hermitian matrices, then their
+entrywise (Hadamard) product D with entries D i j = A i j * B i j is also positive semidefinite.
+
+This is used in the OS3 reflection positivity argument to deduce positivity of exp(R) from
+positivity of R via power series and Schur products.
+-/
 
 set_option linter.unusedSectionVars false
 
@@ -78,7 +78,7 @@ lemma kronLike_mulVec
   simpa [Matrix.mulVec, kronLike] using this
 
 /-- Helper: swap sums and factor the `B` term in the Kronecker quadratic expansion. -/
-lemma swap_sums_factor_B
+lemma swap_sums_factor
   (A B : Matrix ι ι ℝ) (y : ι × ι → ℝ) :
   (∑ i, ∑ j, y (i, j) * (∑ k, ∑ l, (A i k * B j l) * y (k, l)))
   = ∑ j, ∑ l, (∑ i, y (i, j) * (∑ k, A i k * y (k, l))) * B j l := by
@@ -162,7 +162,7 @@ lemma kronLike_quadratic_sum
     apply Finset.sum_congr rfl; intro j _
     simp [kronLike_mulVec]
   -- Rearrange sums and factor B
-  have hdist := swap_sums_factor_B (ι:=ι) A B y
+  have hdist := swap_sums_factor (ι:=ι) A B y
   -- Identify the inner expression with colSlice and A.mulVec
   have hid : ∀ j l,
       (∑ i, y (i, j) * (∑ k, A i k * y (k, l)))
@@ -183,15 +183,15 @@ lemma kronLike_quadratic_sum
 /-- Frobenius positivity for a nonzero PSD matrix against a PD matrix.
 If `G` is positive semidefinite and nonzero, and `B` is positive definite,
 then the Frobenius inner product `∑ j, ∑ l, G j l * B j l` is strictly positive. -/
-lemma frobenius_pos_of_psd_posdef
+lemma frobenius_pos_of_posSemidef_posDef
   (G B : Matrix ι ι ℝ) (hG_psd : G.PosSemidef) (hG_ne_zero : G ≠ 0) (hB : B.PosDef) :
   0 < ∑ j, ∑ l, G j l * B j l := by
   -- Delegate to the standalone proof to avoid duplication
-  exact _root_.frobenius_pos_of_psd_posdef G B hG_psd hG_ne_zero hB
+  exact _root_.frobenius_pos_of_posSemidef_posDef G B hG_psd hG_ne_zero hB
 
 /-- Gram-type PSD: if `A` is positive definite, then the matrix
 `G j l = ∑ i, (colSlice y j) i * (A * colSlice y l)_i` is positive semidefinite. -/
-lemma gram_psd_from_A_posdef
+lemma gram_posSemidef_of_posDef
   (A : Matrix ι ι ℝ) (hA : A.PosDef) (y : ι × ι → ℝ) :
   Matrix.PosSemidef (fun j l : ι ↦
     ∑ i, (colSlice (ι:=ι) y j) i *
@@ -478,8 +478,8 @@ lemma kronLike_posDef
     -- Use the general Frobenius-positivity lemma
     have hG_psd : G.PosSemidef := by
       -- G is a Gram matrix built from A and the slices of y
-      simpa [G] using gram_psd_from_A_posdef (ι:=ι) A hA y
-    exact frobenius_pos_of_psd_posdef G B hG_psd hG_ne_zero hB
+      simpa [G] using gram_posSemidef_of_posDef (ι:=ι) A hA y
+    exact frobenius_pos_of_posSemidef_posDef G B hG_psd hG_ne_zero hB
 
 /-- Schur product theorem (real case, finite index):
 If A B are positive definite matrices over ℝ, then the Hadamard product is positive definite. -/

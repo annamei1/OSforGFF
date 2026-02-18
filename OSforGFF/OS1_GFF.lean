@@ -492,13 +492,13 @@ lemma gff_two_point_locally_integrable (m : ℝ) [Fact (0 < m)] :
   -- Obtain the decay bound
   obtain ⟨C, hC_pos, h_decay⟩ := schwinger_two_point_decay_bound m
   -- Apply real version of the decay axiom
-  refine locallyIntegrable_of_rpow_decay_real (d := STDimension) (C := C) (α := 2)
-    ?hd ?hC ?hα ?h_decay ?h_meas
-  · -- hd: STDimension = 4 ≥ 3
+  refine locallyIntegrable_of_rpow_decay_real (n := STDimension) (C := C) (σ := 2)
+    ?hn ?hC ?hσ ?h_decay ?h_meas
+  · -- hn: STDimension = 4 ≥ 3
     norm_num [STDimension]
   · -- hC: C > 0
     exact hC_pos
-  · -- hα: 2 < STDimension (2 < 4)
+  · -- hσ: 2 < STDimension (2 < 4)
     norm_num [STDimension]
   · -- h_decay: Decay bound holds: convert two-argument decay to single-argument
     intro x

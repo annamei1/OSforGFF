@@ -72,7 +72,7 @@ lemma congr_transpose_mul_mul_ne_zero
 set_option linter.deprecated false in
 /-- Cauchy–Schwarz for the semi-inner product induced by a PSD real matrix.
 For all vectors x,y: (xᵀ H y)^2 ≤ (xᵀ H x) (yᵀ H y). -/
-lemma psd_cauchy_schwarz
+lemma posSemidef_cauchy_schwarz
     (H : Matrix ι ι ℝ) (hH_psd : H.PosSemidef) (x y : ι → ℝ) :
     ((x ⬝ᵥ H.mulVec y)^2) ≤ (x ⬝ᵥ H.mulVec x) * (y ⬝ᵥ H.mulVec y) := by
   classical
@@ -128,12 +128,12 @@ lemma psd_cauchy_schwarz
   simpa [hxy, hxx, hyy] using hCS
 
 /-- If H is PSD over ℝ and H ii = H jj = 0 then H ij = 0. -/
-lemma psd_offdiag_zero_of_diag_zero
+lemma posSemidef_offdiag_zero_of_diag_zero
     (H : Matrix ι ι ℝ) (hH_psd : H.PosSemidef) {i j : ι}
     (hii : H i i = 0) (hjj : H j j = 0) : H i j = 0 := by
   classical
   -- Apply Cauchy–Schwarz with x = e_i, y = e_j
-  have hcs := psd_cauchy_schwarz H hH_psd (Pi.single i (1 : ℝ)) (Pi.single j (1 : ℝ))
+  have hcs := posSemidef_cauchy_schwarz H hH_psd (Pi.single i (1 : ℝ)) (Pi.single j (1 : ℝ))
   -- Rewrite each quadratic form
   have hx : (Pi.single i (1 : ℝ)) ⬝ᵥ H.mulVec (Pi.single i 1) = H i i := by simp
   have hy : (Pi.single j (1 : ℝ)) ⬝ᵥ H.mulVec (Pi.single j 1) = H j j := by simp
@@ -162,7 +162,7 @@ lemma posSemidef_diag_pos_exists_of_ne_zero
     by_cases hij : i = j
     · subst hij; simp [hdiag_zero i]
     -- both diagonals are zero, so off-diagonal vanishes by the lemma
-    exact psd_offdiag_zero_of_diag_zero H hH_psd (hdiag_zero i) (hdiag_zero j)
+    exact posSemidef_offdiag_zero_of_diag_zero H hH_psd (hdiag_zero i) (hdiag_zero j)
   -- Hence H = 0, contradiction
   have : H = 0 := by
     ext i j
@@ -181,7 +181,7 @@ High-level proof sketch (to be formalized):
 - Since all λ i > 0, the sum is strictly positive.
 - This avoids Cholesky and uses spectral decomposition/unitary congruence invariance.
 -/
-lemma frobenius_pos_of_psd_posdef
+lemma frobenius_pos_of_posSemidef_posDef
     (G B : Matrix ι ι ℝ) (hG_psd : G.PosSemidef) (hG_ne_zero : G ≠ 0) (hB : B.PosDef) :
     0 < ∑ j, ∑ k, G j k * B j k := by
   classical

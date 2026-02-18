@@ -3,13 +3,6 @@ Copyright (c) 2025 Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim. All r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim
 -/
-/-
-Hadamard operations and entrywise exponential for matrices.
-
-This module contains continuity properties, Hadamard powers, and the proof that
-the entrywise exponential preserves positive definiteness via Hadamard series.
--/
-
 import OSforGFF.SchurProduct
 import Mathlib.Analysis.SpecialFunctions.Exp
 import Mathlib.Analysis.Normed.Algebra.Exponential
@@ -19,6 +12,13 @@ import Mathlib.Topology.Basic
 import Mathlib.Order.Filter.Defs
 import Mathlib.Order.Filter.Basic
 import Mathlib.Topology.Constructions
+
+/-!
+Hadamard operations and entrywise exponential for matrices.
+
+This module contains continuity properties, Hadamard powers, and the proof that
+the entrywise exponential preserves positive definiteness via Hadamard series.
+-/
 
 set_option linter.unusedSectionVars false
 
@@ -34,41 +34,41 @@ universe u
 variable {ι : Type u} [Fintype ι] [DecidableEq ι]
 
 /-- Entrywise real exponential of a matrix: `(entrywiseExp A) i j = exp (A i j)`.
-    Used for the OS3 proof (Glimm–Jaffe): if `A` is PSD, then `exp(A)` (entrywise) should be PSD. -/
+Used for the OS3 proof (Glimm-Jaffe): if `A` is PSD, then `exp(A)` (entrywise) should be PSD. -/
 noncomputable def entrywiseExp (A : Matrix ι ι ℝ) : Matrix ι ι ℝ :=
-  fun i j => Real.exp (A i j)
+  fun i j ↦ Real.exp (A i j)
 
 @[simp] lemma entrywiseExp_apply (A : Matrix ι ι ℝ) (i j : ι) :
-  entrywiseExp A i j = Real.exp (A i j) := rfl
+    entrywiseExp A i j = Real.exp (A i j) := rfl
 
 /-- Continuity of the entrywise exponential map `A ↦ exp ∘ A` on matrices. -/
 lemma continuous_entrywiseExp (ι : Type u) [Fintype ι] [DecidableEq ι] :
-  Continuous (fun A : Matrix ι ι ℝ => entrywiseExp A) := by
+    Continuous (fun A : Matrix ι ι ℝ ↦ entrywiseExp A) := by
   classical
   -- Matrices are pi-types `ι → ι → ℝ`; use coordinatewise continuity
-  refine continuous_pi_iff.2 (fun i => ?_)
-  refine continuous_pi_iff.2 (fun j => ?_)
+  refine continuous_pi_iff.2 (fun i ↦ ?_)
+  refine continuous_pi_iff.2 (fun j ↦ ?_)
   -- Coordinate map A ↦ A i j is continuous; compose with exp
-  have hcoord : Continuous (fun A : Matrix ι ι ℝ => A i j) :=
+  have hcoord : Continuous (fun A : Matrix ι ι ℝ ↦ A i j) :=
     (continuous_apply j).comp (continuous_apply i)
   simpa [entrywiseExp] using (Real.continuous_exp.comp hcoord)
 
 /-- Hadamard identity element: the all-ones matrix for entrywise multiplication. -/
-@[simp] def hadamardOne (ι : Type u) [Fintype ι] : Matrix ι ι ℝ := fun _ _ => 1
+@[simp] def hadamardOne (ι : Type u) [Fintype ι] : Matrix ι ι ℝ := fun _ _ ↦ 1
 
 /-- n-fold Hadamard power of a matrix: `hadamardPow A n = A ∘ₕ ⋯ ∘ₕ A` (n times),
-    with `hadamardPow A 0 = hadamardOne`. -/
+with `hadamardPow A 0 = hadamardOne`. -/
 @[simp] def hadamardPow (A : Matrix ι ι ℝ) : ℕ → Matrix ι ι ℝ
   | 0     => hadamardOne (ι := ι)
   | n+1   => hadamardPow A n ∘ₕ A
 
 @[simp] lemma hadamardPow_zero (A : Matrix ι ι ℝ) : hadamardPow A 0 = hadamardOne (ι := ι) := rfl
 @[simp] lemma hadamardPow_succ (A : Matrix ι ι ℝ) (n : ℕ) :
-  hadamardPow A (n+1) = hadamardPow A n ∘ₕ A := rfl
+    hadamardPow A (n+1) = hadamardPow A n ∘ₕ A := rfl
 
 /-- Hadamard powers act entrywise as usual scalar powers. -/
 lemma hadamardPow_apply (A : Matrix ι ι ℝ) (n : ℕ) (i j : ι) :
-  hadamardPow A n i j = (A i j) ^ n := by
+    hadamardPow A n i j = (A i j) ^ n := by
   induction n with
   | zero => simp [hadamardPow, hadamardOne]
   | succ n ih => simp [Matrix.hadamard, ih, pow_succ]
@@ -78,16 +78,16 @@ noncomputable def entrywiseExpSeriesTerm (A : Matrix ι ι ℝ) (n : ℕ) : Matr
   (1 / (Nat.factorial n : ℝ)) • hadamardPow A n
 
 /-- Series definition of the entrywise exponential using Hadamard powers (entrywise `tsum`). -/
-noncomputable def entrywiseExp_hadamardSeries (A : Matrix ι ι ℝ) : Matrix ι ι ℝ :=
-  fun i j => tsum (fun n : ℕ => (1 / (Nat.factorial n : ℝ)) * (hadamardPow A n i j))
+noncomputable def entrywiseExpHadamardSeries (A : Matrix ι ι ℝ) : Matrix ι ι ℝ :=
+  fun i j ↦ tsum (fun n : ℕ ↦ (1 / (Nat.factorial n : ℝ)) * (hadamardPow A n i j))
 
 /-- The entrywise exponential agrees with its Hadamard series expansion.
-    Uses the Taylor series for Complex.exp and converts to the real case. -/
+Uses the Taylor series for Complex.exp and converts to the real case. -/
 lemma entrywiseExp_eq_hadamardSeries (A : Matrix ι ι ℝ) :
-  entrywiseExp A = entrywiseExp_hadamardSeries A := by
+    entrywiseExp A = entrywiseExpHadamardSeries A := by
   classical
   funext i j
-  dsimp [entrywiseExp, entrywiseExp_hadamardSeries]
+  dsimp [entrywiseExp, entrywiseExpHadamardSeries]
   -- Scalar reduction
   set x : ℝ := A i j
   -- Complex Taylor series for exp at 0
@@ -101,22 +101,22 @@ lemma entrywiseExp_eq_hadamardSeries (A : Matrix ι ι ℝ) :
   have h_deriv : ∀ n, iteratedDeriv n Complex.exp 0 = 1 := by
     intro n; rw [iteratedDeriv_eq_iterate, Complex.iter_deriv_exp, Complex.exp_zero]
   -- Define series terms
-  let fC : ℕ → ℂ := fun n => (x : ℂ) ^ n / (Nat.factorial n : ℂ)
-  let fR : ℕ → ℝ := fun n => x ^ n / (Nat.factorial n : ℝ)
+  let fC : ℕ → ℂ := fun n ↦ (x : ℂ) ^ n / (Nat.factorial n : ℂ)
+  let fR : ℕ → ℝ := fun n ↦ x ^ n / (Nat.factorial n : ℝ)
   -- Standard complex power series for exp
   have h_seriesC : ∑' n : ℕ, fC n = Complex.exp (x : ℂ) := by
     -- simplify Taylor series to the usual form
     simpa [fC, div_eq_mul_inv, sub_zero, h_deriv, mul_comm, mul_left_comm, mul_assoc] using h_taylor
   -- Summability of the complex series via the real one
   have hsR : Summable fR := Real.summable_pow_div_factorial x
-  have hsC_ofReal : Summable (fun n : ℕ => (fR n : ℂ)) := (Complex.summable_ofReal).2 hsR
-  have h_eqfun : (fun n : ℕ => (fR n : ℂ)) = fC := by
+  have hsC_ofReal : Summable (fun n : ℕ ↦ (fR n : ℂ)) := (Complex.summable_ofReal).2 hsR
+  have h_eqfun : (fun n : ℕ ↦ (fR n : ℂ)) = fC := by
     funext n; simp [fR, fC, div_eq_mul_inv]
   have hsC : Summable fC := by simpa [h_eqfun] using hsC_ofReal
   -- Take real parts in the complex series identity
   have h_re_tsum : (∑' n : ℕ, fC n).re = ∑' n : ℕ, (fC n).re := Complex.re_tsum hsC
   have h_re_exp : (Complex.exp (x : ℂ)).re = Real.exp x := Complex.exp_ofReal_re x
-  have h_re_terms : (fun n : ℕ => (fC n).re) = fR := by
+  have h_re_terms : (fun n : ℕ ↦ (fC n).re) = fR := by
     funext n
     -- First show fC n equals the complexification of fR n
     have hpt : fC n = (fR n : ℂ) := by
@@ -136,10 +136,10 @@ lemma entrywiseExp_eq_hadamardSeries (A : Matrix ι ι ℝ) :
 lemma hadamardOne_hMul_left (A : Matrix ι ι ℝ) : Matrix.hadamard (hadamardOne ι) A = A := by
   ext i j; simp [hadamardOne, Matrix.hadamard]
 
-
 /-- Hadamard powers of a positive definite matrix are positive definite for all n ≥ 1. -/
 lemma hadamardPow_posDef_of_posDef
-  (A : Matrix ι ι ℝ) (hA : A.PosDef) : ∀ n, 1 ≤ n → (hadamardPow A n).PosDef := by
+    (A : Matrix ι ι ℝ) (hA : A.PosDef) :
+    ∀ n, 1 ≤ n → (hadamardPow A n).PosDef := by
   classical
   intro n hn
   -- write n = k+1
@@ -159,11 +159,12 @@ lemma hadamardPow_posDef_of_posDef
       schur_product_posDef (A := hadamardPow A (k+1)) (B := A) hPD_k1 hA
 
 /-- The quadratic form of the Hadamard series equals the sum of quadratic forms of individual terms.
-    This lemma handles the complex interchange of summation and quadratic form evaluation. -/
-lemma quadratic_form_entrywiseExp_hadamardSeries
-  (A : Matrix ι ι ℝ) (x : ι → ℝ) :
-  x ⬝ᵥ (entrywiseExp_hadamardSeries A).mulVec x =
-  ∑' n : ℕ, (1 / (Nat.factorial n : ℝ)) * (x ⬝ᵥ (hadamardPow A n).mulVec x) := by
+This lemma handles the complex interchange of summation and quadratic form evaluation. -/
+lemma quadratic_form_entrywiseExpHadamardSeries
+    (A : Matrix ι ι ℝ) (x : ι → ℝ) :
+    x ⬝ᵥ (entrywiseExpHadamardSeries A).mulVec x =
+    ∑' n : ℕ, (1 / (Nat.factorial n : ℝ)) *
+      (x ⬝ᵥ (hadamardPow A n).mulVec x) := by
   classical
   -- Per entry: s_ij n := (1 / (n!)) * hadamardPow A n i j
   let s_ij (i j : ι) (n : ℕ) := (1 / (Nat.factorial n : ℝ)) * hadamardPow A n i j
@@ -174,42 +175,46 @@ lemma quadratic_form_entrywiseExp_hadamardSeries
       using Real.summable_pow_div_factorial (A i j)
 
   -- HasSum for each entry
-  have hHas_ij (i j : ι) : HasSum (s_ij i j) ((entrywiseExp_hadamardSeries A) i j) := by
-    have h1 : (entrywiseExp_hadamardSeries A) i j = tsum (s_ij i j) := by
-      simp [entrywiseExp_hadamardSeries, s_ij]
+  have hHas_ij (i j : ι) : HasSum (s_ij i j) ((entrywiseExpHadamardSeries A) i j) := by
+    have h1 : (entrywiseExpHadamardSeries A) i j = tsum (s_ij i j) := by
+      simp [entrywiseExpHadamardSeries, s_ij]
     rw [h1]
     exact (hs_ij i j).hasSum
 
   -- Push scalars inside: first x j
   have hHas_ij_xj (i j : ι) :
-      HasSum (fun n => s_ij i j n * x j) ((entrywiseExp_hadamardSeries A) i j * x j) :=
+      HasSum (fun n ↦ s_ij i j n * x j) ((entrywiseExpHadamardSeries A) i j * x j) :=
     (hHas_ij i j).mul_right (x j)
 
   -- Then x i
   have hHas_ij_xi_xj (i j : ι) :
-      HasSum (fun n => x i * (s_ij i j n * x j)) (x i * ((entrywiseExp_hadamardSeries A) i j * x j)) :=
+      HasSum (fun n ↦ x i * (s_ij i j n * x j))
+        (x i * ((entrywiseExpHadamardSeries A) i j * x j)) :=
     (hHas_ij_xj i j).mul_left (x i)
 
   -- Rewrite term
   have hHas_ij_rewrite (i j : ι) :
-      HasSum (fun n => (1 / (Nat.factorial n : ℝ)) * (x i * hadamardPow A n i j * x j))
-             (x i * ((entrywiseExp_hadamardSeries A) i j) * x j) := by
+      HasSum (fun n ↦ (1 / (Nat.factorial n : ℝ)) * (x i * hadamardPow A n i j * x j))
+             (x i * ((entrywiseExpHadamardSeries A) i j) * x j) := by
     convert hHas_ij_xi_xj i j using 1
     · funext n; simp only [s_ij]; ring
     · simp [mul_assoc]
 
   -- Combine over j (finite) with hasSum_sum
   have hHas_sum_j (i : ι) :
-      HasSum (fun n => ∑ j, (1 / (Nat.factorial n : ℝ)) * (x i * hadamardPow A n i j * x j))
-             (∑ j, x i * ((entrywiseExp_hadamardSeries A) i j) * x j) := by
+      HasSum (fun n ↦ ∑ j, (1 / (Nat.factorial n : ℝ)) * (x i * hadamardPow A n i j * x j))
+             (∑ j, x i * ((entrywiseExpHadamardSeries A) i j) * x j) := by
     apply hasSum_sum
     intro j _
     exact hHas_ij_rewrite i j
 
   -- Combine over i (finite) similarly
   have hHas_sum_i :
-      HasSum (fun n => ∑ i, ∑ j, (1 / (Nat.factorial n : ℝ)) * (x i * hadamardPow (ι:=ι) A n i j * x j))
-             (∑ i, ∑ j, x i * ((entrywiseExp_hadamardSeries (ι:=ι) A) i j) * x j) := by
+      HasSum
+        (fun n ↦ ∑ i, ∑ j,
+          (1 / (Nat.factorial n : ℝ)) * (x i * hadamardPow (ι:=ι) A n i j * x j))
+        (∑ i, ∑ j,
+          x i * ((entrywiseExpHadamardSeries (ι:=ι) A) i j) * x j) := by
     apply hasSum_sum
     intro i _
     exact hHas_sum_j i
@@ -219,8 +224,8 @@ lemma quadratic_form_entrywiseExp_hadamardSeries
 
   -- Expand the RHS to x ⬝ᵥ (...) ⬝ᵥ x
   have hrhs_expand :
-      ∑ i, ∑ j, x i * ((entrywiseExp_hadamardSeries (ι:=ι) A) i j) * x j
-      = x ⬝ᵥ (entrywiseExp_hadamardSeries (ι:=ι) A).mulVec x := by
+      ∑ i, ∑ j, x i * ((entrywiseExpHadamardSeries (ι:=ι) A) i j) * x j
+      = x ⬝ᵥ (entrywiseExpHadamardSeries (ι:=ι) A).mulVec x := by
     simp only [Matrix.mulVec, dotProduct, Finset.mul_sum]
     congr 1; ext i; ring_nf
 
@@ -236,16 +241,16 @@ lemma quadratic_form_entrywiseExp_hadamardSeries
   simp only [hlhs_identify]
 
 /-- Summability of the scalar quadratic-form coefficients appearing in the
-    Hadamard exponential series. -/
+Hadamard exponential series. -/
 lemma summable_hadamardQuadSeries
     (A : Matrix ι ι ℝ) (x : ι → ℝ) :
-    Summable (fun n : ℕ =>
+    Summable (fun n : ℕ ↦
       (1 / (Nat.factorial n : ℝ)) * (x ⬝ᵥ (hadamardPow (ι:=ι) A n).mulVec x)) := by
   classical
   -- Each individual coordinate contributes a summable exponential series.
   have h_single :
       ∀ i j : ι,
-        Summable (fun n : ℕ =>
+        Summable (fun n : ℕ ↦
           (1 / (Nat.factorial n : ℝ)) * (x i * (A i j) ^ n * x j)) := by
     intro i j
     have h := Real.summable_pow_div_factorial (A i j)
@@ -255,34 +260,34 @@ lemma summable_hadamardQuadSeries
   -- Inner sums over j are summable for every fixed i.
   have h_inner_hasSum :
       ∀ i : ι,
-        HasSum (fun n : ℕ =>
+        HasSum (fun n : ℕ ↦
           ∑ j : ι,
             (1 / (Nat.factorial n : ℝ)) * (x i * (A i j) ^ n * x j))
-          (∑ j : ι, tsum (fun n : ℕ =>
+          (∑ j : ι, tsum (fun n : ℕ ↦
             (1 / (Nat.factorial n : ℝ)) * (x i * (A i j) ^ n * x j))) := by
     intro i
     classical
     apply hasSum_sum
-    exact fun j _ => (h_single i j).hasSum
+    exact fun j _ ↦ (h_single i j).hasSum
 
   have h_inner :
-      ∀ i : ι, Summable (fun n : ℕ =>
+      ∀ i : ι, Summable (fun n : ℕ ↦
         ∑ j : ι,
           (1 / (Nat.factorial n : ℝ)) * (x i * (A i j) ^ n * x j)) :=
-    fun i => (h_inner_hasSum i).summable
+    fun i ↦ (h_inner_hasSum i).summable
 
   -- The outer sum over i remains summable.
-  have h_outer : Summable (fun n : ℕ => ∑ i : ι, ∑ j : ι,
+  have h_outer : Summable (fun n : ℕ ↦ ∑ i : ι, ∑ j : ι,
       (1 / (Nat.factorial n : ℝ)) * (x i * (A i j) ^ n * x j)) := by
     classical
-    exact summable_sum fun i _ => h_inner i
+    exact summable_sum fun i _ ↦ h_inner i
 
   -- Identify the quadratic form with the double sum built above.
   have h_eq :
-      (fun n : ℕ =>
+      (fun n : ℕ ↦
         (1 / (Nat.factorial n : ℝ)) *
           (x ⬝ᵥ (hadamardPow (ι:=ι) A n).mulVec x)) =
-      fun n : ℕ => ∑ i : ι, ∑ j : ι,
+      fun n : ℕ ↦ ∑ i : ι, ∑ j : ι,
         (1 / (Nat.factorial n : ℝ)) * (x i * (A i j) ^ n * x j) := by
     funext n
     simp [Matrix.mulVec, dotProduct, hadamardPow_apply, div_eq_mul_inv,
@@ -293,13 +298,13 @@ lemma summable_hadamardQuadSeries
   exact h_outer
 
 /-- The Hadamard-series entrywise exponential preserves positive definiteness.
-    Sketch: each Hadamard power (for n ≥ 1) is PD by the Schur product theorem and induction;
-    summing with positive coefficients 1/n! yields strictly positive quadratic form for every x ≠ 0
-    since the n = 1 term already contributes xᵀ A x > 0. Interchange of sum and quadratic form
-    follows from absolute convergence of the scalar exp series; IsHermitian follows termwise. -/
-lemma posDef_entrywiseExp_hadamardSeries_of_posDef
-  (A : Matrix ι ι ℝ) (hA : A.PosDef) :
-  (entrywiseExp_hadamardSeries (ι:=ι) A).PosDef := by
+Sketch: each Hadamard power (for n ≥ 1) is PD by the Schur product theorem and induction;
+summing with positive coefficients 1/n! yields strictly positive quadratic form for every x ≠ 0
+since the n = 1 term already contributes xᵀ A x > 0. Interchange of sum and quadratic form
+follows from absolute convergence of the scalar exp series; IsHermitian follows termwise. -/
+lemma posDef_entrywiseExpHadamardSeries_of_posDef
+    (A : Matrix ι ι ℝ) (hA : A.PosDef) :
+    (entrywiseExpHadamardSeries (ι:=ι) A).PosDef := by
   classical
   -- Extract Hermitian part from PosDef
   have hHermA : A.IsHermitian := hA.isHermitian
@@ -322,17 +327,17 @@ lemma posDef_entrywiseExp_hadamardSeries_of_posDef
       -- prove IsHermitian of hadamard by unfolding
       rw [Matrix.IsHermitian]
       ext i j
-      have hAij : (hadamardPow (ι:=ι) A n) i j = (hadamardPow (ι:=ι) A n) j i := by
+      have hPij : (hadamardPow (ι:=ι) A n) i j = (hadamardPow (ι:=ι) A n) j i := by
         -- from ih
         simpa using (Matrix.IsHermitian.apply ih i j).symm
       have hAij : A i j = A j i := by
         simpa using (Matrix.IsHermitian.apply hHermA i j).symm
-      simp [Matrix.conjTranspose, Matrix.hadamard, hAij, hAij]
+      simp [Matrix.conjTranspose, Matrix.hadamard, hPij, hAij]
   -- Show IsHermitian for the series (termwise symmetry)
-  have hHermS : (entrywiseExp_hadamardSeries (ι:=ι) A).IsHermitian := by
+  have hHermS : (entrywiseExpHadamardSeries (ι:=ι) A).IsHermitian := by
     rw [Matrix.IsHermitian]
     ext i j
-    simp [entrywiseExp_hadamardSeries, Matrix.conjTranspose]
+    simp [entrywiseExpHadamardSeries, Matrix.conjTranspose]
     -- Use termwise symmetry under tsum
     have hsym_term : ∀ n, (hadamardPow (ι:=ι) A n i j) = (hadamardPow (ι:=ι) A n j i) := by
       intro n
@@ -344,13 +349,13 @@ lemma posDef_entrywiseExp_hadamardSeries_of_posDef
   apply Matrix.PosDef.of_dotProduct_mulVec_pos hHermS
   intro x hx
   -- Define the scalar series of quadratic forms
-  let f : ℕ → ℝ := fun n => (1 / (Nat.factorial n : ℝ)) * (x ⬝ᵥ (hadamardPow (ι:=ι) A n).mulVec x)
+  let f : ℕ → ℝ := fun n ↦ (1 / (Nat.factorial n : ℝ)) * (x ⬝ᵥ (hadamardPow (ι:=ι) A n).mulVec x)
   -- Identify the quadratic form of the series with the tsum of `f`
   have hq_tsum :
-      x ⬝ᵥ (entrywiseExp_hadamardSeries (ι:=ι) A).mulVec x
+      x ⬝ᵥ (entrywiseExpHadamardSeries (ι:=ι) A).mulVec x
       = tsum f := by
     -- Use the helper lemma to establish the quadratic form interchange
-    exact quadratic_form_entrywiseExp_hadamardSeries A x
+    exact quadratic_form_entrywiseExpHadamardSeries A x
   -- Each term f n is nonnegative, and f 1 is strictly positive
   have hterm_nonneg : ∀ n, 0 ≤ f n := by
     intro n
@@ -359,7 +364,7 @@ lemma posDef_entrywiseExp_hadamardSeries_of_posDef
       subst hn
       -- Compute the quadratic form against the ones matrix explicitly
       classical
-      have hmv : (hadamardOne (ι:=ι)).mulVec x = (fun _ => ∑ j, x j) := by
+      have hmv : (hadamardOne (ι:=ι)).mulVec x = (fun _ ↦ ∑ j, x j) := by
         funext i; simp [hadamardOne, Matrix.mulVec, dotProduct]
       have hquad : x ⬝ᵥ (hadamardOne (ι:=ι)).mulVec x = (∑ i, x i) * (∑ i, x i) := by
         simp [hmv, dotProduct, Finset.sum_mul]
@@ -376,7 +381,8 @@ lemma posDef_entrywiseExp_hadamardSeries_of_posDef
       have hxq : 0 ≤ x ⬝ᵥ (hadamardPow (ι:=ι) A n).mulVec x := hPSD.dotProduct_mulVec_nonneg x
       -- multiply by positive coefficient 1/n!
       have hcoeff : 0 ≤ (1 / (Nat.factorial n : ℝ)) := by
-        have : 0 < (Nat.factorial n : ℝ) := by exact_mod_cast (Nat.cast_pos.mpr (Nat.factorial_pos n))
+        have : 0 < (Nat.factorial n : ℝ) := by
+          exact_mod_cast (Nat.cast_pos.mpr (Nat.factorial_pos n))
         exact div_nonneg (by norm_num) this.le
       exact mul_nonneg hcoeff hxq
   have hterm_pos : 0 < f 1 := by
@@ -406,15 +412,15 @@ set_option maxHeartbeats 1000000
 --set_option diagnostics true
 
 /-- The Hadamard-series entrywise exponential preserves positive semidefiniteness.
-    This follows from the positive definite case by continuity: if A is PSD, then
-    A + εI is PD for ε > 0, so entrywiseExp_hadamardSeries(A + εI) is PD, and
-    taking ε → 0⁺ with continuity of entrywiseExp_hadamardSeries gives that
-    entrywiseExp_hadamardSeries(A) is PSD.
+This follows from the positive definite case by continuity: if A is PSD, then
+A + εI is PD for ε > 0, so entrywiseExpHadamardSeries(A + εI) is PD, and
+taking ε → 0⁺ with continuity of entrywiseExpHadamardSeries gives that
+entrywiseExpHadamardSeries(A) is PSD.
 
-    NOTE: This proof is simplified to avoid matrix reduction timeouts. -/
-lemma posSemidef_entrywiseExp_hadamardSeries_of_posSemidef
-  (A : Matrix ι ι ℝ) (hA : A.PosSemidef) :
-  (entrywiseExp_hadamardSeries (ι:=ι) A).PosSemidef := by
+NOTE: This proof is simplified to avoid matrix reduction timeouts. -/
+lemma posSemidef_entrywiseExpHadamardSeries_of_posSemidef
+    (A : Matrix ι ι ℝ) (hA : A.PosSemidef) :
+    (entrywiseExpHadamardSeries (ι:=ι) A).PosSemidef := by
   classical
   -- Step 1: For any ε > 0, A + εI is positive definite
   have h_perturb_posDef : ∀ (ε : ℝ), ε > 0 → (A + ε • (1 : Matrix ι ι ℝ)).PosDef := by
@@ -450,31 +456,35 @@ lemma posSemidef_entrywiseExp_hadamardSeries_of_posSemidef
     rw [this, h_expand]
     exact add_pos_of_nonneg_of_pos hA_nonneg hε_pos
 
-  -- Step 2: For each ε > 0, entrywiseExp_hadamardSeries(A + εI) is positive definite
-  have h_exp_perturb_posDef : ∀ (ε : ℝ), ε > 0 → (entrywiseExp (A + ε • (1 : Matrix ι ι ℝ))).PosDef := by
+  -- Step 2: For each ε > 0, entrywiseExpHadamardSeries(A + εI) is positive definite
+  have h_exp_perturb_posDef :
+      ∀ (ε : ℝ), ε > 0 →
+        (entrywiseExp (A + ε • (1 : Matrix ι ι ℝ))).PosDef := by
     intro ε hε
-    have h := posDef_entrywiseExp_hadamardSeries_of_posDef (A + ε • (1 : Matrix ι ι ℝ)) (h_perturb_posDef ε hε)
+    have h := posDef_entrywiseExpHadamardSeries_of_posDef
+      (A + ε • (1 : Matrix ι ι ℝ)) (h_perturb_posDef ε hε)
     simpa [entrywiseExp_eq_hadamardSeries] using h
 
-  -- Step 3: Continuity of the map S ↦ entrywiseExp_hadamardSeries(S)
-  have h_continuous : Continuous (fun S : Matrix ι ι ℝ => entrywiseExp S) :=
+  -- Step 3: Continuity of the map S ↦ entrywiseExpHadamardSeries(S)
+  have h_continuous : Continuous (fun S : Matrix ι ι ℝ ↦ entrywiseExp S) :=
     continuous_entrywiseExp ι
 
   -- Step 4: Continuity of diagonal perturbation ε ↦ A + εI
-  have h_perturb_continuous : Continuous (fun ε : ℝ => A + ε • (1 : Matrix ι ι ℝ)) := by
+  have h_perturb_continuous : Continuous (fun ε : ℝ ↦ A + ε • (1 : Matrix ι ι ℝ)) := by
     -- Linear in ε, hence continuous
-    have : Continuous (fun ε : ℝ => ε • (1 : Matrix ι ι ℝ)) := by
+    have : Continuous (fun ε : ℝ ↦ ε • (1 : Matrix ι ι ℝ)) := by
       exact continuous_id.smul continuous_const
     exact Continuous.add continuous_const this
 
-  -- Step 5: Composition gives continuity of ε ↦ entrywiseExp_hadamardSeries(A + εI)
-  have h_comp_continuous : Continuous (fun ε : ℝ => entrywiseExp (A + ε • (1 : Matrix ι ι ℝ))) := by
+  -- Step 5: Composition gives continuity of ε ↦ entrywiseExpHadamardSeries(A + εI)
+  have h_comp_continuous : Continuous (fun ε : ℝ ↦ entrywiseExp (A + ε • (1 : Matrix ι ι ℝ))) := by
     exact h_continuous.comp h_perturb_continuous
 
   -- Step 6: Limit as ε → 0⁺ gives the result at ε = 0
   have h_limit : entrywiseExp A =
     entrywiseExp (A + 0 • (1 : Matrix ι ι ℝ)) := by
-    -- This uses continuity at ε = 0: lim_{ε→0} entrywiseExp_hadamardSeries(A + εI) = entrywiseExp_hadamardSeries(A)
+    -- This uses continuity at ε = 0:
+    -- lim_{ε→0} entrywiseExpHadamardSeries(A + εI) = entrywiseExpHadamardSeries(A)
     simp only [zero_smul, add_zero]
 
   -- Step 7: PosSemidef is preserved under limits of PosDef sequences
@@ -502,38 +512,40 @@ lemma posSemidef_entrywiseExp_hadamardSeries_of_posSemidef
     -- For real vectors, star x = x
     have h_star_eq : star x = x := by simp [star]
     -- For each ε > 0: 0 ≤ xᵀ entrywiseExp(A + εI) x
-    have h_nonneg_eps : ∀ (ε : ℝ), ε > 0 → 0 ≤ x ⬝ᵥ (entrywiseExp (A + ε • (1 : Matrix ι ι ℝ))).mulVec x := by
+    have h_nonneg_eps :
+        ∀ (ε : ℝ), ε > 0 →
+          0 ≤ x ⬝ᵥ (entrywiseExp (A + ε • (1 : Matrix ι ι ℝ))).mulVec x := by
       intro ε hε
       -- Use the positive semidefiniteness of entrywiseExp (A + εI)
       have hPSD := Matrix.PosDef.posSemidef (h_exp_perturb_posDef ε hε)
       exact hPSD.dotProduct_mulVec_nonneg x
     -- Quadratic form is continuous: x ⬝ᵥ A.mulVec x is continuous in A
-    have h_quad_continuous : Continuous (fun A : Matrix ι ι ℝ => x ⬝ᵥ A.mulVec x) := by
+    have h_quad_continuous : Continuous (fun A : Matrix ι ι ℝ ↦ x ⬝ᵥ A.mulVec x) := by
       -- Quadratic forms are finite sums of coordinate functions, hence continuous
       simp only [Matrix.mulVec, dotProduct]
       apply continuous_finset_sum
       intro i _
       -- Inner sum over j is continuous, then multiply by constant x i
-      have h_inner : Continuous (fun A : Matrix ι ι ℝ => ∑ j, A i j * x j) := by
+      have h_inner : Continuous (fun A : Matrix ι ι ℝ ↦ ∑ j, A i j * x j) := by
         apply continuous_finset_sum
         intro j _
-        have h_ij : Continuous fun A : Matrix ι ι ℝ => A i j :=
+        have h_ij : Continuous fun A : Matrix ι ι ℝ ↦ A i j :=
           (continuous_apply j).comp (continuous_apply i)
         exact h_ij.mul continuous_const
       exact continuous_const.mul h_inner
     -- Consider the composition ε ↦ entrywiseExp (A + εI)
-    have h_path_continuous : Continuous (fun ε : ℝ => entrywiseExp (A + ε • (1 : Matrix ι ι ℝ))) :=
+    have h_path_continuous : Continuous (fun ε : ℝ ↦ entrywiseExp (A + ε • (1 : Matrix ι ι ℝ))) :=
       h_comp_continuous
     -- Compose with the quadratic form to get the scalar function
     have h_quad_path_continuous :
-        Continuous (fun ε : ℝ => x ⬝ᵥ (entrywiseExp (A + ε • (1 : Matrix ι ι ℝ))).mulVec x) :=
+        Continuous (fun ε : ℝ ↦ x ⬝ᵥ (entrywiseExp (A + ε • (1 : Matrix ι ι ℝ))).mulVec x) :=
       h_quad_continuous.comp h_path_continuous
     -- Apply ge_of_tendsto: if f(ε) ≥ 0 eventually and f → f(0), then f(0) ≥ 0
-    have h_tendsto : Tendsto (fun ε : ℝ => x ⬝ᵥ (entrywiseExp (A + ε • (1 : Matrix ι ι ℝ))).mulVec x)
+    have h_tendsto : Tendsto (fun ε : ℝ ↦ x ⬝ᵥ (entrywiseExp (A + ε • (1 : Matrix ι ι ℝ))).mulVec x)
         (𝓝[Set.Ioi 0] 0) (𝓝 (x ⬝ᵥ (entrywiseExp A).mulVec x)) := by
       -- Use the continuity at 0 to get the right-sided limit
       have h_cont_at_zero : ContinuousAt
-          (fun ε : ℝ => x ⬝ᵥ (entrywiseExp (A + ε • (1 : Matrix ι ι ℝ))).mulVec x) (0 : ℝ) :=
+          (fun ε : ℝ ↦ x ⬝ᵥ (entrywiseExp (A + ε • (1 : Matrix ι ι ℝ))).mulVec x) (0 : ℝ) :=
         h_quad_path_continuous.continuousAt
       -- Show that the limit value simplifies to the desired form
       have h_limit_simplify : x ⬝ᵥ (entrywiseExp (A + (0 : ℝ) • (1 : Matrix ι ι ℝ))).mulVec x =
@@ -551,7 +563,7 @@ lemma posSemidef_entrywiseExp_hadamardSeries_of_posSemidef
     -- Convert from regular inner product to star inner product
     simpa [h_star_eq] using h_final
 
-  -- Convert the result back to entrywiseExp_hadamardSeries
+  -- Convert the result back to entrywiseExpHadamardSeries
   rw [← entrywiseExp_eq_hadamardSeries]
   exact h_limit_posSemidef_entry
 end OSforGFF

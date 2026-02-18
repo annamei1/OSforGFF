@@ -70,16 +70,16 @@ lemma schwartz_tendsto_zero (f : SchwartzMap E ℂ) :
 
 /-- The singular (compactly supported) part of the kernel. -/
 def kernelSingular (K : E → ℝ) (R₀ : ℝ) : E → ℝ :=
-  fun x => K x * (closedBall (0 : E) R₀).indicator (fun _ => (1 : ℝ)) x
+  fun x ↦ K x * (closedBall (0 : E) R₀).indicator (fun _ ↦ (1 : ℝ)) x
 
 /-- The tail (decaying) part of the kernel. -/
 def kernelTail (K : E → ℝ) (R₀ : ℝ) : E → ℝ :=
-  fun x => K x * (closedBall (0 : E) R₀)ᶜ.indicator (fun _ => (1 : ℝ)) x
+  fun x ↦ K x * (closedBall (0 : E) R₀)ᶜ.indicator (fun _ ↦ (1 : ℝ)) x
 
 omit [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in
 /-- Kernel decomposes into singular and tail parts. -/
 lemma kernel_decomposition (K : E → ℝ) (R₀ : ℝ) :
-    K = fun x => kernelSingular K R₀ x + kernelTail K R₀ x := by
+    K = fun x ↦ kernelSingular K R₀ x + kernelTail K R₀ x := by
   ext x
   simp only [kernelSingular, kernelTail]
   by_cases hx : x ∈ closedBall (0 : E) R₀
@@ -104,7 +104,7 @@ lemma kernelTail_tendsto_zero (K : E → ℝ) (R₀ : ℝ)
     rw [Filter.eventually_iff_exists_mem]
     refine ⟨(closedBall 0 R₀)ᶜ, ?_, ?_⟩
     · rw [Filter.mem_cocompact]
-      exact ⟨closedBall 0 R₀, isCompact_closedBall 0 R₀, fun x hx => hx⟩
+      exact ⟨closedBall 0 R₀, isCompact_closedBall 0 R₀, fun x hx ↦ hx⟩
     · intro z hz
       simp only [mem_compl_iff, mem_closedBall, dist_zero_right, not_le] at hz
       simp only [kernelTail, dist_zero_right]
@@ -113,7 +113,9 @@ lemma kernelTail_tendsto_zero (K : E → ℝ) (R₀ : ℝ)
         exact hz
       rw [indicator_of_mem hmem, mul_one]
       have hbound := hK_decay z hz.le
-      have : |K z| ≤ 0 := le_trans hbound (div_nonpos_of_nonpos_of_nonneg hC (Real.rpow_nonneg (norm_nonneg z) d))
+      have : |K z| ≤ 0 :=
+        le_trans hbound
+          (div_nonpos_of_nonpos_of_nonneg hC (Real.rpow_nonneg (norm_nonneg z) d))
       simp only [abs_nonpos_iff] at this
       simp [this, hε]
   · -- C > 0 case
@@ -122,7 +124,7 @@ lemma kernelTail_tendsto_zero (K : E → ℝ) (R₀ : ℝ)
     rw [Filter.eventually_iff_exists_mem]
     refine ⟨(closedBall 0 R)ᶜ, ?_, ?_⟩
     · rw [Filter.mem_cocompact]
-      exact ⟨closedBall 0 R, isCompact_closedBall 0 R, fun x hx => hx⟩
+      exact ⟨closedBall 0 R, isCompact_closedBall 0 R, fun x hx ↦ hx⟩
     · intro z hz
       simp only [mem_compl_iff, mem_closedBall, dist_zero_right, not_le] at hz
       simp only [dist_zero_right]
@@ -130,7 +132,8 @@ lemma kernelTail_tendsto_zero (K : E → ℝ) (R₀ : ℝ)
       by_cases hz_R₀ : ‖z‖ ≤ R₀
       · -- Inside R₀ ball: kernelTail z = 0
         simp only [kernelTail]
-        rw [indicator_of_notMem (by simp [hz_R₀] : z ∉ (closedBall (0 : E) R₀)ᶜ), mul_zero, norm_zero]
+        rw [indicator_of_notMem (by simp [hz_R₀] : z ∉ (closedBall (0 : E) R₀)ᶜ),
+          mul_zero, norm_zero]
         exact hε
       · -- Outside R₀ ball: use decay bound
         push_neg at hz_R₀
@@ -211,13 +214,13 @@ lemma integrable_tail_small {f : E → ℂ} (hf : Integrable f) (ε : ℝ) (hε 
     ∃ s : Set E, IsCompact s ∧ ∫ x in sᶜ, ‖f x‖ < ε := by
   -- Use: for antitone sequence of sets, integral tends to integral over intersection
   -- Here s(n) = (closedBall 0 n)ᶜ is antitone and ⋂ s(n) = ∅
-  let s : ℕ → Set E := fun n => (closedBall (0 : E) n)ᶜ
-  have hs_anti : Antitone s := fun m n hmn =>
+  let s : ℕ → Set E := fun n ↦ (closedBall (0 : E) n)ᶜ
+  have hs_anti : Antitone s := fun m n hmn ↦
     compl_subset_compl.mpr (closedBall_subset_closedBall (by exact Nat.cast_le.mpr hmn))
-  have hs_meas : ∀ n, MeasurableSet (s n) := fun n =>
+  have hs_meas : ∀ n, MeasurableSet (s n) := fun n ↦
     isClosed_closedBall.measurableSet.compl
   -- ‖f‖ is integrable
-  have hf_norm : Integrable (fun x => ‖f x‖) := hf.norm
+  have hf_norm : Integrable (fun x ↦ ‖f x‖) := hf.norm
   -- The integral over s(n) tends to the integral over ⋂ s(n)
   have htends := Antitone.tendsto_setIntegral hs_meas hs_anti hf_norm.integrableOn
   -- ⋂ s(n) = ∅ in finite-dimensional space
@@ -237,7 +240,7 @@ lemma integrable_tail_small {f : E → ℂ} (hf : Integrable f) (ε : ℝ) (hε 
   specialize hn n le_rfl
   simp only [dist_zero_right] at hn
   -- hn : ‖∫ x in s n, ‖f x‖‖ < ε, but ∫ x in s n, ‖f x‖ ≥ 0, so this gives what we need
-  have h_nonneg : 0 ≤ ∫ x in s n, ‖f x‖ := setIntegral_nonneg (hs_meas n) (fun _ _ => norm_nonneg _)
+  have h_nonneg : 0 ≤ ∫ x in s n, ‖f x‖ := setIntegral_nonneg (hs_meas n) (fun _ _ ↦ norm_nonneg _)
   rw [Real.norm_eq_abs, abs_of_nonneg h_nonneg] at hn
   exact hn
 
@@ -248,7 +251,7 @@ theorem convolution_vanishes_of_integrable_and_C0
     (hf_int : Integrable f)
     (hg_C0 : Tendsto g (cocompact E) (nhds 0))
     (hg_cont : Continuous g) :
-    Tendsto (fun y => ∫ x, f x * g (x - y)) (cocompact E) (nhds 0) := by
+    Tendsto (fun y ↦ ∫ x, f x * g (x - y)) (cocompact E) (nhds 0) := by
   -- Step 1: g is bounded
   obtain ⟨B, hB⟩ := bounded_of_continuous_tendsto_zero hg_cont hg_C0
   have hB_pos : 0 < max B 1 := lt_max_of_lt_right zero_lt_one
@@ -263,7 +266,7 @@ theorem convolution_vanishes_of_integrable_and_C0
 
   -- Step 4: Get radius R where g is small
   let If := ∫ x, ‖f x‖
-  have hIf_nonneg : 0 ≤ If := integral_nonneg (fun _ => norm_nonneg _)
+  have hIf_nonneg : 0 ≤ If := integral_nonneg (fun _ ↦ norm_nonneg _)
   let η := ε / (2 * (If + 1))
   have hη_pos : 0 < η := div_pos hε (mul_pos two_pos (by linarith))
 
@@ -286,7 +289,7 @@ theorem convolution_vanishes_of_integrable_and_C0
   rw [Filter.eventually_iff_exists_mem]
   refine ⟨(closedBall 0 R)ᶜ, ?_, ?_⟩
   · rw [Filter.mem_cocompact]
-    exact ⟨closedBall 0 R, isCompact_closedBall 0 R, fun x hx => hx⟩
+    exact ⟨closedBall 0 R, isCompact_closedBall 0 R, fun x hx ↦ hx⟩
   · intro y hy
     simp only [mem_compl_iff, mem_closedBall, dist_zero_right, not_le] at hy
     simp only [dist_zero_right]
@@ -297,7 +300,8 @@ theorem convolution_vanishes_of_integrable_and_C0
       intro x hxs
       have hx_bound : ‖x‖ ≤ R_s := by simpa [mem_closedBall, dist_zero_right] using hR_s hxs
       intro hxy_in_t₁
-      have hxy_bound : ‖x - y‖ ≤ R_t₁ := by simpa [mem_closedBall, dist_zero_right] using hR_t₁ hxy_in_t₁
+      have hxy_bound : ‖x - y‖ ≤ R_t₁ := by
+        simpa [mem_closedBall, dist_zero_right] using hR_t₁ hxy_in_t₁
       -- ‖y‖ - ‖x‖ ≤ ‖y - x‖ = ‖x - y‖
       have h1 : ‖y‖ - ‖x‖ ≤ ‖y - x‖ := norm_sub_norm_le y x
       have h2 : ‖y - x‖ = ‖x - y‖ := norm_sub_rev y x
@@ -310,7 +314,7 @@ theorem convolution_vanishes_of_integrable_and_C0
       simpa [dist_zero_right] using ht (x - y) this
 
     -- The integrand is integrable (f integrable, g bounded)
-    have hg_bdd : ∀ x, ‖g (x - y)‖ ≤ max B 1 := fun x => le_max_of_le_left (hB (x - y))
+    have hg_bdd : ∀ x, ‖g (x - y)‖ ≤ max B 1 := fun x ↦ le_max_of_le_left (hB (x - y))
 
     -- Split the integral using set integral bounds
     -- We can bound the total integral by splitting over s and sᶜ
@@ -330,9 +334,9 @@ theorem convolution_vanishes_of_integrable_and_C0
     -- where η * If < η * (If + 1) = ε/2 since η = ε / (2 * (If + 1))
 
     -- Integrability of the integrand
-    have hg_bdd : ∀ x, ‖g (x - y)‖ ≤ max B 1 := fun x => le_max_of_le_left (hB (x - y))
-    have h_int : Integrable (fun x => ‖f x‖ * ‖g (x - y)‖) volume := by
-      have hg_meas : AEStronglyMeasurable (fun x => ‖g (x - y)‖) volume :=
+    have hg_bdd : ∀ x, ‖g (x - y)‖ ≤ max B 1 := fun x ↦ le_max_of_le_left (hB (x - y))
+    have h_int : Integrable (fun x ↦ ‖f x‖ * ‖g (x - y)‖) volume := by
+      have hg_meas : AEStronglyMeasurable (fun x ↦ ‖g (x - y)‖) volume :=
         (hg_cont.comp (continuous_id.sub continuous_const)).norm.aestronglyMeasurable
       refine Integrable.mul_bdd (c := max B 1) hf_int.norm hg_meas ?_
       filter_upwards with x
@@ -345,13 +349,14 @@ theorem convolution_vanishes_of_integrable_and_C0
     -- Bound on s using setIntegral_mono_on (which gives us the membership hypothesis)
     have hs_bound : ∫ x in s, ‖f x‖ * ‖g (x - y)‖ ≤ η * If := by
       have h1 : ∫ x in s, ‖f x‖ * ‖g (x - y)‖ ≤ ∫ x in s, ‖f x‖ * η := by
-        refine setIntegral_mono_on h_int.integrableOn (hf_int.norm.mul_const _).integrableOn hs_meas ?_
+        refine setIntegral_mono_on h_int.integrableOn
+          (hf_int.norm.mul_const _).integrableOn hs_meas ?_
         intro x hxs
         exact mul_le_mul_of_nonneg_left (hg_small_on_s x hxs).le (norm_nonneg _)
       have h2 : ∫ x in s, ‖f x‖ * η = η * ∫ x in s, ‖f x‖ := by
         rw [integral_mul_const]; ring
       have h3 : ∫ x in s, ‖f x‖ ≤ If := setIntegral_le_integral hf_int.norm
-        (Eventually.of_forall (fun _ => norm_nonneg _))
+        (Eventually.of_forall (fun _ ↦ norm_nonneg _))
       linarith [mul_le_mul_of_nonneg_left h3 hη_pos.le]
 
     -- Bound on sᶜ (g is bounded globally, so setIntegral_mono works)
@@ -405,7 +410,7 @@ theorem schwartz_bilinear_prod_integrable
     (R₀ : ℝ) (_hR₀ : R₀ > 0)
     (hK_tail_bdd : ∃ M : ℝ, ∀ z : E, |kernelTail K R₀ z| ≤ M)
     (x₀ : E) :
-    Integrable (Function.uncurry (fun x y => f x * (K (x - y) : ℂ) * g (y - x₀)))
+    Integrable (Function.uncurry (fun x y ↦ f x * (K (x - y) : ℂ) * g (y - x₀)))
         (volume.prod volume) := by
   -- Get Schwartz integrability
   haveI : ProperSpace E := FiniteDimensional.proper ℝ E
@@ -434,11 +439,12 @@ theorem schwartz_bilinear_prod_integrable
     ring
 
   -- K_sing part: f bounded, K_sing integrable (compact support), g integrable
-  have h_sing_int : Integrable (Function.uncurry (fun x y => f x * (K_sing (x - y) : ℂ) * g (y - x₀)))
+  have h_sing_int : Integrable
+      (Function.uncurry (fun x y ↦ f x * (K_sing (x - y) : ℂ) * g (y - x₀)))
       (volume.prod volume) := by
     have hKs_meas : Measurable K_sing :=
       hK_meas.mul (measurable_const.indicator isClosed_closedBall.measurableSet)
-    have hg_shift : Integrable (fun y => g (y - x₀)) volume := hg_int.comp_sub_right x₀
+    have hg_shift : Integrable (fun y ↦ g (y - x₀)) volume := hg_int.comp_sub_right x₀
     -- K_sing is integrable (compact support)
     have hKs_int : Integrable K_sing volume := by
       show Integrable (kernelSingular K R₀) volume
@@ -451,31 +457,31 @@ theorem schwartz_bilinear_prod_integrable
       rw [heq, integrable_indicator_iff isClosed_closedBall.measurableSet]
       exact hK_loc.integrableOn_isCompact (isCompact_closedBall 0 R₀)
     -- Product: Cf * |K_sing(x-y)| * |g(y-x₀)| is integrable
-    have hKs_int_C : Integrable (fun z => (K_sing z : ℂ)) volume := hKs_int.ofReal
-    have hg_shift_C : Integrable (fun y => g (y - x₀)) volume := hg_shift
+    have hKs_int_C : Integrable (fun z ↦ (K_sing z : ℂ)) volume := hKs_int.ofReal
+    have hg_shift_C : Integrable (fun y ↦ g (y - x₀)) volume := hg_shift
     -- Use Integrable.mul_prod for the shifted variables
-    have h_prod_Ks_g : Integrable (fun p : E × E => (K_sing p.1 : ℂ) * g (p.2 - x₀))
+    have h_prod_Ks_g : Integrable (fun p : E × E ↦ (K_sing p.1 : ℂ) * g (p.2 - x₀))
         (volume.prod volume) := Integrable.mul_prod hKs_int_C hg_shift_C
     -- Change of variables (x, y) ↦ (x - y, y) to get K_sing(x-y)
     let e : E × E ≃ᵐ E × E :=
-      { toFun := fun p => (p.1 - p.2, p.2)
-        invFun := fun p => (p.1 + p.2, p.2)
-        left_inv := fun p => by simp [sub_add_cancel]
-        right_inv := fun p => by simp [add_sub_cancel_right]
+      { toFun := fun p ↦ (p.1 - p.2, p.2)
+        invFun := fun p ↦ (p.1 + p.2, p.2)
+        left_inv := fun p ↦ by simp [sub_add_cancel]
+        right_inv := fun p ↦ by simp [add_sub_cancel_right]
         measurable_toFun := Measurable.prodMk (measurable_fst.sub measurable_snd) measurable_snd
         measurable_invFun := Measurable.prodMk (measurable_fst.add measurable_snd) measurable_snd }
     have he_preserves : MeasurePreserving e (volume.prod volume) (volume.prod volume) := by
       have := measurePreserving_sub_prod (G := E) volume volume
       convert this using 1
-    have h_Ks_shifted : Integrable (fun p : E × E => (K_sing (p.1 - p.2) : ℂ) * g (p.2 - x₀))
+    have h_Ks_shifted : Integrable (fun p : E × E ↦ (K_sing (p.1 - p.2) : ℂ) * g (p.2 - x₀))
         (volume.prod volume) := by
-      have heq : (fun p : E × E => (K_sing (p.1 - p.2) : ℂ) * g (p.2 - x₀)) =
-          (fun p => (K_sing p.1 : ℂ) * g (p.2 - x₀)) ∘ e := by ext p; rfl
+      have heq : (fun p : E × E ↦ (K_sing (p.1 - p.2) : ℂ) * g (p.2 - x₀)) =
+          (fun p ↦ (K_sing p.1 : ℂ) * g (p.2 - x₀)) ∘ e := by ext p; rfl
       rw [heq, he_preserves.integrable_comp_emb e.measurableEmbedding]
       exact h_prod_Ks_g
     -- Now bound: |f(x) K_sing(x-y) g(y-x₀)| ≤ Cf * |K_sing(x-y) * g(y-x₀)|
     have hCf_pos : 0 < max Cf 1 := lt_max_of_lt_right one_pos
-    have h_dom : Integrable (fun p : E × E => max Cf 1 * ‖(K_sing (p.1 - p.2) : ℂ) * g (p.2 - x₀)‖)
+    have h_dom : Integrable (fun p : E × E ↦ max Cf 1 * ‖(K_sing (p.1 - p.2) : ℂ) * g (p.2 - x₀)‖)
         (volume.prod volume) := h_Ks_shifted.norm.const_mul (max Cf 1)
     refine h_dom.mono' ?_ ?_
     · -- AEStronglyMeasurable
@@ -497,24 +503,26 @@ theorem schwartz_bilinear_prod_integrable
         _ = max Cf 1 * ‖(K_sing (x - y) : ℂ) * g (y - x₀)‖ := by rw [← norm_mul]
 
   -- K_tail part: f integrable, K_tail bounded, g integrable
-  have h_tail_int : Integrable (Function.uncurry (fun x y => f x * (K_tail (x - y) : ℂ) * g (y - x₀)))
+  have h_tail_int : Integrable
+      (Function.uncurry (fun x y ↦ f x * (K_tail (x - y) : ℂ) * g (y - x₀)))
       (volume.prod volume) := by
-    have hg_shift : Integrable (fun y => g (y - x₀)) volume := hg_int.comp_sub_right x₀
-    have h_prod : Integrable (fun z : E × E => f z.1 * g (z.2 - x₀)) (volume.prod volume) :=
+    have hg_shift : Integrable (fun y ↦ g (y - x₀)) volume := hg_int.comp_sub_right x₀
+    have h_prod : Integrable (fun z : E × E ↦ f z.1 * g (z.2 - x₀)) (volume.prod volume) :=
       Integrable.mul_prod hf_int hg_shift
-    have h_dom : Integrable (fun z : E × E => M_tail * ‖f z.1 * g (z.2 - x₀)‖) (volume.prod volume) :=
+    have h_dom : Integrable
+        (fun z : E × E ↦ M_tail * ‖f z.1 * g (z.2 - x₀)‖) (volume.prod volume) :=
       h_prod.norm.const_mul M_tail
     refine h_dom.mono' ?_ ?_
     · -- AEStronglyMeasurable
       have hKt_meas : Measurable (kernelTail K R₀) := by
-        have hind : Measurable ((closedBall (0 : E) R₀)ᶜ.indicator (fun _ => (1 : ℝ))) :=
+        have hind : Measurable ((closedBall (0 : E) R₀)ᶜ.indicator (fun _ ↦ (1 : ℝ))) :=
           measurable_const.indicator isClosed_closedBall.measurableSet.compl
         exact hK_meas.mul hind
-      have h1 : Measurable (fun z : E × E => (kernelTail K R₀ (z.1 - z.2) : ℂ)) :=
+      have h1 : Measurable (fun z : E × E ↦ (kernelTail K R₀ (z.1 - z.2) : ℂ)) :=
         measurable_ofReal.comp (hKt_meas.comp (measurable_fst.sub measurable_snd))
-      have h2 : AEStronglyMeasurable (fun z : E × E => f z.1) (volume.prod volume) :=
+      have h2 : AEStronglyMeasurable (fun z : E × E ↦ f z.1) (volume.prod volume) :=
         (f.continuous.comp continuous_fst).aestronglyMeasurable
-      have h3 : AEStronglyMeasurable (fun z : E × E => g (z.2 - x₀)) (volume.prod volume) :=
+      have h3 : AEStronglyMeasurable (fun z : E × E ↦ g (z.2 - x₀)) (volume.prod volume) :=
         (g.continuous.comp (continuous_snd.sub continuous_const)).aestronglyMeasurable
       exact (h2.mul h1.aestronglyMeasurable).mul h3
     · -- ae bound: ‖f(x) K_tail(x-y) g(y-x₀)‖ ≤ M_tail * ‖f(x) * g(y-x₀)‖
@@ -533,9 +541,9 @@ theorem schwartz_bilinear_prod_integrable
         _ = M_tail * ‖f x * g (y - x₀)‖ := by rw [← norm_mul]
 
   -- Combine using integral_add for product integrals
-  have h_eq : Function.uncurry (fun x y => f x * (K (x - y) : ℂ) * g (y - x₀)) =
-      Function.uncurry (fun x y => f x * (K_sing (x - y) : ℂ) * g (y - x₀)) +
-      Function.uncurry (fun x y => f x * (K_tail (x - y) : ℂ) * g (y - x₀)) := by
+  have h_eq : Function.uncurry (fun x y ↦ f x * (K (x - y) : ℂ) * g (y - x₀)) =
+      Function.uncurry (fun x y ↦ f x * (K_sing (x - y) : ℂ) * g (y - x₀)) +
+      Function.uncurry (fun x y ↦ f x * (K_tail (x - y) : ℂ) * g (y - x₀)) := by
     ext ⟨x, y⟩
     simp only [Function.uncurry, Pi.add_apply, h_split]
 
@@ -555,7 +563,7 @@ the bilinear integral tends to 0 as the translation parameter x₀ → ∞.
 
 This version adds LocallyIntegrable hypothesis to handle kernel singularities.
 This proof replaces the former axiom (previously in TextbookAxioms.lean, now eliminated). -/
-theorem schwartz_bilinear_translation_decay_proof
+theorem schwartz_bilinear_translation_decay
     (f g : SchwartzMap E ℂ)
     (K : E → ℝ)
     (hK_meas : Measurable K)
@@ -575,7 +583,7 @@ theorem schwartz_bilinear_translation_decay_proof
   have hK_sing_int : Integrable K_sing volume := by
     show Integrable (kernelSingular K R₀) volume
     unfold kernelSingular
-    have heq : (fun x => K x * (closedBall (0 : E) R₀).indicator (fun _ => (1 : ℝ)) x) =
+    have heq : (fun x ↦ K x * (closedBall (0 : E) R₀).indicator (fun _ ↦ (1 : ℝ)) x) =
                (closedBall (0 : E) R₀).indicator K := by
       ext x
       by_cases hx : x ∈ closedBall (0 : E) R₀
@@ -600,12 +608,13 @@ theorem schwartz_bilinear_translation_decay_proof
   -- Step 7: Show f ⋆ K_sing vanishes at infinity
   -- Pattern: K_sing is L¹ with compact support, f is C₀
   -- As y → ∞, the support of K_sing(·-y) moves to where f is small
-  have h_fKsing_vanish : Tendsto (fun y => ∫ x, f x * (K_sing (x - y) : ℂ)) (cocompact E) (nhds 0) := by
+  have h_fKsing_vanish :
+      Tendsto (fun y ↦ ∫ x, f x * (K_sing (x - y) : ℂ)) (cocompact E) (nhds 0) := by
     rw [Metric.tendsto_nhds]
     intro ε hε
 
     -- K_sing is integrable, get its L¹ norm
-    have hK_sing_norm : 0 ≤ ∫ x, ‖(K_sing x : ℂ)‖ := integral_nonneg (fun _ => norm_nonneg _)
+    have hK_sing_norm : 0 ≤ ∫ x, ‖(K_sing x : ℂ)‖ := integral_nonneg (fun _ ↦ norm_nonneg _)
     let I_Ksing := ∫ x, ‖(K_sing x : ℂ)‖
     have hI_pos : 0 < I_Ksing + 1 := by linarith
 
@@ -629,7 +638,7 @@ theorem schwartz_bilinear_translation_decay_proof
     rw [Filter.eventually_iff_exists_mem]
     refine ⟨(closedBall 0 R)ᶜ, ?_, ?_⟩
     · rw [Filter.mem_cocompact]
-      exact ⟨closedBall 0 R, isCompact_closedBall 0 R, fun x hx => hx⟩
+      exact ⟨closedBall 0 R, isCompact_closedBall 0 R, fun x hx ↦ hx⟩
     · intro y hy
       simp only [mem_compl_iff, mem_closedBall, dist_zero_right, not_le] at hy
       simp only [dist_zero_right]
@@ -673,14 +682,14 @@ theorem schwartz_bilinear_translation_decay_proof
         · exact mul_le_mul_of_nonneg_right (hf_small_on_supp x hK).le (norm_nonneg _)
 
       -- Integrability of ‖f · K_sing(·-y)‖ and δ * ‖K_sing(·-y)‖
-      have hKs_y_int : Integrable (fun x => (K_sing (x - y) : ℂ)) volume :=
+      have hKs_y_int : Integrable (fun x ↦ (K_sing (x - y) : ℂ)) volume :=
         (hK_sing_int.comp_sub_right y).ofReal
       -- f is bounded (Schwartz C₀)
       obtain ⟨Cf, hCf⟩ := bounded_of_continuous_tendsto_zero f.continuous (schwartz_tendsto_zero f)
-      have hint1 : Integrable (fun x => ‖f x * (K_sing (x - y) : ℂ)‖) volume :=
+      have hint1 : Integrable (fun x ↦ ‖f x * (K_sing (x - y) : ℂ)‖) volume :=
         (Integrable.bdd_mul hKs_y_int f.continuous.aestronglyMeasurable
           (Eventually.of_forall hCf)).norm
-      have hint2 : Integrable (fun x => δ * ‖(K_sing (x - y) : ℂ)‖) volume := by
+      have hint2 : Integrable (fun x ↦ δ * ‖(K_sing (x - y) : ℂ)‖) volume := by
         simp only [mul_comm δ]
         exact hKs_y_int.norm.mul_const δ
 
@@ -693,7 +702,7 @@ theorem schwartz_bilinear_translation_decay_proof
         _ = δ * I_Ksing := by
             congr 1
             have : ∫ x, ‖(K_sing (x - y) : ℂ)‖ = ∫ z, ‖(K_sing z : ℂ)‖ :=
-              integral_sub_right_eq_self (fun z => ‖(K_sing z : ℂ)‖) y
+              integral_sub_right_eq_self (fun z ↦ ‖(K_sing z : ℂ)‖) y
             exact this
         _ < ε := by
             have : δ * I_Ksing < δ * (I_Ksing + 1) := mul_lt_mul_of_pos_left (lt_add_one _) hδ_pos
@@ -702,7 +711,8 @@ theorem schwartz_bilinear_translation_decay_proof
 
   -- Step 8: Show f ⋆ K_tail vanishes at infinity
   -- Pattern: f is L¹, K_tail is bounded and C₀ → use ε-δ argument
-  have h_fKtail_vanish : Tendsto (fun y => ∫ x, f x * (K_tail (x - y) : ℂ)) (cocompact E) (nhds 0) := by
+  have h_fKtail_vanish :
+      Tendsto (fun y ↦ ∫ x, f x * (K_tail (x - y) : ℂ)) (cocompact E) (nhds 0) := by
     -- K_tail is bounded
     have hK_tail_bdd : ∃ M : ℝ, 0 < M ∧ ∀ z, ‖(K_tail z : ℂ)‖ ≤ M := by
       use max (C / R₀ ^ d) 1
@@ -735,7 +745,7 @@ theorem schwartz_bilinear_translation_decay_proof
 
     -- K_tail is C₀: get R where |K_tail| < η for ‖z‖ > R
     let If := ∫ x, ‖f x‖
-    have hIf_nonneg : 0 ≤ If := integral_nonneg (fun _ => norm_nonneg _)
+    have hIf_nonneg : 0 ≤ If := integral_nonneg (fun _ ↦ norm_nonneg _)
     let η := ε / (2 * (If + 1))
     have hη_pos : 0 < η := div_pos hε (mul_pos two_pos (by linarith))
 
@@ -754,7 +764,7 @@ theorem schwartz_bilinear_translation_decay_proof
     rw [Filter.eventually_iff_exists_mem]
     refine ⟨(closedBall 0 R)ᶜ, ?_, ?_⟩
     · rw [Filter.mem_cocompact]
-      exact ⟨closedBall 0 R, isCompact_closedBall 0 R, fun x hx => hx⟩
+      exact ⟨closedBall 0 R, isCompact_closedBall 0 R, fun x hx ↦ hx⟩
     · intro y hy
       simp only [mem_compl_iff, mem_closedBall, dist_zero_right, not_le] at hy
       simp only [dist_zero_right]
@@ -764,7 +774,8 @@ theorem schwartz_bilinear_translation_decay_proof
         intro x hxs
         have hx_bound : ‖x‖ ≤ R_s := by simpa [mem_closedBall, dist_zero_right] using hR_s hxs
         intro hxy_in_t₁
-        have hxy_bound : ‖x - y‖ ≤ R_t₁ := by simpa [mem_closedBall, dist_zero_right] using hR_t₁ hxy_in_t₁
+        have hxy_bound : ‖x - y‖ ≤ R_t₁ := by
+          simpa [mem_closedBall, dist_zero_right] using hR_t₁ hxy_in_t₁
         have h1 : ‖y‖ ≤ ‖y - x‖ + ‖x‖ := by
           calc ‖y‖ = ‖(y - x) + x‖ := by rw [sub_add_cancel]
             _ ≤ ‖y - x‖ + ‖x‖ := norm_add_le _ _
@@ -779,13 +790,14 @@ theorem schwartz_bilinear_translation_decay_proof
         rwa [Complex.norm_real]
 
       -- Integrability of ‖f · K_tail(·-y)‖
-      have hKt_y_meas : AEStronglyMeasurable (fun x => (K_tail (x - y) : ℂ)) volume := by
-        have hind : Measurable ((closedBall (0 : E) R₀)ᶜ.indicator (fun _ => (1 : ℝ))) :=
+      have hKt_y_meas : AEStronglyMeasurable (fun x ↦ (K_tail (x - y) : ℂ)) volume := by
+        have hind : Measurable ((closedBall (0 : E) R₀)ᶜ.indicator (fun _ ↦ (1 : ℝ))) :=
           measurable_const.indicator isClosed_closedBall.measurableSet.compl
         have h1 : Measurable (K_tail) := hK_meas.mul hind
-        have h2 : Measurable (fun x => K_tail (x - y)) := h1.comp (measurable_id.sub measurable_const)
+        have h2 : Measurable (fun x ↦ K_tail (x - y)) :=
+          h1.comp (measurable_id.sub measurable_const)
         exact (measurable_ofReal.comp h2).aestronglyMeasurable
-      have h_int : Integrable (fun x => ‖f x‖ * ‖(K_tail (x - y) : ℂ)‖) volume := by
+      have h_int : Integrable (fun x ↦ ‖f x‖ * ‖(K_tail (x - y) : ℂ)‖) volume := by
         refine Integrable.mul_bdd (c := M) hf_int.norm hKt_y_meas.norm ?_
         filter_upwards with x
         simp only [Real.norm_of_nonneg (norm_nonneg _)]
@@ -797,13 +809,14 @@ theorem schwartz_bilinear_translation_decay_proof
       -- On s: |K_tail(x-y)| < η
       have hs_bound : ∫ x in s, ‖f x‖ * ‖(K_tail (x - y) : ℂ)‖ ≤ η * If := by
         have h1 : ∫ x in s, ‖f x‖ * ‖(K_tail (x - y) : ℂ)‖ ≤ ∫ x in s, ‖f x‖ * η := by
-          refine setIntegral_mono_on h_int.integrableOn (hf_int.norm.mul_const _).integrableOn hs_meas ?_
+          refine setIntegral_mono_on h_int.integrableOn
+            (hf_int.norm.mul_const _).integrableOn hs_meas ?_
           intro x hxs
           exact mul_le_mul_of_nonneg_left (hKt_small_on_s x hxs).le (norm_nonneg _)
         have h2 : ∫ x in s, ‖f x‖ * η = η * ∫ x in s, ‖f x‖ := by
           rw [integral_mul_const]; ring
         have h3 : ∫ x in s, ‖f x‖ ≤ If := setIntegral_le_integral hf_int.norm
-          (Eventually.of_forall (fun _ => norm_nonneg _))
+          (Eventually.of_forall (fun _ ↦ norm_nonneg _))
         linarith [mul_le_mul_of_nonneg_left h3 hη_pos.le]
 
       -- On sᶜ: ∫_{sᶜ} |f| < ε/(2M), and |K_tail| ≤ M
@@ -820,7 +833,8 @@ theorem schwartz_bilinear_translation_decay_proof
           ≤ ∫ x, ‖f x * (K_tail (x - y) : ℂ)‖ := norm_integral_le_integral_norm _
         _ = ∫ x, ‖f x‖ * ‖(K_tail (x - y) : ℂ)‖ := by congr 1; ext x; exact norm_mul _ _
         _ = ∫ x in s, ‖f x‖ * ‖(K_tail (x - y) : ℂ)‖ ∂volume +
-            ∫ x in sᶜ, ‖f x‖ * ‖(K_tail (x - y) : ℂ)‖ ∂volume := (integral_add_compl hs_meas h_int).symm
+            ∫ x in sᶜ, ‖f x‖ * ‖(K_tail (x - y) : ℂ)‖ ∂volume :=
+          (integral_add_compl hs_meas h_int).symm
         _ ≤ η * If + M * (ε / (2 * M)) := add_le_add hs_bound hsc_bound
         _ < ε := by
             have h1 : η * If < ε / 2 := by
@@ -836,7 +850,7 @@ theorem schwartz_bilinear_translation_decay_proof
             linarith
 
   -- Step 9: Combine: f ⋆ K vanishes at infinity
-  have h_fK_vanish : Tendsto (fun y => ∫ x, f x * (K (x - y) : ℂ)) (cocompact E) (nhds 0) := by
+  have h_fK_vanish : Tendsto (fun y ↦ ∫ x, f x * (K (x - y) : ℂ)) (cocompact E) (nhds 0) := by
     -- Use kernel_decomposition and linearity of integral
     -- (f ⋆ K) = (f ⋆ K_sing) + (f ⋆ K_tail)
     -- Both terms vanish at infinity, so their sum does too
@@ -861,7 +875,7 @@ theorem schwartz_bilinear_translation_decay_proof
       obtain ⟨Cf, hCf⟩ := bounded_of_continuous_tendsto_zero f.continuous hf_C0
       have hf_meas : AEStronglyMeasurable f volume := f.continuous.aestronglyMeasurable
       -- K_sing(· - y) : ℂ is integrable (translation of integrable, then embed into ℂ)
-      have hKs_int : Integrable (fun x => (K_sing (x - y) : ℂ)) volume :=
+      have hKs_int : Integrable (fun x ↦ (K_sing (x - y) : ℂ)) volume :=
         (hK_sing_int.comp_sub_right y).ofReal
       refine Integrable.bdd_mul hKs_int hf_meas (Eventually.of_forall hCf)
     · -- f · K_tail is integrable: f integrable, K_tail bounded
@@ -885,12 +899,13 @@ theorem schwartz_bilinear_translation_decay_proof
           simp only [norm_zero]
           exact le_of_lt (lt_max_of_lt_right one_pos)
       obtain ⟨M, hM⟩ := hK_tail_bdd
-      have hK_tail_meas : AEStronglyMeasurable (fun x => (kernelTail K R₀ (x - y) : ℂ)) volume := by
+      have hK_tail_meas : AEStronglyMeasurable (fun x ↦ (kernelTail K R₀ (x - y) : ℂ)) volume := by
         -- kernelTail K R₀ x = K x * indicator is measurable
-        have hind : Measurable ((closedBall (0 : E) R₀)ᶜ.indicator (fun _ => (1 : ℝ))) :=
+        have hind : Measurable ((closedBall (0 : E) R₀)ᶜ.indicator (fun _ ↦ (1 : ℝ))) :=
           measurable_const.indicator isClosed_closedBall.measurableSet.compl
         have h1 : Measurable (kernelTail K R₀) := hK_meas.mul hind
-        have h2 : Measurable (fun x => kernelTail K R₀ (x - y)) := h1.comp (measurable_id.sub measurable_const)
+        have h2 : Measurable (fun x ↦ kernelTail K R₀ (x - y)) :=
+          h1.comp (measurable_id.sub measurable_const)
         exact (measurable_ofReal.comp h2).aestronglyMeasurable
       refine Integrable.mul_bdd (c := M) hf_int hK_tail_meas (Eventually.of_forall ?_)
       intro x
@@ -904,11 +919,12 @@ theorem schwartz_bilinear_translation_decay_proof
   --   = ∫ g(w) H(w+x₀) dw  (translation w = y-x₀)
   --   = ∫ g(w) H(w-(-x₀)) dw
   --
-  -- We proved: Tendsto (fun b => ∫ g(w) H(w-b)) (cocompact E) (nhds 0)  [h_fK_vanish + convolution theorem]
-  -- Composing with negation: Tendsto (fun x₀ => ∫ g(w) H(w-(-x₀))) (cocompact E) (nhds 0)
+  -- We proved: Tendsto (fun b ↦ ∫ g(w) H(w-b)) (cocompact E) (nhds 0)
+  -- [h_fK_vanish + convolution theorem]
+  -- Composing with negation: Tendsto (fun x₀ ↦ ∫ g(w) H(w-(-x₀))) (cocompact E) (nhds 0)
 
   -- Define H(y) = (f⋆K)(y) = ∫ f(x) K(x-y) dx
-  let H := fun y => ∫ x, f x * (K (x - y) : ℂ)
+  let H := fun y ↦ ∫ x, f x * (K (x - y) : ℂ)
 
   -- Get bounds on f and K for integrability proofs
   obtain ⟨Cf, hCf⟩ := bounded_of_continuous_tendsto_zero f.continuous (schwartz_tendsto_zero f)
@@ -939,9 +955,9 @@ theorem schwartz_bilinear_translation_decay_proof
 
   -- Constants for bounds
   let I_Ksing := ∫ x, ‖(K_sing x : ℂ)‖
-  have hI_Ksing_nonneg : 0 ≤ I_Ksing := integral_nonneg (fun _ => norm_nonneg _)
+  have hI_Ksing_nonneg : 0 ≤ I_Ksing := integral_nonneg (fun _ ↦ norm_nonneg _)
   let If := ∫ x, ‖f x‖
-  have hIf_nonneg : 0 ≤ If := integral_nonneg (fun _ => norm_nonneg _)
+  have hIf_nonneg : 0 ≤ If := integral_nonneg (fun _ ↦ norm_nonneg _)
   let B := (max Cf 1) * I_Ksing + If * M_tail + 1
 
   -- Step 10a: H is continuous (convolution of Schwartz with locally integrable kernel)
@@ -951,10 +967,10 @@ theorem schwartz_bilinear_translation_decay_proof
     -- H_tail(y) = ∫ f(x) K_tail(x-y) dx
     -- Prove each is continuous, then sum is continuous
 
-    let H_sing := fun y => ∫ x, f x * (K_sing (x - y) : ℂ)
-    let H_tail := fun y => ∫ x, f x * (K_tail (x - y) : ℂ)
+    let H_sing := fun y ↦ ∫ x, f x * (K_sing (x - y) : ℂ)
+    let H_tail := fun y ↦ ∫ x, f x * (K_tail (x - y) : ℂ)
 
-    have hH_eq : H = fun y => H_sing y + H_tail y := by
+    have hH_eq : H = fun y ↦ H_sing y + H_tail y := by
       ext y
       simp only [H, H_sing, H_tail]
       have hdec := kernel_decomposition K R₀
@@ -964,18 +980,18 @@ theorem schwartz_bilinear_translation_decay_proof
         rw [h, Complex.ofReal_add]
       conv_lhs => arg 2; ext x; rw [hK_eq x, mul_add]
       -- Integrability for integral_add
-      have h_int_sing : Integrable (fun x => f x * (K_sing (x - y) : ℂ)) volume := by
+      have h_int_sing : Integrable (fun x ↦ f x * (K_sing (x - y) : ℂ)) volume := by
         refine Integrable.bdd_mul ((hK_sing_int.comp_sub_right y).ofReal)
           f.continuous.aestronglyMeasurable (Eventually.of_forall hCf)
-      have h_int_tail : Integrable (fun x => f x * (K_tail (x - y) : ℂ)) volume := by
-        have hKt_meas : AEStronglyMeasurable (fun x => (kernelTail K R₀ (x - y) : ℂ)) volume := by
-          have hind : Measurable ((closedBall (0 : E) R₀)ᶜ.indicator (fun _ => (1 : ℝ))) :=
+      have h_int_tail : Integrable (fun x ↦ f x * (K_tail (x - y) : ℂ)) volume := by
+        have hKt_meas : AEStronglyMeasurable (fun x ↦ (kernelTail K R₀ (x - y) : ℂ)) volume := by
+          have hind : Measurable ((closedBall (0 : E) R₀)ᶜ.indicator (fun _ ↦ (1 : ℝ))) :=
             measurable_const.indicator isClosed_closedBall.measurableSet.compl
           have h1 : Measurable (kernelTail K R₀) := hK_meas.mul hind
-          have h2 : Measurable (fun x => kernelTail K R₀ (x - y)) :=
+          have h2 : Measurable (fun x ↦ kernelTail K R₀ (x - y)) :=
             h1.comp (measurable_id.sub measurable_const)
           exact (measurable_ofReal.comp h2).aestronglyMeasurable
-        exact Integrable.mul_bdd hf_int hKt_meas (Eventually.of_forall (fun x => hM_tail (x - y)))
+        exact Integrable.mul_bdd hf_int hKt_meas (Eventually.of_forall (fun x ↦ hM_tail (x - y)))
       exact integral_add h_int_sing h_int_tail
 
     rw [hH_eq]
@@ -984,10 +1000,10 @@ theorem schwartz_bilinear_translation_decay_proof
     · -- H_sing is continuous
       -- Change variables: H_sing(y) = ∫ f(z+y) K_sing(z) dz
       -- Use dominated convergence: f(z+y) → f(z+y₀), dominated by (max Cf 1) · |K_sing(z)|
-      have hH_sing_eq : H_sing = fun y => ∫ z, f (z + y) * (K_sing z : ℂ) := by
+      have hH_sing_eq : H_sing = fun y ↦ ∫ z, f (z + y) * (K_sing z : ℂ) := by
         ext y
         simp only [H_sing]
-        rw [← integral_add_right_eq_self (fun x => f x * (K_sing (x - y) : ℂ)) y]
+        rw [← integral_add_right_eq_self (fun x ↦ f x * (K_sing (x - y) : ℂ)) y]
         congr 1
         ext x
         simp only [add_sub_cancel_right]
@@ -995,8 +1011,8 @@ theorem schwartz_bilinear_translation_decay_proof
       -- Apply continuous_of_dominated with bound(z) = (max Cf 1) * |K_sing(z)|
       have hKs_meas : Measurable K_sing :=
         hK_meas.mul (measurable_const.indicator isClosed_closedBall.measurableSet)
-      refine continuous_of_dominated (bound := fun z => max Cf 1 * |K_sing z|) ?_ ?_ ?_ ?_
-      · -- hF_meas: ∀ y, AEStronglyMeasurable (fun z => f(z+y) * K_sing(z))
+      refine continuous_of_dominated (bound := fun z ↦ max Cf 1 * |K_sing z|) ?_ ?_ ?_ ?_
+      · -- hF_meas: ∀ y, AEStronglyMeasurable (fun z ↦ f(z+y) * K_sing(z))
         intro y
         exact (f.continuous.comp (continuous_id.add continuous_const)).aestronglyMeasurable.mul
           (measurable_ofReal.comp hKs_meas).aestronglyMeasurable
@@ -1005,9 +1021,9 @@ theorem schwartz_bilinear_translation_decay_proof
         filter_upwards with z
         simp only [norm_mul, Complex.norm_real]
         exact mul_le_mul_of_nonneg_right (le_max_of_le_left (hCf (z + y))) (abs_nonneg _)
-      · -- bound_integrable: Integrable (fun z => (max Cf 1) * |K_sing(z)|)
+      · -- bound_integrable: Integrable (fun z ↦ (max Cf 1) * |K_sing(z)|)
         exact hK_sing_int.abs.const_mul _
-      · -- h_cont: ∀ᵐ z, Continuous (fun y => f(z+y) * K_sing(z))
+      · -- h_cont: ∀ᵐ z, Continuous (fun y ↦ f(z+y) * K_sing(z))
         filter_upwards with z
         exact (f.continuous.comp (continuous_const.add continuous_id)).mul continuous_const
 
@@ -1022,17 +1038,17 @@ theorem schwartz_bilinear_translation_decay_proof
 
       -- Measurability of K_tail
       have hKt_meas : Measurable (kernelTail K R₀) := by
-        have hind : Measurable ((closedBall (0 : E) R₀)ᶜ.indicator (fun _ => (1 : ℝ))) :=
+        have hind : Measurable ((closedBall (0 : E) R₀)ᶜ.indicator (fun _ ↦ (1 : ℝ))) :=
           measurable_const.indicator isClosed_closedBall.measurableSet.compl
         exact hK_meas.mul hind
 
       -- Apply tendsto_integral_filter_of_dominated_convergence
       refine MeasureTheory.tendsto_integral_filter_of_dominated_convergence
-        (bound := fun x => M_tail * ‖f x‖) ?_ ?_ ?_ ?_
+        (bound := fun x ↦ M_tail * ‖f x‖) ?_ ?_ ?_ ?_
 
       · -- 1. AEStronglyMeasurable for all y in nhds y₀
         filter_upwards with y
-        have h1 : Measurable (fun x => (kernelTail K R₀ (x - y) : ℂ)) :=
+        have h1 : Measurable (fun x ↦ (kernelTail K R₀ (x - y) : ℂ)) :=
           measurable_ofReal.comp (hKt_meas.comp (measurable_id.sub measurable_const))
         exact f.continuous.aestronglyMeasurable.mul h1.aestronglyMeasurable
 
@@ -1074,13 +1090,13 @@ theorem schwartz_bilinear_translation_decay_proof
 
           filter_upwards [h_ae_sphere, h_ae_sing] with x hx_sphere hx_sing
 
-          -- Prove: Tendsto (fun y => f x * K_tail(x - y)) (nhds y₀) (nhds (f x * K_tail(x - y₀)))
+          -- Prove: Tendsto (fun y ↦ f x * K_tail(x - y)) (nhds y₀) (nhds (f x * K_tail(x - y₀)))
           -- f x is constant, so we need K_tail(x - ·) continuous at y₀
           apply Tendsto.mul tendsto_const_nhds
 
           -- K_tail(x - y) as y → y₀
-          have h_comp : (fun y => (kernelTail K R₀ (x - y) : ℂ)) =
-              (fun z => (kernelTail K R₀ z : ℂ)) ∘ (fun y => x - y) := rfl
+          have h_comp : (fun y ↦ (kernelTail K R₀ (x - y) : ℂ)) =
+              (fun z ↦ (kernelTail K R₀ z : ℂ)) ∘ (fun y ↦ x - y) := rfl
           rw [h_comp]
           apply Tendsto.comp _ (tendsto_const_nhds.sub tendsto_id)
 
@@ -1112,7 +1128,8 @@ theorem schwartz_bilinear_translation_decay_proof
                 have h_mem : x - y₀ ∈ (closedBall (0 : E) R₀)ᶜ := by
                   simp only [mem_compl_iff, mem_closedBall, dist_zero_right, not_le]
                   exact hz_outside
-                exact hK_cont.continuousAt ((isOpen_compl_iff.mpr isClosed_closedBall).mem_nhds h_mem)
+                exact hK_cont.continuousAt
+                  ((isOpen_compl_iff.mpr isClosed_closedBall).mem_nhds h_mem)
               · -- indicator is continuous at x - y₀
                 apply ContinuousOn.continuousAt_indicator continuousOn_const
                 rw [frontier_compl, frontier_closedBall (0 : E) hR₀.ne']
@@ -1128,7 +1145,9 @@ theorem schwartz_bilinear_translation_decay_proof
                 simp only [mem_ball, dist_zero_right]
                 exact hz_inside
               -- Use continuity of the zero function: f =ᶠ g → f continuous at x → g continuous at x
-              have h_eq : (fun z => K z * (closedBall (0 : E) R₀)ᶜ.indicator (fun _ => (1 : ℝ)) z) =ᶠ[nhds (x - y₀)] (fun _ => 0) := by
+              have h_eq :
+                  (fun z ↦ K z * (closedBall (0 : E) R₀)ᶜ.indicator
+                    (fun _ ↦ (1 : ℝ)) z) =ᶠ[nhds (x - y₀)] (fun _ ↦ 0) := by
                 have h_open : IsOpen (interior (closedBall (0 : E) R₀)) := isOpen_interior
                 filter_upwards [h_open.mem_nhds h_mem_interior] with z hz_int
                 have hz_not_compl : z ∉ (closedBall (0 : E) R₀)ᶜ := by
@@ -1143,7 +1162,7 @@ theorem schwartz_bilinear_translation_decay_proof
           apply Tendsto.mul tendsto_const_nhds
           apply Tendsto.comp Complex.continuous_ofReal.continuousAt
           -- K_tail(x - y) = K_tail(0) = 0 for all y (since x = y in subsingleton)
-          have h_sub_zero : ∀ y : E, x - y = 0 := fun y => by
+          have h_sub_zero : ∀ y : E, x - y = 0 := fun y ↦ by
             exact Subsingleton.eq_zero (x - y)
           have hK_tail_zero : kernelTail K R₀ (0 : E) = 0 := by
             unfold kernelTail
@@ -1152,23 +1171,23 @@ theorem schwartz_bilinear_translation_decay_proof
             · -- Show 0 ∉ (closedBall 0 R₀)ᶜ, i.e., 0 ∈ closedBall 0 R₀
               simp only [mem_compl_iff, mem_closedBall, dist_zero_right, norm_zero, not_not]
               exact hR₀.le
-          have hK_tail_const : ∀ y, kernelTail K R₀ (x - y) = 0 := fun y => by
+          have hK_tail_const : ∀ y, kernelTail K R₀ (x - y) = 0 := fun y ↦ by
             rw [h_sub_zero y, hK_tail_zero]
           -- Show constant function tends to constant
           -- Note: K_tail = kernelTail K R₀ by definition
           have hK_tail_xy₀ : K_tail (x - y₀) = 0 := hK_tail_const y₀
-          have h_eq : (fun y => K_tail (x - y)) = fun _ => (0 : ℝ) := by
+          have h_eq : (fun y ↦ K_tail (x - y)) = fun _ ↦ (0 : ℝ) := by
             ext y
             exact hK_tail_const y
           rw [h_eq, hK_tail_xy₀]
           exact tendsto_const_nhds
 
   -- Step 10b: Apply the proven convolution theorem
-  -- For integrable g and continuous C₀ H, (fun b => ∫ g(w) H(w - b)) → 0 as b → cocompact
+  -- For integrable g and continuous C₀ H, (fun b ↦ ∫ g(w) H(w - b)) → 0 as b → cocompact
   have h_decay := convolution_vanishes_of_integrable_and_C0 hg_int h_fK_vanish hH_cont
 
   -- Step 10c: Negation preserves cocompact filter (since ‖-x‖ = ‖x‖)
-  have h_neg_cocompact : Tendsto (fun a : E => -a) (cocompact E) (cocompact E) := by
+  have h_neg_cocompact : Tendsto (fun a : E ↦ -a) (cocompact E) (cocompact E) := by
     rw [Filter.Tendsto]
     intro t ht
     rw [Filter.mem_cocompact] at ht
@@ -1181,7 +1200,7 @@ theorem schwartz_bilinear_translation_decay_proof
     exact ha
 
   -- Step 10d: Compose to get decay in -x₀
-  have h_composed : Tendsto (fun x₀ => ∫ w : E, g w * H (w - (-x₀))) (cocompact E) (nhds 0) :=
+  have h_composed : Tendsto (fun x₀ ↦ ∫ w : E, g w * H (w - (-x₀))) (cocompact E) (nhds 0) :=
     h_decay.comp h_neg_cocompact
 
   -- Step 10e: Show the schwartzBilinearIntegral equals the composed form
@@ -1202,17 +1221,19 @@ theorem schwartz_bilinear_translation_decay_proof
     --   Integral ≤ Cf · Cg · ‖K_sing‖_1 · |E| (but E is infinite, so need careful argument)
     -- For K_tail: |f(x)| · |K_tail(x-y)| · |g(y-x₀)| ≤ |f(x)| · M_tail · |g(y-x₀)|
     --   Integral ≤ M_tail · ‖f‖_1 · ‖g‖_1
-    have h_int : Integrable (uncurry (fun x y => f x * (K (x - y) : ℂ) * g (y - x₀)))
+    have h_int : Integrable (uncurry (fun x y ↦ f x * (K (x - y) : ℂ) * g (y - x₀)))
         (volume.prod volume) := by
       -- Decompose K = K_sing + K_tail
       -- K_sing part: f bounded, K_sing integrable, g integrable
       -- K_tail part: f integrable, K_tail bounded, g integrable
       --
-      -- Bound: |f(x) K(x-y) g(y-x₀)| ≤ |f(x)| |K_sing(x-y)| |g(y-x₀)| + |f(x)| |K_tail(x-y)| |g(y-x₀)|
+      -- Bound: |f(x) K(x-y) g(y-x₀)| ≤ |f(x)| |K_sing(x-y)| |g(y-x₀)|
+      --   + |f(x)| |K_tail(x-y)| |g(y-x₀)|
       --   ≤ Cf · |K_sing(x-y)| · |g(y-x₀)| + |f(x)| · M_tail · |g(y-x₀)|
 
       -- Get bounds
-      obtain ⟨Cf', hCf'⟩ := bounded_of_continuous_tendsto_zero f.continuous (schwartz_tendsto_zero f)
+      obtain ⟨Cf', hCf'⟩ :=
+        bounded_of_continuous_tendsto_zero f.continuous (schwartz_tendsto_zero f)
       have hCf'_pos : 0 < max Cf' 1 := lt_max_of_lt_right one_pos
       obtain ⟨Cg, hCg⟩ := bounded_of_continuous_tendsto_zero g.continuous (schwartz_tendsto_zero g)
 
@@ -1232,23 +1253,23 @@ theorem schwartz_bilinear_translation_decay_proof
       -- Integrability of K_sing part: f bounded, K_sing integrable (compact support), g integrable
       -- Bound: |f(x) K_sing(x-y) g(y-x₀)| ≤ Cf · |K_sing(x-y)| · |g(y-x₀)|
       -- ∫∫ Cf |K_sing(x-y)| |g(y-x₀)| dx dy = Cf · ‖K_sing‖_1 · ‖g‖_1 < ∞
-      have h_sing_int : Integrable (uncurry (fun x y => f x * (K_sing (x - y) : ℂ) * g (y - x₀)))
+      have h_sing_int : Integrable (uncurry (fun x y ↦ f x * (K_sing (x - y) : ℂ) * g (y - x₀)))
           (volume.prod volume) := by
         -- **Strategy:**
         -- Bound: |f(x) K_sing(x-y) g(y-x₀)| ≤ Cf · |K_sing(x-y)| · |g(y-x₀)|
         -- The dominator is integrable via convolution_integrand theorem.
         have hKs_meas : Measurable K_sing :=
           hK_meas.mul (measurable_const.indicator isClosed_closedBall.measurableSet)
-        have hg_shift : Integrable (fun y => g (y - x₀)) volume := hg_int.comp_sub_right x₀
+        have hg_shift : Integrable (fun y ↦ g (y - x₀)) volume := hg_int.comp_sub_right x₀
 
         -- Step 1: The "convolution integrand" (x,y) ↦ ‖K_sing(x-y)‖ · ‖g(y-x₀)‖ is integrable
         -- Use Integrable.convolution_integrand with the multiplication bilinear map
-        have h_conv_int : Integrable (fun p : E × E => ‖g (p.2 - x₀)‖ * ‖K_sing (p.1 - p.2)‖)
+        have h_conv_int : Integrable (fun p : E × E ↦ ‖g (p.2 - x₀)‖ * ‖K_sing (p.1 - p.2)‖)
             (volume.prod volume) := by
-          have hg_norm : Integrable (fun y => ‖g (y - x₀)‖) volume := hg_shift.norm
-          have hKs_norm : Integrable (fun x => ‖K_sing x‖) volume := hK_sing_int.norm
-          have h_temp := @Integrable.convolution_integrand ℝ E ℝ ℝ ℝ _ _ _ (fun y => ‖g (y - x₀)‖)
-            (fun x => ‖K_sing x‖) _ _ _ _ (ContinuousLinearMap.mul ℝ ℝ) _ volume volume
+          have hg_norm : Integrable (fun y ↦ ‖g (y - x₀)‖) volume := hg_shift.norm
+          have hKs_norm : Integrable (fun x ↦ ‖K_sing x‖) volume := hK_sing_int.norm
+          have h_temp := @Integrable.convolution_integrand ℝ E ℝ ℝ ℝ _ _ _ (fun y ↦ ‖g (y - x₀)‖)
+            (fun x ↦ ‖K_sing x‖) _ _ _ _ (ContinuousLinearMap.mul ℝ ℝ) _ volume volume
             _ _ _ _ _ _ hg_norm hKs_norm
           simp only [ContinuousLinearMap.mul_apply'] at h_temp
           exact h_temp
@@ -1257,17 +1278,17 @@ theorem schwartz_bilinear_translation_decay_proof
         -- Dominator: (x,y) ↦ Cf' · ‖K_sing(x-y)‖ · ‖g(y-x₀)‖
         let Cf := max Cf' 1
         have hCf_pos : 0 < Cf := lt_max_of_lt_right one_pos
-        have h_dom : Integrable (fun p : E × E => Cf * (‖g (p.2 - x₀)‖ * ‖K_sing (p.1 - p.2)‖))
+        have h_dom : Integrable (fun p : E × E ↦ Cf * (‖g (p.2 - x₀)‖ * ‖K_sing (p.1 - p.2)‖))
             (volume.prod volume) := h_conv_int.const_mul Cf
 
         -- Step 3: Use mono' with the dominating function
         refine h_dom.mono' ?_ ?_
         · -- AEStronglyMeasurable
-          have h1 : Measurable (fun z : E × E => (K_sing (z.1 - z.2) : ℂ)) :=
+          have h1 : Measurable (fun z : E × E ↦ (K_sing (z.1 - z.2) : ℂ)) :=
             measurable_ofReal.comp (hKs_meas.comp (measurable_fst.sub measurable_snd))
-          have h2 : AEStronglyMeasurable (fun z : E × E => f z.1) (volume.prod volume) :=
+          have h2 : AEStronglyMeasurable (fun z : E × E ↦ f z.1) (volume.prod volume) :=
             (f.continuous.comp continuous_fst).aestronglyMeasurable
-          have h3 : AEStronglyMeasurable (fun z : E × E => g (z.2 - x₀)) (volume.prod volume) :=
+          have h3 : AEStronglyMeasurable (fun z : E × E ↦ g (z.2 - x₀)) (volume.prod volume) :=
             (g.continuous.comp (continuous_snd.sub continuous_const)).aestronglyMeasurable
           exact (h2.mul h1.aestronglyMeasurable).mul h3
         · -- ae bound: ‖f(x) K_sing(x-y) g(y-x₀)‖ ≤ Cf * (‖g(y-x₀)‖ * ‖K_sing(x-y)‖)
@@ -1285,33 +1306,37 @@ theorem schwartz_bilinear_translation_decay_proof
       -- Integrability of K_tail part: f integrable, K_tail bounded, g integrable
       -- Bound: |f(x) K_tail(x-y) g(y-x₀)| ≤ |f(x)| · M_tail · |g(y-x₀)|
       -- ∫∫ M_tail |f(x)| |g(y-x₀)| dx dy = M_tail · ‖f‖_1 · ‖g‖_1 < ∞
-      have h_tail_int : Integrable (uncurry (fun x y => f x * (K_tail (x - y) : ℂ) * g (y - x₀)))
+      have h_tail_int : Integrable (uncurry (fun x y ↦ f x * (K_tail (x - y) : ℂ) * g (y - x₀)))
           (volume.prod volume) := by
         -- Use Integrable.mul_prod: (x,y) ↦ f(x) * g(y-x₀) is integrable on product
-        have hg_shift : Integrable (fun y => g (y - x₀)) volume := hg_int.comp_sub_right x₀
-        have h_prod : Integrable (fun z : E × E => f z.1 * g (z.2 - x₀)) (volume.prod volume) :=
+        have hg_shift : Integrable (fun y ↦ g (y - x₀)) volume := hg_int.comp_sub_right x₀
+        have h_prod : Integrable (fun z : E × E ↦ f z.1 * g (z.2 - x₀)) (volume.prod volume) :=
           Integrable.mul_prod hf_int hg_shift
         -- The dominating function is M_tail * ‖f(x) * g(y-x₀)‖
-        have h_dom : Integrable (fun z : E × E => M_tail * ‖f z.1 * g (z.2 - x₀)‖) (volume.prod volume) :=
+        have h_dom : Integrable
+            (fun z : E × E ↦ M_tail * ‖f z.1 * g (z.2 - x₀)‖)
+            (volume.prod volume) :=
           h_prod.norm.const_mul M_tail
         -- Now bound our integrand
         refine h_dom.mono' ?_ ?_
         · -- AEStronglyMeasurable
           have hKt_meas : Measurable (kernelTail K R₀) := by
-            have hind : Measurable ((closedBall (0 : E) R₀)ᶜ.indicator (fun _ => (1 : ℝ))) :=
+            have hind : Measurable ((closedBall (0 : E) R₀)ᶜ.indicator (fun _ ↦ (1 : ℝ))) :=
               measurable_const.indicator isClosed_closedBall.measurableSet.compl
             exact hK_meas.mul hind
-          have h1 : Measurable (fun z : E × E => (kernelTail K R₀ (z.1 - z.2) : ℂ)) :=
+          have h1 : Measurable (fun z : E × E ↦ (kernelTail K R₀ (z.1 - z.2) : ℂ)) :=
             measurable_ofReal.comp (hKt_meas.comp (measurable_fst.sub measurable_snd))
-          have h2 : AEStronglyMeasurable (fun z : E × E => f z.1) (volume.prod volume) :=
+          have h2 : AEStronglyMeasurable (fun z : E × E ↦ f z.1) (volume.prod volume) :=
             (f.continuous.comp continuous_fst).aestronglyMeasurable
-          have h3 : AEStronglyMeasurable (fun z : E × E => g (z.2 - x₀)) (volume.prod volume) :=
+          have h3 : AEStronglyMeasurable (fun z : E × E ↦ g (z.2 - x₀)) (volume.prod volume) :=
             (g.continuous.comp (continuous_snd.sub continuous_const)).aestronglyMeasurable
           exact (h2.mul h1.aestronglyMeasurable).mul h3
         · -- ae bound: ‖f(x) K_tail(x-y) g(y-x₀)‖ ≤ M_tail * ‖f(x) * g(y-x₀)‖
           filter_upwards with ⟨x, y⟩
           simp only [uncurry, norm_mul]
-          have h1 : ‖f x‖ * ‖(K_tail (x - y) : ℂ)‖ * ‖g (y - x₀)‖ ≤ ‖f x‖ * M_tail * ‖g (y - x₀)‖ := by
+          have h1 :
+              ‖f x‖ * ‖(K_tail (x - y) : ℂ)‖ * ‖g (y - x₀)‖ ≤
+              ‖f x‖ * M_tail * ‖g (y - x₀)‖ := by
             apply mul_le_mul_of_nonneg_right
             apply mul_le_mul_of_nonneg_left (hM_tail (x - y)) (norm_nonneg _)
             exact norm_nonneg _
@@ -1320,9 +1345,9 @@ theorem schwartz_bilinear_translation_decay_proof
           linarith [h1, congrArg (M_tail * ·) h3]
 
       -- Combine using integral_add for product integrals
-      have h_eq : uncurry (fun x y => f x * (K (x - y) : ℂ) * g (y - x₀)) =
-          uncurry (fun x y => f x * (K_sing (x - y) : ℂ) * g (y - x₀)) +
-          uncurry (fun x y => f x * (K_tail (x - y) : ℂ) * g (y - x₀)) := by
+      have h_eq : uncurry (fun x y ↦ f x * (K (x - y) : ℂ) * g (y - x₀)) =
+          uncurry (fun x y ↦ f x * (K_sing (x - y) : ℂ) * g (y - x₀)) +
+          uncurry (fun x y ↦ f x * (K_tail (x - y) : ℂ) * g (y - x₀)) := by
         ext ⟨x, y⟩
         simp only [uncurry, Pi.add_apply, h_split]
 
@@ -1343,7 +1368,7 @@ theorem schwartz_bilinear_translation_decay_proof
     -- where H(y) = ∫ x, f(x) * K(x-y)
     -- Rewrite: f * K * g = (f * K) * g, then pull out g
     have h_rearrange : ∀ x, f x * (K (x - y) : ℂ) * g (y - x₀) =
-        (f x * (K (x - y) : ℂ)) * g (y - x₀) := fun x => by ring
+        (f x * (K (x - y) : ℂ)) * g (y - x₀) := fun x ↦ by ring
     conv_lhs => arg 2; ext x; rw [h_rearrange]
     rw [integral_mul_const]
     ring
@@ -1351,7 +1376,7 @@ theorem schwartz_bilinear_translation_decay_proof
   -- Step 10e-ii: Translation y ↦ w = y - x₀
   have h_translate : ∫ y : E, g (y - x₀) * H y = ∫ w : E, g w * H (w + x₀) := by
     have : ∫ y : E, g (y - x₀) * H y = ∫ w : E, g ((w + x₀) - x₀) * H (w + x₀) := by
-      rw [integral_add_right_eq_self (fun y => g (y - x₀) * H y) x₀]
+      rw [integral_add_right_eq_self (fun y ↦ g (y - x₀) * H y) x₀]
     simp only [add_sub_cancel_right] at this
     exact this
 

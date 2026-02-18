@@ -3,36 +3,6 @@ Copyright (c) 2025 Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim. All r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim
 -/
-/-
-# L² Bounds for Time Integrals
-
-This file proves several textbook axioms related to L² bounds on time averages
-and parametric integrals, reducing the axiom count in the master theorem.
-
-## Main Results
-
-1. `sq_setIntegral_le_measure_mul_setIntegral_sq_proved` - Cauchy-Schwarz for set integrals (Hölder)
-2. `L2_time_average_bound` - L² bound for time averages (Cauchy-Schwarz + Fubini)
-3. `time_average_memLp_two` - Time average is in L² (corollary of 2)
-4. `memLp_prod_of_uniform_slicewise_bound` - L² on product from uniform slicewise bounds
-5. `gff_time_integral_aestronglyMeasurable_proved` - Parametric time integral is measurable
-6. `gff_covariance_norm_integrableOn_slice_proved` - Covariance norm integrable on slices
-7. `double_integral_polynomial_decay_bound_proved` - Double integral bound for polynomial decay kernels
-8. `minkowski_weighted_L2_sum_proved` - Minkowski inequality for weighted L² sums
-
-## Mathematical Background
-
-The key tools are:
-- Cauchy-Schwarz: ‖∫ f‖² ≤ (b-a) · ∫ ‖f‖²
-- Fubini-Tonelli: swap order of integration
-- L² is a Hilbert space: Minkowski inequality
-
-## References
-
-- Billingsley "Probability and Measure", Ch. 7
-- Folland "Real Analysis", Thm. 2.37 (Fubini-Tonelli)
--/
-
 import Mathlib.MeasureTheory.Integral.Prod
 import Mathlib.MeasureTheory.Integral.Bochner.Set
 import Mathlib.MeasureTheory.Function.L2Space
@@ -46,6 +16,36 @@ import Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
 import Mathlib.MeasureTheory.Integral.IntegrableOn
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 
+/-!
+# L² Bounds for Time Integrals
+
+This file proves several textbook axioms related to L² bounds on time averages
+and parametric integrals, reducing the axiom count in the master theorem.
+
+## Main Results
+
+1. `sq_setIntegral_le_measure_mul_setIntegral_sq` - Cauchy-Schwarz for set integrals (Hölder)
+2. `l2_time_average_bound` - L² bound for time averages (Cauchy-Schwarz + Fubini)
+3. `time_average_memLp_two` - Time average is in L² (corollary of 2)
+4. `memLp_prod_of_uniform_slicewise_bound` - L² on product from uniform slicewise bounds
+5. `gff_time_integral_aestronglyMeasurable` - Parametric time integral is measurable
+6. `gff_covariance_norm_integrableOn_slice` - Covariance norm integrable on slices
+7. `double_integral_polynomial_decay_bound` -
+   Double integral bound for polynomial decay kernels
+8. `minkowski_weighted_l2_sum` - Minkowski inequality for weighted L² sums
+
+## Mathematical Background
+
+The key tools are:
+- Cauchy-Schwarz: ‖∫ f‖² ≤ (b-a) · ∫ ‖f‖²
+- Fubini-Tonelli: swap order of integration
+- L² is a Hilbert space: Minkowski inequality
+
+## References
+
+- Billingsley "Probability and Measure", Ch. 7
+- Folland "Real Analysis", Thm. 2.37 (Fubini-Tonelli)
+-/
 
 open MeasureTheory Set Filter
 open scoped ENNReal NNReal Topology
@@ -83,16 +83,16 @@ For f : ℝ → ℂ with ‖f‖² integrable on [a,b]:
   ‖∫_[a,b] f(x) dx‖² ≤ (b-a) · ∫_[a,b] ‖f(x)‖² dx
 
 This is |⟨1, f⟩|² ≤ ‖1‖² · ‖f‖² in L². -/
-theorem sq_setIntegral_le_measure_mul_setIntegral_sq_proved
+theorem sq_setIntegral_le_measure_mul_setIntegral_sq
     {f : ℝ → ℂ} {a b : ℝ} (hab : a ≤ b)
-    (hf_sq : IntegrableOn (fun x => ‖f x‖^2) (Icc a b) volume) :
+    (hf_sq : IntegrableOn (fun x ↦ ‖f x‖^2) (Icc a b) volume) :
     ‖∫ x in Icc a b, f x‖^2 ≤ (b - a) * ∫ x in Icc a b, ‖f x‖^2 := by
   by_cases hf_aesm : AEStronglyMeasurable f (volume.restrict (Icc a b))
   · -- Use Hölder with p = q = 2
     have hpq : (2:ℝ).HolderConjugate 2 := ⟨by norm_num, by norm_num, by norm_num⟩
     haveI : IsFiniteMeasure (volume.restrict (Icc a b)) := by
       exact Real.isFiniteMeasure_restrict_Icc a b
-    have h_memLp1 : MemLp (fun (_ : ℝ) => (1:ℂ)) (ENNReal.ofReal 2)
+    have h_memLp1 : MemLp (fun (_ : ℝ) ↦ (1:ℂ)) (ENNReal.ofReal 2)
         (volume.restrict (Icc a b)) := by
       rw [show ENNReal.ofReal 2 = (2 : ENNReal) from by norm_num]; exact memLp_const 1
     have h_memLpf : MemLp f (ENNReal.ofReal 2) (volume.restrict (Icc a b)) := by
@@ -100,9 +100,9 @@ theorem sq_setIntegral_le_measure_mul_setIntegral_sq_proved
       exact (memLp_two_iff_integrable_sq_norm hf_aesm).mpr hf_sq
     -- Hölder: ∫ ‖1‖ * ‖f‖ ≤ (∫ ‖1‖²)^(1/2) * (∫ ‖f‖²)^(1/2)
     have h_holder := integral_mul_norm_le_Lp_mul_Lq hpq h_memLp1 h_memLpf
-    rw [show (∫ x in Icc a b, ‖(fun _ => (1:ℂ)) x‖ * ‖f x‖) =
+    rw [show (∫ x in Icc a b, ‖(fun _ ↦ (1:ℂ)) x‖ * ‖f x‖) =
         ∫ x in Icc a b, ‖f x‖ from by congr 1; ext x; simp] at h_holder
-    rw [show (∫ x in Icc a b, ‖(fun _ => (1:ℂ)) x‖ ^ (2:ℝ)) = b - a from by
+    rw [show (∫ x in Icc a b, ‖(fun _ ↦ (1:ℂ)) x‖ ^ (2:ℝ)) = b - a from by
       simp; linarith] at h_holder
     -- Chain: ‖∫f‖ ≤ ∫‖f‖ ≤ (b-a)^(1/2) * (∫‖f‖²)^(1/2), then square
     have h_sq := pow_le_pow_left₀ (norm_nonneg _)
@@ -114,26 +114,26 @@ theorem sq_setIntegral_le_measure_mul_setIntegral_sq_proved
       show ((∫ x in Icc a b, ‖f x‖ ^ (2:ℝ)) ^ ((1:ℝ)/2)) ^ 2 =
           ∫ x in Icc a b, ‖f x‖ ^ (2:ℝ) from by
         rw [← Real.rpow_natCast _ 2,
-            ← Real.rpow_mul (integral_nonneg (fun x => by positivity))]; norm_num] at h_sq
-    rwa [show (fun x => ‖f x‖ ^ (2:ℝ)) = (fun x => ‖f x‖ ^ 2) from by ext x; simp] at h_sq
+            ← Real.rpow_mul (integral_nonneg (fun x ↦ by positivity))]; norm_num] at h_sq
+    rwa [show (fun x ↦ ‖f x‖ ^ (2:ℝ)) = (fun x ↦ ‖f x‖ ^ 2) from by ext x; simp] at h_sq
   · -- ∫ f = 0 when not AEStronglyMeasurable
     rw [integral_non_aestronglyMeasurable hf_aesm]; simp
-    exact mul_nonneg (sub_nonneg.mpr hab) (integral_nonneg (fun x => by positivity))
+    exact mul_nonneg (sub_nonneg.mpr hab) (integral_nonneg (fun x ↦ by positivity))
 
 omit [MeasurableSpace Ω] in
 /-- Cauchy-Schwarz for the time integral, pointwise in ω. -/
 lemma cauchy_schwarz_time_integral_pointwise (A : ℝ → Ω → ℂ) (T : ℝ) (hT : T > 0) (ω : Ω)
-    (hf_sq : IntegrableOn (fun s => ‖A s ω‖^2) (Icc 0 T) volume) :
+    (hf_sq : IntegrableOn (fun s ↦ ‖A s ω‖^2) (Icc 0 T) volume) :
     ‖∫ s in Icc 0 T, A s ω‖^2 ≤ T * ∫ s in Icc 0 T, ‖A s ω‖^2 := by
   have hab : (0 : ℝ) ≤ T := le_of_lt hT
-  have h := sq_setIntegral_le_measure_mul_setIntegral_sq_proved hab hf_sq
+  have h := sq_setIntegral_le_measure_mul_setIntegral_sq hab hf_sq
   simp only [sub_zero] at h
   exact h
 
 omit [MeasurableSpace Ω] in
 /-- The scaled time average satisfies a pointwise L² bound. -/
 lemma scaled_time_average_pointwise_bound (A : ℝ → Ω → ℂ) (T : ℝ) (hT : T > 0) (ω : Ω)
-    (hf_sq : IntegrableOn (fun s => ‖A s ω‖^2) (Icc 0 T) volume) :
+    (hf_sq : IntegrableOn (fun s ↦ ‖A s ω‖^2) (Icc 0 T) volume) :
     ‖(1/T : ℂ) * ∫ s in Icc 0 T, A s ω‖^2 ≤ (1/T) * ∫ s in Icc 0 T, ‖A s ω‖^2 := by
   -- Factor out (1/T)²: ‖(1/T) * x‖² = (1/T)² * ‖x‖²
   have h1 : ‖(1/T : ℂ) * ∫ s in Icc 0 T, A s ω‖^2 =
@@ -174,10 +174,10 @@ lemma integral_swap_Icc (μ : Measure Ω) [SFinite μ]
   rw [← h1, h2]
 
 /-- Helper: setIntegral bound using uniform L² bound. -/
-lemma setIntegral_L2_bound (μ : Measure Ω) [SFinite μ] (M_sq T : ℝ) (hT : T > 0)
+lemma setIntegral_l2_bound (μ : Measure Ω) [SFinite μ] (M_sq T : ℝ) (hT : T > 0)
     (A : ℝ → Ω → ℂ)
     (h_L2_bound : ∀ s, s ∈ Icc 0 T → ∫ ω, ‖A s ω‖^2 ∂μ ≤ M_sq)
-    (h_int : IntegrableOn (fun s => ∫ ω, ‖A s ω‖^2 ∂μ) (Icc 0 T) volume) :
+    (h_int : IntegrableOn (fun s ↦ ∫ ω, ‖A s ω‖^2 ∂μ) (Icc 0 T) volume) :
     (∫ (s : ℝ) in Icc 0 T, (∫ ω, ‖A s ω‖^2 ∂μ)) ≤ T * M_sq := by
   have h_vol : (volume : Measure ℝ) (Icc 0 T) ≠ ⊤ := by
     simp [Real.volume_Icc, ENNReal.ofReal_ne_top]
@@ -201,7 +201,7 @@ $$\int_\Omega \left\|\frac{1}{T}\int_0^T A_s(\omega)\,ds\right\|^2 d\mu(\omega) 
 3. Fubini: = (1/T) ∫_[0,T] (∫_Ω ‖A_s‖² dμ) ds
 4. Uniform bound: ≤ (1/T) ∫_[0,T] M_sq ds = (1/T) · T · M_sq = M_sq
 -/
-theorem L2_time_average_bound (μ : Measure Ω) [SFinite μ]
+theorem l2_time_average_bound (μ : Measure Ω) [SFinite μ]
     (A : ℝ → Ω → ℂ) (M_sq : ℝ) (T : ℝ) (hT : T > 0)
     -- Uniform L² bound
     (h_L2_bound : ∀ s, s ∈ Icc 0 T → ∫ ω, ‖A s ω‖^2 ∂μ ≤ M_sq)
@@ -209,13 +209,13 @@ theorem L2_time_average_bound (μ : Measure Ω) [SFinite μ]
     (h_joint_meas : AEStronglyMeasurable (Function.uncurry A)
         ((volume.restrict (Icc 0 T)).prod μ))
     -- Integrability of ‖A‖² on product (needed for Fubini)
-    (h_prod_int : Integrable (fun p : ℝ × Ω => ‖A p.1 p.2‖^2)
+    (h_prod_int : Integrable (fun p : ℝ × Ω ↦ ‖A p.1 p.2‖^2)
         ((volume.restrict (Icc 0 T)).prod μ))
     -- Integrability of slice integrals (for Fubini step)
-    (h_slice_int : IntegrableOn (fun s => ∫ ω, ‖A s ω‖^2 ∂μ) (Icc 0 T) volume)
+    (h_slice_int : IntegrableOn (fun s ↦ ∫ ω, ‖A s ω‖^2 ∂μ) (Icc 0 T) volume)
     -- Measurability of time average (technical hypothesis)
     (h_avg_meas : AEStronglyMeasurable
-        (fun ω => (1/T : ℂ) * ∫ s in Icc 0 T, A s ω) μ) :
+        (fun ω ↦ (1/T : ℂ) * ∫ s in Icc 0 T, A s ω) μ) :
     ∫ ω, ‖(1/T : ℂ) * ∫ s in Icc (0 : ℝ) T, A s ω‖^2 ∂μ ≤ M_sq := by
   /-
   The proof uses:
@@ -223,30 +223,28 @@ theorem L2_time_average_bound (μ : Measure Ω) [SFinite μ]
   2. integral_mono_ae: integrate the a.e. pointwise inequality
   3. integral_const_mul: factor out (1/T)
   4. integral_swap_Icc: Fubini swap
-  5. setIntegral_L2_bound: apply uniform bound
+  5. setIntegral_l2_bound: apply uniform bound
   -/
   -- Setup integrability for integral_mono
-  have h_rhs_int : Integrable (fun ω => (1/T : ℝ) * ∫ (s : ℝ) in Icc 0 T, ‖A s ω‖^2) μ := by
+  have h_rhs_int : Integrable (fun ω ↦ (1/T : ℝ) * ∫ (s : ℝ) in Icc 0 T, ‖A s ω‖^2) μ := by
     have h_margin := h_prod_int.integral_prod_right
     exact h_margin.const_mul (1/T)
-
   -- From product integrability, get a.e. slice integrability
-  have h_sq_meas : AEStronglyMeasurable (fun p : ℝ × Ω => ‖A p.1 p.2‖^2)
+  have h_sq_meas : AEStronglyMeasurable (fun p : ℝ × Ω ↦ ‖A p.1 p.2‖^2)
       ((volume.restrict (Icc 0 T)).prod μ) := h_joint_meas.norm.pow 2
-  have h_ae_slice_int : ∀ᵐ (ω : Ω) ∂μ, IntegrableOn (fun s => ‖A s ω‖^2) (Icc 0 T) volume := by
+  have h_ae_slice_int : ∀ᵐ (ω : Ω) ∂μ, IntegrableOn (fun s ↦ ‖A s ω‖^2) (Icc 0 T) volume := by
     -- Use Integrable.swap to get integrability on the swapped product space
-    have h_swap : Integrable ((fun p : ℝ × Ω => ‖A p.1 p.2‖^2) ∘ Prod.swap)
+    have h_swap : Integrable ((fun p : ℝ × Ω ↦ ‖A p.1 p.2‖^2) ∘ Prod.swap)
         (μ.prod (volume.restrict (Icc 0 T))) := h_prod_int.swap
     -- The swapped function is (ω, s) ↦ ‖A s ω‖²
-    have h_eq : (fun p : ℝ × Ω => ‖A p.1 p.2‖^2) ∘ Prod.swap = fun p : Ω × ℝ => ‖A p.2 p.1‖^2 := rfl
+    have h_eq : (fun p : ℝ × Ω ↦ ‖A p.1 p.2‖^2) ∘ Prod.swap = fun p : Ω × ℝ ↦ ‖A p.2 p.1‖^2 := rfl
     rw [h_eq] at h_swap
     -- Now apply integrable_prod_iff to get a.e. slice integrability
     -- Note: prod_swap takes AEStronglyMeasurable f (ν.prod μ) to (f ∘ swap) on (μ.prod ν)
-    have h_meas_swap : AEStronglyMeasurable (fun p : Ω × ℝ => ‖A p.2 p.1‖^2)
+    have h_meas_swap : AEStronglyMeasurable (fun p : Ω × ℝ ↦ ‖A p.2 p.1‖^2)
         (μ.prod (volume.restrict (Icc 0 T))) := h_sq_meas.prod_swap
     exact ((integrable_prod_iff h_meas_swap).mp h_swap).1
-
-  have h_lhs_int : Integrable (fun ω => ‖(1/T : ℂ) * ∫ (s : ℝ) in Icc 0 T, A s ω‖^2) μ := by
+  have h_lhs_int : Integrable (fun ω ↦ ‖(1/T : ℂ) * ∫ (s : ℝ) in Icc 0 T, A s ω‖^2) μ := by
     have h_meas_sq := h_avg_meas.norm.pow 2
     apply h_rhs_int.mono h_meas_sq
     -- Use a.e. slice integrability to get the pointwise bound a.e.
@@ -255,11 +253,10 @@ theorem L2_time_average_bound (μ : Measure Ω) [SFinite μ]
     have h_rhs_nonneg : 0 ≤ (1/T : ℝ) * ∫ (s : ℝ) in Icc 0 T, ‖A s ω‖^2 := by
       apply mul_nonneg (by positivity); apply integral_nonneg; intro; positivity
     -- Simplify the power of functions applied to ω
-    show ‖((fun x => ‖(1/T : ℂ) * ∫ (s : ℝ) in Icc 0 T, A s x‖) ^ 2) ω‖ ≤ _
+    show ‖((fun x ↦ ‖(1/T : ℂ) * ∫ (s : ℝ) in Icc 0 T, A s x‖) ^ 2) ω‖ ≤ _
     simp only [Pi.pow_apply]
     rw [Real.norm_of_nonneg h_lhs_nonneg, Real.norm_of_nonneg h_rhs_nonneg]
     exact scaled_time_average_pointwise_bound A T hT ω hω_int
-
   -- Main calculation
   calc ∫ (ω : Ω), ‖(1/T : ℂ) * ∫ (s : ℝ) in Icc (0 : ℝ) T, A s ω‖^2 ∂μ
     -- Step 1-2: Apply pointwise bound and integrate (use a.e. version)
@@ -273,11 +270,11 @@ theorem L2_time_average_bound (μ : Measure Ω) [SFinite μ]
         rw [integral_const_mul]
     -- Step 4: Fubini swap
     _ = (1/T) * (∫ (s : ℝ) in Icc 0 T, (∫ (ω : Ω), ‖A s ω‖^2 ∂μ)) := by
-        rw [integral_swap_Icc μ (fun p => ‖A p.1 p.2‖^2) T h_prod_int]
+        rw [integral_swap_Icc μ (fun p ↦ ‖A p.1 p.2‖^2) T h_prod_int]
     -- Step 5: Apply uniform bound
     _ ≤ (1/T) * (T * M_sq) := by
         apply mul_le_mul_of_nonneg_left
-        · exact setIntegral_L2_bound μ M_sq T hT A h_L2_bound h_slice_int
+        · exact setIntegral_l2_bound μ M_sq T hT A h_L2_bound h_slice_int
         · positivity
     -- Step 6: Simplify
     _ = M_sq := by field_simp
@@ -314,19 +311,20 @@ theorem memLp_prod_of_uniform_slicewise_bound (μ : Measure Ω) [SFinite μ]
      A constant function is integrable on bounded [0,T]
   -/
   -- First show ‖A‖² is integrable on product
-  have h_sq_int : Integrable (fun p : ℝ × Ω => ‖A p.1 p.2‖^2)
+  have h_sq_int : Integrable (fun p : ℝ × Ω ↦ ‖A p.1 p.2‖^2)
       ((volume.restrict (Icc 0 T)).prod μ) := by
-    have h_sq_meas : AEStronglyMeasurable (fun p : ℝ × Ω => ‖A p.1 p.2‖^2)
+    have h_sq_meas : AEStronglyMeasurable (fun p : ℝ × Ω ↦ ‖A p.1 p.2‖^2)
         ((volume.restrict (Icc 0 T)).prod μ) := h_meas.norm.pow 2
     rw [integrable_prod_iff h_sq_meas]
     constructor
     · -- Slice integrability: ∀ᵐ s, Integrable (fun ω => ‖A s ω‖²) μ
       filter_upwards with s
-      have h := (h_memLp s).integrable_norm_rpow (by simp : (2 : ℝ≥0∞) ≠ 0) (by simp : (2 : ℝ≥0∞) ≠ ⊤)
+      have h := (h_memLp s).integrable_norm_rpow
+        (by simp : (2 : ℝ≥0∞) ≠ 0) (by simp : (2 : ℝ≥0∞) ≠ ⊤)
       convert h using 2
       simp [ENNReal.toReal_ofNat]
     · -- Integral of slices is constant, hence integrable on bounded [0,T]
-      have h_eq : (fun s => ∫ (ω : Ω), ‖‖A s ω‖^2‖ ∂μ) = fun _ => ∫ ω, ‖A 0 ω‖^2 ∂μ := by
+      have h_eq : (fun s ↦ ∫ (ω : Ω), ‖‖A s ω‖^2‖ ∂μ) = fun _ ↦ ∫ ω, ‖A 0 ω‖^2 ∂μ := by
         ext s
         simp only [Real.norm_of_nonneg (sq_nonneg _)]
         exact h_uniform s
@@ -356,38 +354,33 @@ theorem time_average_memLp_two (μ : Measure Ω) [SFinite μ]
         ((volume.restrict (Icc 0 T)).prod μ))
     -- Measurability of time average
     (h_avg_meas : AEStronglyMeasurable
-        (fun ω => (1/T : ℂ) * ∫ s in Icc 0 T, A s ω) μ) :
-    MemLp (fun ω => (1/T : ℂ) * ∫ s in Icc (0 : ℝ) T, A s ω) 2 μ := by
+        (fun ω ↦ (1/T : ℂ) * ∫ s in Icc 0 T, A s ω) μ) :
+    MemLp (fun ω ↦ (1/T : ℂ) * ∫ s in Icc (0 : ℝ) T, A s ω) 2 μ := by
   rw [memLp_two_iff_integrable_sq_norm h_avg_meas]
-
   -- 1. Get joint integrability from Theorem 3
   have h_prod := memLp_prod_of_uniform_slicewise_bound μ A T h_joint_meas h_memLp h_uniform
-  have h_prod_int : Integrable (fun p : ℝ × Ω => ‖A p.1 p.2‖^2)
+  have h_prod_int : Integrable (fun p : ℝ × Ω ↦ ‖A p.1 p.2‖^2)
       ((volume.restrict (Icc 0 T)).prod μ) :=
     (memLp_two_iff_integrable_sq_norm h_joint_meas).mp h_prod
-
   -- 2. The RHS bound (1/T) * ∫ ‖A_s ω‖² is integrable (marginal of product)
-  have h_rhs_int : Integrable (fun ω => (1/T : ℝ) * ∫ (s : ℝ) in Icc 0 T, ‖A s ω‖^2) μ := by
+  have h_rhs_int : Integrable (fun ω ↦ (1/T : ℝ) * ∫ (s : ℝ) in Icc 0 T, ‖A s ω‖^2) μ := by
     have h_margin := h_prod_int.integral_prod_right
     exact h_margin.const_mul (1/T)
-
   -- 3. Use Integrable.mono with the pointwise bound
-  have h_meas_sq : AEStronglyMeasurable (fun ω => ‖(1/T : ℂ) * ∫ (s : ℝ) in Icc 0 T, A s ω‖^2) μ :=
+  have h_meas_sq : AEStronglyMeasurable (fun ω ↦ ‖(1/T : ℂ) * ∫ (s : ℝ) in Icc 0 T, A s ω‖^2) μ :=
     h_avg_meas.norm.pow 2
-
   -- From product integrability, get a.e. slice integrability via Fubini (in ω direction)
-  have h_sq_meas : AEStronglyMeasurable (fun p : ℝ × Ω => ‖A p.1 p.2‖^2)
+  have h_sq_meas : AEStronglyMeasurable (fun p : ℝ × Ω ↦ ‖A p.1 p.2‖^2)
       ((volume.restrict (Icc 0 T)).prod μ) := h_joint_meas.norm.pow 2
-  have h_ae_slice_int : ∀ᵐ (ω : Ω) ∂μ, IntegrableOn (fun s => ‖A s ω‖^2) (Icc 0 T) volume := by
+  have h_ae_slice_int : ∀ᵐ (ω : Ω) ∂μ, IntegrableOn (fun s ↦ ‖A s ω‖^2) (Icc 0 T) volume := by
     -- Use Integrable.swap to get integrability on the swapped product space
-    have h_swap : Integrable ((fun p : ℝ × Ω => ‖A p.1 p.2‖^2) ∘ Prod.swap)
+    have h_swap : Integrable ((fun p : ℝ × Ω ↦ ‖A p.1 p.2‖^2) ∘ Prod.swap)
         (μ.prod (volume.restrict (Icc 0 T))) := h_prod_int.swap
-    have h_eq : (fun p : ℝ × Ω => ‖A p.1 p.2‖^2) ∘ Prod.swap = fun p : Ω × ℝ => ‖A p.2 p.1‖^2 := rfl
+    have h_eq : (fun p : ℝ × Ω ↦ ‖A p.1 p.2‖^2) ∘ Prod.swap = fun p : Ω × ℝ ↦ ‖A p.2 p.1‖^2 := rfl
     rw [h_eq] at h_swap
-    have h_meas_swap : AEStronglyMeasurable (fun p : Ω × ℝ => ‖A p.2 p.1‖^2)
+    have h_meas_swap : AEStronglyMeasurable (fun p : Ω × ℝ ↦ ‖A p.2 p.1‖^2)
         (μ.prod (volume.restrict (Icc 0 T))) := h_sq_meas.prod_swap
     exact ((integrable_prod_iff h_meas_swap).mp h_swap).1
-
   apply h_rhs_int.mono h_meas_sq
   -- Use a.e. slice integrability for the pointwise bound
   filter_upwards [h_ae_slice_int] with ω hω_int
@@ -417,31 +410,31 @@ the time integral ω ↦ (1/T) * ∫ₛ (A s ω - EA) ds is AEStronglyMeasurable
 
 Proof: continuous-in-s + measurable-in-ω → jointly StronglyMeasurable (Mathlib),
 then swap product measure and integrate out s via `integral_prod_right'`. -/
-theorem gff_time_integral_aestronglyMeasurable_proved
+theorem gff_time_integral_aestronglyMeasurable
     (μ : Measure Ω) [IsProbabilityMeasure μ]
     (A : ℝ → Ω → ℂ) (EA : ℂ) (T : ℝ)
-    (h_cont_s : ∀ ω, Continuous (fun s => A s ω))
+    (h_cont_s : ∀ ω, Continuous (fun s ↦ A s ω))
     (h_meas : ∀ s, Measurable (A s)) :
     AEStronglyMeasurable
-      (fun ω => (1 / T : ℂ) * ∫ s in Icc (0 : ℝ) T, A s ω - EA)
+      (fun ω ↦ (1 / T : ℂ) * ∫ s in Icc (0 : ℝ) T, A s ω - EA)
       μ := by
   -- s ↦ A s ω - EA is also continuous in s and measurable in ω
-  have h_cont_sub : ∀ ω, Continuous (fun s => A s ω - EA) :=
-    fun ω => (h_cont_s ω).sub continuous_const
-  have h_meas_sub : ∀ s, Measurable (fun ω => A s ω - EA) :=
-    fun s => (h_meas s).sub measurable_const
+  have h_cont_sub : ∀ ω, Continuous (fun s ↦ A s ω - EA) :=
+    fun ω ↦ (h_cont_s ω).sub continuous_const
+  have h_meas_sub : ∀ s, Measurable (fun ω ↦ A s ω - EA) :=
+    fun s ↦ (h_meas s).sub measurable_const
   -- Joint StronglyMeasurable on ℝ × Ω
-  have h_sm_sub : ∀ (s : ℝ), StronglyMeasurable (fun ω => A s ω - EA) :=
-    fun s => (h_meas_sub s).stronglyMeasurable
-  have h_uncurry : StronglyMeasurable (Function.uncurry (fun s ω => A s ω - EA)) :=
+  have h_sm_sub : ∀ (s : ℝ), StronglyMeasurable (fun ω ↦ A s ω - EA) :=
+    fun s ↦ (h_meas_sub s).stronglyMeasurable
+  have h_uncurry : StronglyMeasurable (Function.uncurry (fun s ω ↦ A s ω - EA)) :=
     @stronglyMeasurable_uncurry_of_continuous_of_stronglyMeasurable
-      Ω ℂ ℝ _ _ _ _ _ _ _ _ (fun s ω => A s ω - EA) h_cont_sub h_sm_sub
+      Ω ℂ ℝ _ _ _ _ _ _ _ _ (fun s ω ↦ A s ω - EA) h_cont_sub h_sm_sub
   -- AEStronglyMeasurable on product → swap → integrate out s
-  have h_ae_prod : AEStronglyMeasurable (Function.uncurry (fun s ω => A s ω - EA))
+  have h_ae_prod : AEStronglyMeasurable (Function.uncurry (fun s ω ↦ A s ω - EA))
       ((volume.restrict (Icc 0 T)).prod μ) :=
     h_uncurry.aestronglyMeasurable
   have h_int_meas : AEStronglyMeasurable
-      (fun ω => ∫ s in Icc 0 T, (A s ω - EA)) μ :=
+      (fun ω ↦ ∫ s in Icc 0 T, (A s ω - EA)) μ :=
     h_ae_prod.prod_swap.integral_prod_right'
   exact h_int_meas.const_mul (1 / T : ℂ)
 
@@ -456,13 +449,13 @@ is integrable. This is immediate from continuity on compact sets.
 If the covariance (s,u) ↦ ∫ A_s · conj(A_u) - EA·conj(EA) is continuous,
 then u ↦ ‖Cov(s,u)‖ is integrable on [0,T] since continuous functions on
 compact sets are integrable. -/
-theorem gff_covariance_norm_integrableOn_slice_proved
+theorem gff_covariance_norm_integrableOn_slice
     (μ : Measure Ω) [IsProbabilityMeasure μ]
     (A : ℝ → Ω → ℂ) (EA : ℂ) (s T : ℝ)
-    (h_cov_cont : Continuous (fun p : ℝ × ℝ =>
+    (h_cov_cont : Continuous (fun p : ℝ × ℝ ↦
       ∫ ω, A p.1 ω * starRingEnd ℂ (A p.2 ω) ∂μ - EA * starRingEnd ℂ EA)) :
     MeasureTheory.IntegrableOn
-      (fun u => ‖∫ ω, A s ω * starRingEnd ℂ (A u ω) ∂μ - EA * starRingEnd ℂ EA‖)
+      (fun u ↦ ‖∫ ω, A s ω * starRingEnd ℂ (A u ω) ∂μ - EA * starRingEnd ℂ EA‖)
       (Icc 0 T) := by
   apply ContinuousOn.integrableOn_compact isCompact_Icc
   apply ContinuousOn.norm
@@ -492,16 +485,16 @@ where C = ∫_ℝ (1+|t|)^{-α} dt is the integral of the kernel over all of ℝ
 **Key tools:** `integrableOn_add_rpow_Ioi_of_lt` (decay integral), `integral_sub_left_eq_self`
 (translation invariance), `setIntegral_le_integral` (set ≤ full for nonneg integrable functions),
 `MeasurePreserving.integrableOn_comp_preimage` (negation symmetry for even functions). -/
-theorem double_integral_polynomial_decay_bound_proved (α : ℝ) (hα : α > 1) :
+theorem double_integral_polynomial_decay_bound (α : ℝ) (hα : α > 1) :
     ∃ C : ℝ, C > 0 ∧ ∀ T : ℝ, T > 0 →
       ∫ s in Icc (0 : ℝ) T, ∫ u in Icc (0 : ℝ) T,
         (1 + |s - u|)^(-α) ≤ C * T := by
   -- The kernel g(t) = (1 + |t|)^(-α)
-  set g : ℝ → ℝ := fun t => (1 + |t|) ^ (-α) with hg_def
+  set g : ℝ → ℝ := fun t ↦ (1 + |t|) ^ (-α) with hg_def
   -- Integrability on (0, ∞): matches integrableOn_add_rpow_Ioi_of_lt with m=1, c=0
   have h_ioi : IntegrableOn g (Ioi 0) volume :=
     (integrableOn_add_rpow_Ioi_of_lt (by linarith : -α < -1) (by linarith : -(1:ℝ) < 0)).congr_fun
-      (fun t ht => by simp [hg_def, abs_of_pos (mem_Ioi.mp ht), add_comm]) measurableSet_Ioi
+      (fun t ht ↦ by simp [hg_def, abs_of_pos (mem_Ioi.mp ht), add_comm]) measurableSet_Ioi
   -- Integrability on (-∞, 0): by negation symmetry (g is even, Lebesgue measure neg-invariant)
   have h_iio : IntegrableOn g (Iio 0) volume := by
     rw [show Iio (0:ℝ) = Neg.neg ⁻¹' (Ioi 0) from by ext x; simp,
@@ -514,33 +507,37 @@ theorem double_integral_polynomial_decay_bound_proved (α : ℝ) (hα : α > 1) 
         show Iic (0:ℝ) = Iio 0 ∪ {0} from Eq.symm Iio_union_right]
     exact (h_iio.union (integrableOn_singleton (hx := by simp))).union h_ioi
   -- g ≥ 0 everywhere
-  have h_nonneg : ∀ t : ℝ, 0 ≤ g t := fun t => by positivity
+  have h_nonneg : ∀ t : ℝ, 0 ≤ g t := fun t ↦ by positivity
   -- C = ∫_ℝ g(t) dt > 0 (g > 0 on open set (0,1), integrable)
   have hC_pos : 0 < ∫ t : ℝ, g t := by
     calc (0 : ℝ)
       < ∫ t in (0:ℝ)..1, g t := by
           apply intervalIntegral.intervalIntegral_pos_of_pos_on
-          · exact (Continuous.rpow_const (by continuity) (fun _ => by left; positivity)).intervalIntegrable 0 1
+          · exact (Continuous.rpow_const (by continuity)
+              (fun _ ↦ by left; positivity)).intervalIntegrable 0 1
           · intro t _; positivity
           · norm_num
       _ = ∫ t in Ioc 0 1, g t := intervalIntegral.integral_of_le (by norm_num : (0:ℝ) ≤ 1)
       _ ≤ ∫ t in Icc 0 1, g t :=
-          setIntegral_mono_set h_integrable.integrableOn (by filter_upwards with t; exact h_nonneg t)
-            Ioc_subset_Icc_self.eventuallyLE
-      _ ≤ ∫ t, g t := setIntegral_le_integral h_integrable (by filter_upwards with t; exact h_nonneg t)
-  refine ⟨∫ t, g t, hC_pos, fun T hT => ?_⟩
+          setIntegral_mono_set h_integrable.integrableOn
+            (by filter_upwards with t; exact h_nonneg t) Ioc_subset_Icc_self.eventuallyLE
+      _ ≤ ∫ t, g t :=
+          setIntegral_le_integral h_integrable
+            (by filter_upwards with t; exact h_nonneg t)
+  refine ⟨∫ t, g t, hC_pos, fun T hT ↦ ?_⟩
   -- For each s: ∫_{[0,T]} g(s-u) du ≤ ∫_ℝ g = C (translation invariance + set ≤ full)
-  have h_inner : ∀ s, ∫ u in Icc 0 T, g (s - u) ≤ ∫ t, g t := fun s =>
+  have h_inner : ∀ s, ∫ u in Icc 0 T, g (s - u) ≤ ∫ t, g t := fun s ↦
     calc ∫ u in Icc 0 T, g (s - u)
       ≤ ∫ u, g (s - u) :=
-          setIntegral_le_integral (h_integrable.comp_sub_left s) (by filter_upwards with u; exact h_nonneg _)
+          setIntegral_le_integral (h_integrable.comp_sub_left s)
+            (by filter_upwards with u; exact h_nonneg _)
       _ = ∫ t, g t := integral_sub_left_eq_self g volume s
   -- g(s-u) unfolds to (1+|s-u|)^(-α), so goals match definitionally
   show ∫ s in Icc 0 T, ∫ u in Icc 0 T, g (s - u) ≤ (∫ t, g t) * T
   calc ∫ s in Icc 0 T, ∫ u in Icc 0 T, g (s - u)
     ≤ ∫ s in Icc 0 T, (∫ t, g t) := by
         apply integral_mono_of_nonneg
-        · filter_upwards with s; exact integral_nonneg (fun u => h_nonneg _)
+        · filter_upwards with s; exact integral_nonneg (fun u ↦ h_nonneg _)
         · exact integrableOn_const (show volume (Icc (0:ℝ) T) ≠ ⊤ from by
             simp [Real.volume_Icc, ENNReal.ofReal_ne_top])
         · filter_upwards with s; exact h_inner s
@@ -560,8 +557,8 @@ variable {X : Type*} [MeasurableSpace X] {μ : Measure X}
 private lemma cauchy_schwarz_integral
     {f g : X → ℝ}
     (hf_nn : ∀ x, 0 ≤ f x) (hg_nn : ∀ x, 0 ≤ g x)
-    (hf_int : Integrable (fun x => (f x)^2) μ)
-    (hg_int : Integrable (fun x => (g x)^2) μ)
+    (hf_int : Integrable (fun x ↦ (f x)^2) μ)
+    (hg_int : Integrable (fun x ↦ (g x)^2) μ)
     (hf_meas : AEStronglyMeasurable f μ)
     (hg_meas : AEStronglyMeasurable g μ) :
     ∫ x, f x * g x ∂μ ≤ Real.sqrt (∫ x, (f x)^2 ∂μ) * Real.sqrt (∫ x, (g x)^2 ∂μ) := by
@@ -574,17 +571,17 @@ private lemma cauchy_schwarz_integral
     (show MemLp g (ENNReal.ofReal 2) μ from by
       rw [show ENNReal.ofReal 2 = 2 from by norm_num, memLp_two_iff_integrable_sq_norm hg_meas]
       exact hg_int.congr (by filter_upwards with x; simp [Real.norm_eq_abs, sq_abs]))
-  have conv : ∀ (φ : X → ℝ), (fun a => φ a ^ (2:ℝ)) = fun a => (φ a)^(2:ℕ) := by
+  have conv : ∀ (φ : X → ℝ), (fun a ↦ φ a ^ (2:ℝ)) = fun a ↦ (φ a)^(2:ℕ) := by
     intro φ; ext a; exact_mod_cast Real.rpow_natCast (φ a) 2
   simp only [conv, Real.sqrt_eq_rpow] at h ⊢; exact h
 
 private lemma integrable_mul_of_sq_integrable
     {f g : X → ℝ}
-    (hf_int : Integrable (fun x => (f x)^2) μ)
-    (hg_int : Integrable (fun x => (g x)^2) μ)
+    (hf_int : Integrable (fun x ↦ (f x)^2) μ)
+    (hg_int : Integrable (fun x ↦ (g x)^2) μ)
     (hf_meas : AEStronglyMeasurable f μ)
     (hg_meas : AEStronglyMeasurable g μ) :
-    Integrable (fun x => f x * g x) μ := by
+    Integrable (fun x ↦ f x * g x) μ := by
   apply Integrable.mono ((hf_int.add hg_int).div_const 2) (hf_meas.mul hg_meas)
   filter_upwards with x
   simp only [Real.norm_eq_abs, Pi.add_apply, Pi.mul_apply]
@@ -595,8 +592,8 @@ private lemma integrable_mul_of_sq_integrable
 private lemma sqrt_integral_sq_add_le
     {f g : X → ℝ}
     (hf_nn : ∀ x, 0 ≤ f x) (hg_nn : ∀ x, 0 ≤ g x)
-    (hf_int : Integrable (fun x => (f x)^2) μ)
-    (hg_int : Integrable (fun x => (g x)^2) μ)
+    (hf_int : Integrable (fun x ↦ (f x)^2) μ)
+    (hg_int : Integrable (fun x ↦ (g x)^2) μ)
     (hf_meas : AEStronglyMeasurable f μ)
     (hg_meas : AEStronglyMeasurable g μ) :
     Real.sqrt (∫ x, (f x + g x)^2 ∂μ) ≤
@@ -606,16 +603,16 @@ private lemma sqrt_integral_sq_add_le
   rw [← Real.sqrt_sq (by positivity : 0 ≤ A + B)]
   apply Real.sqrt_le_sqrt
   have hA_sq : A^2 = ∫ x, (f x)^2 ∂μ :=
-    Real.sq_sqrt (integral_nonneg (fun x => sq_nonneg (f x)))
+    Real.sq_sqrt (integral_nonneg (fun x ↦ sq_nonneg (f x)))
   have hB_sq : B^2 = ∫ x, (g x)^2 ∂μ :=
-    Real.sq_sqrt (integral_nonneg (fun x => sq_nonneg (g x)))
-  have hfg_int : Integrable (fun x => f x * g x) μ :=
+    Real.sq_sqrt (integral_nonneg (fun x ↦ sq_nonneg (g x)))
+  have hfg_int : Integrable (fun x ↦ f x * g x) μ :=
     integrable_mul_of_sq_integrable hf_int hg_int hf_meas hg_meas
   have h_cs : ∫ x, (f x * g x) ∂μ ≤ A * B :=
     cauchy_schwarz_integral hf_nn hg_nn hf_int hg_int hf_meas hg_meas
   have h_split : ∫ x, (f x + g x)^2 ∂μ =
       ∫ x, (f x)^2 ∂μ + 2 * ∫ x, (f x * g x) ∂μ + ∫ x, (g x)^2 ∂μ := by
-    have h1 : ∀ x, (f x + g x)^2 = (f x)^2 + 2 * (f x * g x) + (g x)^2 := fun x => by ring
+    have h1 : ∀ x, (f x + g x)^2 = (f x)^2 + 2 * (f x * g x) + (g x)^2 := fun x ↦ by ring
     simp_rw [h1]
     have i1 : ∫ x, ((f x)^2 + 2 * (f x * g x) + (g x)^2) ∂μ =
         ∫ x, ((f x)^2 + 2 * (f x * g x)) ∂μ + ∫ x, (g x)^2 ∂μ :=
@@ -628,32 +625,32 @@ private lemma sqrt_integral_sq_add_le
     linarith
   linarith [h_cs, hA_sq, hB_sq]
 
-private lemma sqrt_integral_sq_mul (c : ℝ) (hc : 0 ≤ c) (f : α → ℝ) :
+private lemma sqrt_integral_sq_mul (c : ℝ) (hc : 0 ≤ c) (f : X → ℝ) :
     Real.sqrt (∫ x, (c * f x)^2 ∂μ) = c * Real.sqrt (∫ x, (f x)^2 ∂μ) := by
-  simp_rw [show ∀ x, (c * f x)^2 = c^2 * (f x)^2 from fun x => by ring]
+  simp_rw [show ∀ x, (c * f x)^2 = c^2 * (f x)^2 from fun x ↦ by ring]
   rw [integral_const_mul, Real.sqrt_mul (sq_nonneg c), Real.sqrt_sq hc]
 
-private lemma memLp_two_weighted (w : ℝ) (f : α → ℝ)
-    (hf_int : Integrable (fun x => (f x)^2) μ)
+private lemma memLp_two_weighted (w : ℝ) (f : X → ℝ)
+    (hf_int : Integrable (fun x ↦ (f x)^2) μ)
     (hf_meas : AEStronglyMeasurable f μ) :
-    MemLp (fun x => w * f x) 2 μ := by
+    MemLp (fun x ↦ w * f x) 2 μ := by
   rw [memLp_two_iff_integrable_sq_norm (hf_meas.const_mul w)]
   convert (hf_int.const_mul (w^2)) using 1
   ext x; simp [mul_pow, Real.norm_eq_abs, sq_abs]
 
 private lemma memLp_two_weighted_sum {n : ℕ} (w : Fin n → ℝ) (f : Fin n → X → ℝ)
-    (hf_int : ∀ j, Integrable (fun x => (f j x)^2) μ)
+    (hf_int : ∀ j, Integrable (fun x ↦ (f j x)^2) μ)
     (hf_meas : ∀ j, AEStronglyMeasurable (f j) μ) :
-    MemLp (fun x => ∑ j : Fin n, w j * f j x) 2 μ := by
+    MemLp (fun x ↦ ∑ j : Fin n, w j * f j x) 2 μ := by
   induction n with
   | zero => simp only [Fin.sum_univ_zero]; exact MemLp.zero
   | succ n ih =>
     simp_rw [Fin.sum_univ_castSucc]
-    exact (ih _ _ (fun j => hf_int j.castSucc) (fun j => hf_meas j.castSucc)).add
+    exact (ih _ _ (fun j ↦ hf_int j.castSucc) (fun j ↦ hf_meas j.castSucc)).add
       (memLp_two_weighted _ _ (hf_int _) (hf_meas _))
 
-private lemma integrable_sq_of_memLp_two {f : α → ℝ} (hf : MemLp f 2 μ) :
-    Integrable (fun x => (f x)^2) μ :=
+private lemma integrable_sq_of_memLp_two {f : X → ℝ} (hf : MemLp f 2 μ) :
+    Integrable (fun x ↦ (f x)^2) μ :=
   MemLp.integrable_sq hf
 
 /-- **Minkowski inequality for weighted L² sums** (proved theorem)
@@ -662,26 +659,26 @@ private lemma integrable_sq_of_memLp_two {f : α → ℝ} (hf : MemLp f 2 μ) :
     √(∫ (∑ⱼ wⱼfⱼ)² dμ) ≤ ∑ⱼ wⱼ √(∫ fⱼ² dμ)
 
     Proof by induction on n, using Cauchy-Schwarz for integrals at each step. -/
-theorem minkowski_weighted_L2_sum_proved {n : ℕ} {w : Fin n → ℝ} {f : Fin n → X → ℝ}
+theorem minkowski_weighted_l2_sum {n : ℕ} {w : Fin n → ℝ} {f : Fin n → X → ℝ}
     (hw : ∀ j, 0 ≤ w j) (hf : ∀ j x, 0 ≤ f j x)
-    (hf_int : ∀ j, Integrable (fun x => (f j x)^2) μ)
+    (hf_int : ∀ j, Integrable (fun x ↦ (f j x)^2) μ)
     (hf_meas : ∀ j, AEStronglyMeasurable (f j) μ) :
     Real.sqrt (∫ x, (∑ j, w j * f j x)^2 ∂μ) ≤ ∑ j, w j * Real.sqrt (∫ x, (f j x)^2 ∂μ) := by
   induction n with
   | zero => simp
   | succ n ih =>
     simp_rw [Fin.sum_univ_castSucc]
-    set S := fun x => ∑ j : Fin n, w j.castSucc * f j.castSucc x
-    set g := fun x => w (Fin.last n) * f (Fin.last n) x
-    have hS_nn : ∀ x, 0 ≤ S x := fun x =>
-      Finset.sum_nonneg (fun j _ => mul_nonneg (hw j.castSucc) (hf j.castSucc x))
-    have hg_nn : ∀ x, 0 ≤ g x := fun x => mul_nonneg (hw _) (hf _ x)
+    set S := fun x ↦ ∑ j : Fin n, w j.castSucc * f j.castSucc x
+    set g := fun x ↦ w (Fin.last n) * f (Fin.last n) x
+    have hS_nn : ∀ x, 0 ≤ S x := fun x ↦
+      Finset.sum_nonneg (fun j _ ↦ mul_nonneg (hw j.castSucc) (hf j.castSucc x))
+    have hg_nn : ∀ x, 0 ≤ g x := fun x ↦ mul_nonneg (hw _) (hf _ x)
     have hS_memLp : MemLp S 2 μ :=
-      memLp_two_weighted_sum _ _ (fun j => hf_int j.castSucc) (fun j => hf_meas j.castSucc)
+      memLp_two_weighted_sum _ _ (fun j ↦ hf_int j.castSucc) (fun j ↦ hf_meas j.castSucc)
     have hg_memLp : MemLp g 2 μ :=
       memLp_two_weighted _ _ (hf_int _) (hf_meas _)
-    have hS_int : Integrable (fun x => (S x)^2) μ := integrable_sq_of_memLp_two hS_memLp
-    have hg_int : Integrable (fun x => (g x)^2) μ := integrable_sq_of_memLp_two hg_memLp
+    have hS_int : Integrable (fun x ↦ (S x)^2) μ := integrable_sq_of_memLp_two hS_memLp
+    have hg_int : Integrable (fun x ↦ (g x)^2) μ := integrable_sq_of_memLp_two hg_memLp
     calc Real.sqrt (∫ x, (S x + g x)^2 ∂μ)
         ≤ Real.sqrt (∫ x, (S x)^2 ∂μ) + Real.sqrt (∫ x, (g x)^2 ∂μ) :=
           sqrt_integral_sq_add_le hS_nn hg_nn hS_int hg_int
@@ -689,8 +686,8 @@ theorem minkowski_weighted_L2_sum_proved {n : ℕ} {w : Fin n → ℝ} {f : Fin 
       _ ≤ (∑ j : Fin n, w j.castSucc * Real.sqrt (∫ x, (f j.castSucc x)^2 ∂μ)) +
           (w (Fin.last n) * Real.sqrt (∫ x, (f (Fin.last n) x)^2 ∂μ)) := by
           gcongr
-          · exact ih (fun j => hw j.castSucc) (fun j => hf j.castSucc)
-              (fun j => hf_int j.castSucc) (fun j => hf_meas j.castSucc)
+          · exact ih (fun j ↦ hw j.castSucc) (fun j ↦ hf j.castSucc)
+              (fun j ↦ hf_int j.castSucc) (fun j ↦ hf_meas j.castSucc)
           · exact le_of_eq (sqrt_integral_sq_mul _ (hw _) _)
 
 end Minkowski
@@ -721,24 +718,24 @@ For an L² stationary process A with constant mean EA:
   ‖E[‖T⁻¹∫₀ᵀ A_s ds - EA‖²]‖ ≤ T⁻² · ‖∫₀ᵀ∫₀ᵀ Cov(s,u) ds du‖
 
 The proof actually gives equality (the bound is tight). -/
-theorem L2_variance_time_average_bound (μ : Measure Ω) [IsProbabilityMeasure μ]
+theorem l2_variance_time_average_bound (μ : Measure Ω) [IsProbabilityMeasure μ]
     (A : ℝ → Ω → ℂ) (EA : ℂ)
     (T : ℝ) (hT : T > 0)
     (h_mean : ∀ s, ∫ ω, A s ω ∂μ = EA)
     -- Fubini integrability for the covariance triple integral swap
-    (h_Fubini : Integrable (fun (x : Ω × (ℝ × ℝ)) =>
+    (h_Fubini : Integrable (fun (x : Ω × (ℝ × ℝ)) ↦
         (A x.2.1 x.1 - EA) * starRingEnd ℂ (A x.2.2 x.1 - EA))
         (μ.prod ((volume.restrict (Set.Icc 0 T)).prod (volume.restrict (Set.Icc 0 T)))))
     -- Each time-slice A_s is L²(Ω) (for bilinear expansion of covariance)
     (h_slice_L2 : ∀ s, MemLp (A s) 2 μ)
     -- Slice integrability: for a.e. ω, s ↦ A_s(ω) is integrable on [0,T]
-    (h_slice_int : ∀ᵐ ω ∂μ, Integrable (fun s => A s ω) (volume.restrict (Set.Icc 0 T))) :
-    let Cov := fun s u => ∫ ω, A s ω * starRingEnd ℂ (A u ω) ∂μ - EA * starRingEnd ℂ EA
+    (h_slice_int : ∀ᵐ ω ∂μ, Integrable (fun s ↦ A s ω) (volume.restrict (Set.Icc 0 T))) :
+    let Cov := fun s u ↦ ∫ ω, A s ω * starRingEnd ℂ (A u ω) ∂μ - EA * starRingEnd ℂ EA
     ‖∫ ω, ‖(T⁻¹ : ℂ) * (∫ s in Set.Icc (0 : ℝ) T, A s ω) - EA‖^2 ∂μ‖ ≤
       T⁻¹^2 * ‖∫ s in Set.Icc (0 : ℝ) T, ∫ u in Set.Icc (0 : ℝ) T, Cov s u‖ := by
   intro Cov
   -- Step 0: Outer ‖·‖ on nonneg real = id
-  rw [Real.norm_of_nonneg (integral_nonneg (fun _ => sq_nonneg _))]
+  rw [Real.norm_of_nonneg (integral_nonneg (fun _ ↦ sq_nonneg _))]
   -- Step 1: Factor T⁻² out: ‖T⁻¹ * S - EA‖² = T⁻² * ‖S - T*EA‖²
   have hT_ne : (T : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr (ne_of_gt hT)
   have h_factor : ∀ ω, ‖(T⁻¹ : ℂ) * (∫ s in Set.Icc 0 T, A s ω) - EA‖ ^ 2 =
@@ -768,27 +765,27 @@ theorem L2_variance_time_average_bound (μ : Measure Ω) [IsProbabilityMeasure �
         (∫ s in Icc 0 T, A s ω) - ↑T * EA := by
       rw [integral_sub hω (integrable_const EA), integral_const]
       simp [Measure.real, Real.volume_Icc, Complex.real_smul]; left; linarith
-    rw [← h_sum, ← integral_conj (f := fun u => A u ω - EA), ← integral_prod_mul]
+    rw [← h_sum, ← integral_conj (f := fun u ↦ A u ω - EA), ← integral_prod_mul]
   -- Step A: Integrability of Z * conj Z (from h_Fubini via Fubini marginal)
   have h_int_Zconj : Integrable
-      (fun ω => ((∫ s in Icc 0 T, A s ω) - ↑T * EA) *
+      (fun ω ↦ ((∫ s in Icc 0 T, A s ω) - ↑T * EA) *
         starRingEnd ℂ ((∫ s in Icc 0 T, A s ω) - ↑T * EA)) μ :=
-    h_Fubini.integral_prod_left.congr (h_factor_ae.mono fun ω hω => hω.symm)
+    h_Fubini.integral_prod_left.congr (h_factor_ae.mono fun ω hω ↦ hω.symm)
   -- Step B: Fubini identity ∫_Ω Z·conj(Z) dμ = ∫∫ Cov
   -- Bilinear expansion: ∫_Ω (A_s-EA)·conj(A_u-EA) dμ = Cov(s,u)
   have h_inner : ∀ s u,
       ∫ ω, (A s ω - EA) * starRingEnd ℂ (A u ω - EA) ∂μ = Cov s u := by
     intro s u
     have hs := (h_slice_L2 s).integrable one_le_two
-    have hsu : Integrable (fun ω : Ω => A s ω * starRingEnd ℂ (A u ω)) μ :=
+    have hsu : Integrable (fun ω : Ω ↦ A s ω * starRingEnd ℂ (A u ω)) μ :=
       (h_slice_L2 s).integrable_mul (h_slice_L2 u).star (p := 2) (q := 2)
-    have hEA_conjA : Integrable (fun ω : Ω => EA * starRingEnd ℂ (A u ω)) μ :=
+    have hEA_conjA : Integrable (fun ω : Ω ↦ EA * starRingEnd ℂ (A u ω)) μ :=
       ((h_slice_L2 u).star.integrable one_le_two).const_mul _
     -- Distribute: (A-EA)*conj(A-EA) = (A-EA)*conjA - (A-EA)*conjEA
     simp_rw [map_sub, mul_sub]
-    have hf : Integrable (fun ω : Ω => (A s ω - EA) * starRingEnd ℂ (A u ω)) μ :=
-      (hsu.sub hEA_conjA).congr (ae_of_all _ fun ω => by simp only [Pi.sub_apply]; ring)
-    have hg : Integrable (fun ω : Ω => (A s ω - EA) * starRingEnd ℂ EA) μ :=
+    have hf : Integrable (fun ω : Ω ↦ (A s ω - EA) * starRingEnd ℂ (A u ω)) μ :=
+      (hsu.sub hEA_conjA).congr (ae_of_all _ fun ω ↦ by simp only [Pi.sub_apply]; ring)
+    have hg : Integrable (fun ω : Ω ↦ (A s ω - EA) * starRingEnd ℂ EA) μ :=
       (hs.sub (integrable_const _)).mul_const _
     rw [integral_sub hf hg]
     simp_rw [sub_mul]
@@ -813,8 +810,8 @@ theorem L2_variance_time_average_bound (μ : Measure Ω) [IsProbabilityMeasure �
             ∂((volume.restrict (Icc 0 T)).prod (volume.restrict (Icc 0 T))) := by
           congr 1; ext su; exact h_inner su.1 su.2
       _ = ∫ s in Icc 0 T, ∫ u in Icc 0 T, Cov s u :=
-          integral_prod (f := fun su => Cov su.1 su.2)
-            (h_Fubini.integral_prod_right.congr (ae_of_all _ fun su => h_inner su.1 su.2))
+          integral_prod (f := fun su ↦ Cov su.1 su.2)
+            (h_Fubini.integral_prod_right.congr (ae_of_all _ fun su ↦ h_inner su.1 su.2))
   -- Step C: ‖z‖² = Re(z · conj z), commute Re with ∫
   have h_re : ∀ z : ℂ, ‖z‖ ^ 2 = (z * starRingEnd ℂ z).re := by
     intro z; simp [RCLike.mul_conj, sq]
@@ -871,32 +868,32 @@ private lemma memLp_two_lintegral_nnnorm_sq {X E : Type*} [MeasurableSpace X]
   norm_cast
 
 set_option maxHeartbeats 800000 in
-theorem L2_process_covariance_fubini_integrable {Ω : Type*} [MeasurableSpace Ω]
+theorem l2_process_covariance_fubini_integrable {Ω : Type*} [MeasurableSpace Ω]
     (μ : Measure Ω) [IsProbabilityMeasure μ]
     (A : ℝ → Ω → ℂ) (c : ℂ) (T : ℝ) (_hT : T > 0)
     (h_L2 : MemLp (uncurry A) 2
       ((volume.restrict (Icc 0 T)).prod μ))
-    (h_cont_s : ∀ ω, Continuous (fun s => A s ω))
-    (h_sm_slice : ∀ s, StronglyMeasurable (fun ω => A s ω)) :
-    Integrable (fun (x : Ω × (ℝ × ℝ)) =>
+    (h_cont_s : ∀ ω, Continuous (fun s ↦ A s ω))
+    (h_sm_slice : ∀ s, StronglyMeasurable (fun ω ↦ A s ω)) :
+    Integrable (fun (x : Ω × (ℝ × ℝ)) ↦
       (A x.2.1 x.1 - c) * starRingEnd ℂ (A x.2.2 x.1 - c))
       (μ.prod ((volume.restrict (Icc 0 T)).prod (volume.restrict (Icc 0 T)))) := by
   let ν := volume.restrict (Icc 0 T)
   have hA_sm : StronglyMeasurable (uncurry A) :=
     stronglyMeasurable_uncurry_of_continuous_of_stronglyMeasurable
-      (fun ω => h_cont_s ω) h_sm_slice
-  have hF_sm : StronglyMeasurable (fun p : ℝ × Ω => A p.1 p.2 - c) :=
+      (fun ω ↦ h_cont_s ω) h_sm_slice
+  have hF_sm : StronglyMeasurable (fun p : ℝ × Ω ↦ A p.1 p.2 - c) :=
     hA_sm.sub stronglyMeasurable_const
-  have hm_s : Measurable (fun x : Ω × (ℝ × ℝ) => (x.2.1, x.1)) :=
+  have hm_s : Measurable (fun x : Ω × (ℝ × ℝ) ↦ (x.2.1, x.1)) :=
     Measurable.prodMk (measurable_fst.comp measurable_snd) measurable_fst
-  have hm_u : Measurable (fun x : Ω × (ℝ × ℝ) => (x.2.2, x.1)) :=
+  have hm_u : Measurable (fun x : Ω × (ℝ × ℝ) ↦ (x.2.2, x.1)) :=
     Measurable.prodMk (measurable_snd.comp measurable_snd) measurable_fst
-  have h1 : StronglyMeasurable (fun x : Ω × (ℝ × ℝ) => A x.2.1 x.1 - c) :=
+  have h1 : StronglyMeasurable (fun x : Ω × (ℝ × ℝ) ↦ A x.2.1 x.1 - c) :=
     hF_sm.comp_measurable hm_s
-  have h2 : StronglyMeasurable (fun x : Ω × (ℝ × ℝ) => A x.2.2 x.1 - c) :=
+  have h2 : StronglyMeasurable (fun x : Ω × (ℝ × ℝ) ↦ A x.2.2 x.1 - c) :=
     hF_sm.comp_measurable hm_u
   have h_sm_integrand : StronglyMeasurable
-      (fun x : Ω × (ℝ × ℝ) => (A x.2.1 x.1 - c) * starRingEnd ℂ (A x.2.2 x.1 - c)) :=
+      (fun x : Ω × (ℝ × ℝ) ↦ (A x.2.1 x.1 - c) * starRingEnd ℂ (A x.2.2 x.1 - c)) :=
     h1.mul h2.star
   refine ⟨h_sm_integrand.aestronglyMeasurable, ?_⟩
   simp only [HasFiniteIntegral, enorm]
@@ -908,37 +905,37 @@ theorem L2_process_covariance_fubini_integrable {Ω : Type*} [MeasurableSpace Ω
     have : ‖starRingEnd ℂ (A x.2.2 x.1 - c)‖₊ = ‖A x.2.2 x.1 - c‖₊ := nnnorm_star _
     rw [this]
     exact ennreal_mul_le_add_sq _ _
-  have hm1 : Measurable (fun x : Ω × (ℝ × ℝ) => (↑‖A x.2.1 x.1 - c‖₊ : ℝ≥0∞) ^ 2) :=
+  have hm1 : Measurable (fun x : Ω × (ℝ × ℝ) ↦ (↑‖A x.2.1 x.1 - c‖₊ : ℝ≥0∞) ^ 2) :=
     (h1.measurable.nnnorm.coe_nnreal_ennreal).pow_const _
-  have hm2 : Measurable (fun x : Ω × (ℝ × ℝ) => (↑‖A x.2.2 x.1 - c‖₊ : ℝ≥0∞) ^ 2) :=
+  have hm2 : Measurable (fun x : Ω × (ℝ × ℝ) ↦ (↑‖A x.2.2 x.1 - c‖₊ : ℝ≥0∞) ^ 2) :=
     (h2.measurable.nnnorm.coe_nnreal_ennreal).pow_const _
-  have h_L2_sub : MemLp (fun z : ℝ × Ω => uncurry A z - c) 2 (ν.prod μ) :=
+  have h_L2_sub : MemLp (fun z : ℝ × Ω ↦ uncurry A z - c) 2 (ν.prod μ) :=
     h_L2.sub (memLp_const c)
   have h_lint_base : ∫⁻ z : ℝ × Ω, ↑‖uncurry A z - c‖₊ ^ (2 : ℕ) ∂(ν.prod μ) < ⊤ :=
     memLp_two_lintegral_nnnorm_sq h_L2_sub
   have hν_fin : ν Set.univ < ⊤ := by
     rw [Measure.restrict_apply_univ]; exact measure_Icc_lt_top
-  have hF_meas : Measurable (fun z : ℝ × Ω => (↑‖A z.1 z.2 - c‖₊ : ℝ≥0∞) ^ 2) :=
+  have hF_meas : Measurable (fun z : ℝ × Ω ↦ (↑‖A z.1 z.2 - c‖₊ : ℝ≥0∞) ^ 2) :=
     (hF_sm.measurable.nnnorm.coe_nnreal_ennreal).pow_const _
   have h_both_finite : ν Set.univ * ∫⁻ z : ℝ × Ω, ↑‖A z.1 z.2 - c‖₊ ^ 2 ∂(ν.prod μ) < ⊤ :=
     mul_lt_top hν_fin h_lint_base
   haveI : SFinite ν := inferInstance
-  have hg_meas : ∀ ω, Measurable (fun s : ℝ => (↑‖A s ω - c‖₊ : ℝ≥0∞) ^ 2) := fun ω =>
+  have hg_meas : ∀ ω, Measurable (fun s : ℝ ↦ (↑‖A s ω - c‖₊ : ℝ≥0∞) ^ 2) := fun ω ↦
     ((h_cont_s ω).sub continuous_const).measurable.nnnorm.coe_nnreal_ennreal.pow_const _
-  have hF_meas_swap : Measurable (fun p : Ω × ℝ => (↑‖A p.2 p.1 - c‖₊ : ℝ≥0∞) ^ 2) :=
+  have hF_meas_swap : Measurable (fun p : Ω × ℝ ↦ (↑‖A p.2 p.1 - c‖₊ : ℝ≥0∞) ^ 2) :=
     hF_meas.comp (Measurable.prodMk measurable_snd measurable_fst)
   have h_inner_fst : ∀ ω, ∫⁻ p : ℝ × ℝ, (↑‖A p.1 ω - c‖₊ : ℝ≥0∞) ^ 2 ∂(ν.prod ν)
       = (∫⁻ s, (↑‖A s ω - c‖₊ : ℝ≥0∞) ^ 2 ∂ν) * ν Set.univ := by
     intro ω
     have key := @lintegral_prod_mul ℝ ℝ _ _ ν ν _
-      (fun s => (↑‖A s ω - c‖₊ : ℝ≥0∞) ^ 2) (fun _ => 1)
+      (fun s ↦ (↑‖A s ω - c‖₊ : ℝ≥0∞) ^ 2) (fun _ ↦ 1)
       (hg_meas ω).aemeasurable aemeasurable_const
     simp only [mul_one, lintegral_one] at key; exact key
   have h_inner_snd : ∀ ω, ∫⁻ p : ℝ × ℝ, (↑‖A p.2 ω - c‖₊ : ℝ≥0∞) ^ 2 ∂(ν.prod ν)
       = ν Set.univ * ∫⁻ u, (↑‖A u ω - c‖₊ : ℝ≥0∞) ^ 2 ∂ν := by
     intro ω
     have key := @lintegral_prod_mul ℝ ℝ _ _ ν ν _
-      (fun _ => (1 : ℝ≥0∞)) (fun u => (↑‖A u ω - c‖₊ : ℝ≥0∞) ^ 2)
+      (fun _ ↦ (1 : ℝ≥0∞)) (fun u ↦ (↑‖A u ω - c‖₊ : ℝ≥0∞) ^ 2)
       aemeasurable_const (hg_meas ω).aemeasurable
     simp only [one_mul, lintegral_one] at key; exact key
   calc ∫⁻ x, ↑‖(A x.2.1 x.1 - c) * starRingEnd ℂ (A x.2.2 x.1 - c)‖₊
@@ -954,8 +951,8 @@ theorem L2_process_covariance_fubini_integrable {Ω : Type*} [MeasurableSpace Ω
           rw [lintegral_prod _ hm1.aemeasurable]
           simp_rw [h_inner_fst]
           rw [lintegral_mul_const _ hF_meas_swap.lintegral_prod_right', mul_comm]
-          conv_lhs => rw [show (fun ω => ∫⁻ s, (↑‖A s ω - c‖₊ : ℝ≥0∞) ^ 2 ∂ν) =
-            (fun ω => ∫⁻ s, (fun z : Ω × ℝ => (↑‖A z.2 z.1 - c‖₊ : ℝ≥0∞) ^ 2) (ω, s) ∂ν)
+          conv_lhs => rw [show (fun ω ↦ ∫⁻ s, (↑‖A s ω - c‖₊ : ℝ≥0∞) ^ 2 ∂ν) =
+            (fun ω ↦ ∫⁻ s, (fun z : Ω × ℝ ↦ (↑‖A z.2 z.1 - c‖₊ : ℝ≥0∞) ^ 2) (ω, s) ∂ν)
             from rfl]
           rw [lintegral_lintegral hF_meas_swap.aemeasurable, ← lintegral_prod_swap]
           exact h_both_finite
@@ -963,8 +960,8 @@ theorem L2_process_covariance_fubini_integrable {Ω : Type*} [MeasurableSpace Ω
           rw [lintegral_prod _ hm2.aemeasurable]
           simp_rw [h_inner_snd]
           rw [lintegral_const_mul _ hF_meas_swap.lintegral_prod_right']
-          conv_lhs => rw [show (fun ω => ∫⁻ u, (↑‖A u ω - c‖₊ : ℝ≥0∞) ^ 2 ∂ν) =
-            (fun ω => ∫⁻ s, (fun z : Ω × ℝ => (↑‖A z.2 z.1 - c‖₊ : ℝ≥0∞) ^ 2) (ω, s) ∂ν)
+          conv_lhs => rw [show (fun ω ↦ ∫⁻ u, (↑‖A u ω - c‖₊ : ℝ≥0∞) ^ 2 ∂ν) =
+            (fun ω ↦ ∫⁻ s, (fun z : Ω × ℝ ↦ (↑‖A z.2 z.1 - c‖₊ : ℝ≥0∞) ^ 2) (ω, s) ∂ν)
             from rfl]
           rw [lintegral_lintegral hF_meas_swap.aemeasurable, ← lintegral_prod_swap]
           exact h_both_finite

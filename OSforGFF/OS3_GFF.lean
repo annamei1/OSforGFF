@@ -51,8 +51,8 @@ private lemma entrywiseExp_posSemidef_of_posSemidef
   (hR : R.PosSemidef) : Matrix.PosSemidef (fun i j => Real.exp (R i j)) := by
   classical
   -- PSD for the Hadamard-series exponential
-  have hS : (OSforGFF.entrywiseExp_hadamardSeries (ι := Fin n) R).PosSemidef :=
-    OSforGFF.posSemidef_entrywiseExp_hadamardSeries_of_posSemidef (ι := Fin n) R hR
+  have hS : (OSforGFF.entrywiseExpHadamardSeries (ι := Fin n) R).PosSemidef :=
+    OSforGFF.posSemidef_entrywiseExpHadamardSeries_of_posSemidef (ι := Fin n) R hR
   -- Convert to PSD for the entrywise exponential
   have hExp : (OSforGFF.entrywiseExp (ι := Fin n) R).PosSemidef := by
     simpa [OSforGFF.entrywiseExp_eq_hadamardSeries (ι := Fin n) R] using hS

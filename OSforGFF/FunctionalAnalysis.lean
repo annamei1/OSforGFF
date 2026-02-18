@@ -72,15 +72,15 @@ focusing on integrability, Schwartz function properties, and L² embeddings.
 **Complex Embeddings:**
 - `Complex.ofRealCLM_isometry`: Real→Complex embedding is isometric
 - `Complex.ofRealCLM_continuous_compLp`: Continuous lifting to Lp spaces
-- `embedding_real_to_complex`: Canonical ℝ→ℂ embedding for Lp functions
+- `embeddingRealToComplex`: Canonical ℝ→ℂ embedding for Lp functions
 
 **Schwartz→L² Embedding:**
 - `schwartzToL2`: Embedding Schwartz functions into L² space
 - `schwartzToL2'`: Alternative embedding for EuclideanSpace types
 
 **L∞·L² Multiplication:**
-- `linfty_mul_L2_CLM`: Continuous bilinear map L∞ × L² → L²
-- `linfty_mul_L2_CLM_norm_bound`: Norm bound ‖f · g‖₂ ≤ ‖f‖∞ · ‖g‖₂
+- `linftyMulL2CLM`: Continuous bilinear map L∞ × L² → L²
+- `linftyMulL2CLM_norm_bound`: Norm bound ‖f · g‖₂ ≤ ‖f‖∞ · ‖g‖₂
 
 **Integrability Results:**
 - `integrableOn_ball_of_radial`: Radial functions integrable on balls
@@ -88,7 +88,7 @@ focusing on integrability, Schwartz function properties, and L² embeddings.
 - `integrableOn_compact_diff_ball`: Integrability on compact ∖ ball
 - `locallyIntegrable_of_rpow_decay_real`: Local integrability from power decay (n ≥ 3)
 - `polynomial_decay_integrable_3d`: 1/‖x‖ integrable on 3D balls
-- `schwartz_bilinear_integrable_of_translationInvariant_L1`: Bilinear Schwartz integrability
+- `schwartz_bilinear_integrable_of_translationInvariant_l1`: Bilinear Schwartz integrability
 
 **Vanishing & Bounds:**
 - `schwartz_vanishing_linear_bound_general`: Linear vanishing bounds for Schwartz functions
@@ -113,9 +113,9 @@ noncomputable section
 /-! ## Proven theorems in this file
 
 The following L∞ × L² multiplication theorems are fully proven (2025-12-13):
-- `linfty_mul_L2_CLM` (line ~607): L∞ × L² → L² bounded linear operator
-- `linfty_mul_L2_CLM_spec` (line ~639): pointwise specification (g·f)(x) = g(x)·f(x) a.e.
-- `linfty_mul_L2_CLM_norm_bound` (line ~650): operator norm bound ‖T_g f‖ ≤ C·‖f‖
+- `linftyMulL2CLM` (line ~607): L∞ × L² → L² bounded linear operator
+- `linftyMulL2CLM_spec` (line ~639): pointwise specification (g·f)(x) = g(x)·f(x) a.e.
+- `linftyMulL2CLM_norm_bound` (line ~650): operator norm bound ‖T_g f‖ ≤ C·‖f‖
 -/
 
 open MeasureTheory.Measure
@@ -173,7 +173,7 @@ lemma Complex.ofRealCLM_continuous_compLp {α : Type*} [MeasurableSpace α] {μ 
 Compose an Lp function with a continuous linear map.
 This should be the canonical way to lift real Lp functions to complex Lp functions.
 -/
-noncomputable def composed_function {α : Type*} [MeasurableSpace α] {μ : Measure α}
+noncomputable def composedFunction {α : Type*} [MeasurableSpace α] {μ : Measure α}
     (f : Lp ℝ 2 μ) (A : ℝ →L[ℝ] ℂ) : Lp ℂ 2 μ :=
   A.compLp f
 
@@ -185,9 +185,9 @@ example {α : Type*} [MeasurableSpace α] {μ : Measure α}
 /--
 Embedding from real Lp functions to complex Lp functions using the canonical embedding ℝ → ℂ.
 -/
-noncomputable def embedding_real_to_complex {α : Type*} [MeasurableSpace α] {μ : Measure α}
+noncomputable def embeddingRealToComplex {α : Type*} [MeasurableSpace α] {μ : Measure α}
     (φ : Lp ℝ 2 μ) : Lp ℂ 2 μ :=
-  composed_function φ (Complex.ofRealCLM)
+  composedFunction φ (Complex.ofRealCLM)
 
 section LiftMeasure
 variable {α : Type*} [MeasurableSpace α] {μ : Measure α}
@@ -196,14 +196,14 @@ variable {α : Type*} [MeasurableSpace α] {μ : Measure α}
 Lifts a probability measure from the space of real Lp functions to the space of
 complex Lp functions, with support on the real subspace.
 -/
-noncomputable def liftMeasure_real_to_complex
+noncomputable def liftMeasureRealToComplex
     (ν : ProbabilityMeasure (Lp ℝ 2 μ)) :
     ProbabilityMeasure (Lp ℂ 2 μ) :=
   let ν' : Measure (Lp ℂ 2 μ) :=
-    Measure.map embedding_real_to_complex ν
-  have h_ae : AEMeasurable embedding_real_to_complex ν := by
+    Measure.map embeddingRealToComplex ν
+  have h_ae : AEMeasurable embeddingRealToComplex ν := by
     apply Continuous.aemeasurable
-    unfold embedding_real_to_complex composed_function
+    unfold embeddingRealToComplex composedFunction
     have : Continuous (fun φ : Lp ℝ 2 μ => Complex.ofRealCLM.compLp φ : Lp ℝ 2 μ → Lp ℂ 2 μ) :=
       Complex.ofRealCLM_continuous_compLp
     exact this
@@ -270,7 +270,7 @@ These theorems are used to construct specific multiplication operators
 -/
 
 /-- Helper lemma for the norm bound of the multiplication operator. -/
-lemma linfty_mul_L2_bound_aux {μ : Measure α}
+lemma linfty_mul_l2_bound_aux {μ : Measure α}
     (g : α → ℂ) (_hg_meas : Measurable g) (C : ℝ) (_hC : 0 < C)
     (hg_bound : ∀ᵐ x ∂μ, ‖g x‖ ≤ C)
     (f : Lp ℂ 2 μ) :
@@ -290,7 +290,7 @@ lemma linfty_mul_L2_bound_aux {μ : Measure α}
 
 /-- Given a measurable function `g` that is essentially bounded by `C`,
 multiplication by `g` defines a bounded linear operator on `L²`. -/
-noncomputable def linfty_mul_L2_CLM {μ : Measure α}
+noncomputable def linftyMulL2CLM {μ : Measure α}
     (g : α → ℂ) (hg_meas : Measurable g) (C : ℝ) (hC : 0 < C)
     (hg_bound : ∀ᵐ x ∂μ, ‖g x‖ ≤ C) :
     Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ := by
@@ -317,34 +317,34 @@ noncomputable def linfty_mul_L2_CLM {μ : Measure α}
     (fun f => by
       simp only [LinearMap.coe_mk, AddHom.coe_mk, Lp.norm_toLp]
       apply ENNReal.toReal_le_of_le_ofReal (by positivity)
-      refine (linfty_mul_L2_bound_aux g hg_meas C hC hg_bound f).trans ?_
+      refine (linfty_mul_l2_bound_aux g hg_meas C hC hg_bound f).trans ?_
       rw [ENNReal.ofReal_mul (le_of_lt hC)]
       gcongr
       exact le_of_eq (ENNReal.ofReal_toReal (Lp.memLp f).eLpNorm_ne_top).symm)
 
 /-- The multiplication operator acts pointwise almost everywhere on `L²`. -/
-lemma linfty_mul_L2_CLM_spec {μ : Measure α}
+lemma linftyMulL2CLM_spec {μ : Measure α}
     (g : α → ℂ) (hg_meas : Measurable g) (C : ℝ) (hC : 0 < C)
     (hg_bound : ∀ᵐ x ∂μ, ‖g x‖ ≤ C)
     (f : Lp ℂ 2 μ) :
-    (linfty_mul_L2_CLM g hg_meas C hC hg_bound f) =ᵐ[μ] fun x => g x * f x := by
-  simp [linfty_mul_L2_CLM]
+    (linftyMulL2CLM g hg_meas C hC hg_bound f) =ᵐ[μ] fun x => g x * f x := by
+  simp [linftyMulL2CLM]
   exact MemLp.coeFn_toLp _
 
 /-- The operator norm of the multiplication operator is bounded by C.
 This gives ‖Mg f‖₂ ≤ C · ‖f‖₂ for all f ∈ L². -/
-theorem linfty_mul_L2_CLM_norm_bound {μ : Measure α}
+theorem linftyMulL2CLM_norm_bound {μ : Measure α}
     (g : α → ℂ) (hg_meas : Measurable g) (C : ℝ) (hC : 0 < C)
     (hg_bound : ∀ᵐ x ∂μ, ‖g x‖ ≤ C)
     (f : Lp ℂ 2 μ) :
-    ‖linfty_mul_L2_CLM g hg_meas C hC hg_bound f‖ ≤ C * ‖f‖ := by
-  have eq : linfty_mul_L2_CLM g hg_meas C hC hg_bound f =
+    ‖linftyMulL2CLM g hg_meas C hC hg_bound f‖ ≤ C * ‖f‖ := by
+  have eq : linftyMulL2CLM g hg_meas C hC hg_bound f =
       (MemLp.mul (p:=∞) (q:=2) (r:=2) (Lp.memLp f)
         (memLp_top_of_bound hg_meas.aestronglyMeasurable C hg_bound)).toLp
         (g * ⇑f) := rfl
   rw [eq, Lp.norm_toLp]
   apply ENNReal.toReal_le_of_le_ofReal (by positivity)
-  refine (linfty_mul_L2_bound_aux g hg_meas C hC hg_bound f).trans ?_
+  refine (linfty_mul_l2_bound_aux g hg_meas C hC hg_bound f).trans ?_
   rw [ENNReal.ofReal_mul (le_of_lt hC)]
   gcongr
   exact le_of_eq (ENNReal.ofReal_toReal (Lp.memLp f).eLpNorm_ne_top).symm
@@ -579,7 +579,7 @@ Proof idea:
 - Schwartz functions are integrable: ‖g‖_{L¹} < ∞
 - K₀ is integrable: ‖K₀‖_{L¹} < ∞
 - Then: ∫∫ |f(x) K₀(x-y) g(y)| dx dy ≤ ‖f‖_∞ · ‖K₀‖_{L¹} · ‖g‖_{L¹} < ∞ -/
-theorem schwartz_bilinear_integrable_of_translationInvariant_L1
+theorem schwartz_bilinear_integrable_of_translationInvariant_l1
     {n : ℕ}
     (K₀ : EuclideanSpace ℝ (Fin n) → ℂ)
     (hK₀_int : Integrable K₀ volume)

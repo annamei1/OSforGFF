@@ -2020,7 +2020,7 @@ theorem freeCovarianceℂ_bilinear_integrable' (m : ℝ) [Fact (0 < m)] (f g : T
   rw [h_eq]
   have hK_int : Integrable (fun z : SpaceTime => (freeCovarianceKernel m z : ℂ)) volume := by
     exact Integrable.ofReal (freeCovarianceKernel_integrable m (Fact.out))
-  exact schwartz_bilinear_integrable_of_translationInvariant_L1
+  exact schwartz_bilinear_integrable_of_translationInvariant_l1
     (fun z => (freeCovarianceKernel m z : ℂ)) hK_int f g
 
 /-- Negation as a linear isometry equivalence on SpaceTime. -/
@@ -2291,7 +2291,7 @@ noncomputable def momentumWeightSqrt_mul_CLM (m : ℝ) [Fact (0 < m)] :
     positivity
   have hg_meas : Measurable (fun k => (momentumWeightSqrt m k : ℂ)) :=
     Complex.continuous_ofReal.measurable.comp (momentumWeightSqrt_measurable m)
-  linfty_mul_L2_CLM
+  linftyMulL2CLM
     (fun k => (momentumWeightSqrt m k : ℂ))
     hg_meas
     (1 / m)
@@ -2308,7 +2308,7 @@ noncomputable def momentumWeightSqrt_mathlib_mul_CLM (m : ℝ) [Fact (0 < m)] :
     positivity
   have hg_meas : Measurable (fun k => (momentumWeightSqrt_mathlib m k : ℂ)) :=
     Complex.continuous_ofReal.measurable.comp (momentumWeightSqrt_mathlib_measurable m)
-  linfty_mul_L2_CLM
+  linftyMulL2CLM
     (fun k => (momentumWeightSqrt_mathlib m k : ℂ))
     hg_meas
     (1 / m)
@@ -2320,7 +2320,7 @@ lemma momentumWeightSqrt_mathlib_mul_CLM_spec (m : ℝ) [Fact (0 < m)]
     (momentumWeightSqrt_mathlib_mul_CLM m f) =ᵐ[volume]
       fun k => (momentumWeightSqrt_mathlib m k : ℂ) * f k := by
   unfold momentumWeightSqrt_mathlib_mul_CLM
-  exact linfty_mul_L2_CLM_spec _ _ _ _ _ f
+  exact linftyMulL2CLM_spec _ _ _ _ _ f
 
 /-- The square-root momentum weight is pointwise bounded by `1 / m` (Mathlib convention). -/
 lemma momentumWeightSqrt_mathlib_le_inv_mass (m : ℝ) [Fact (0 < m)] :

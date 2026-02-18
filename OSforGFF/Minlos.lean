@@ -129,7 +129,7 @@ def gaussian_characteristic_functional
 theorem gaussian_rbf_pd_innerProduct
   {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H] :
   IsPositiveDefinite (fun h : H => Complex.exp (-(1/2 : ℂ) * (‖h‖^2 : ℝ))) :=
-  gaussian_rbf_pd_innerProduct_proof
+  gaussian_rbf_isPositiveDefiniteKernel
 
 /-- If covariance is realized as a squared norm via a linear embedding T into
     a real inner product space H, then the Gaussian characteristic functional
