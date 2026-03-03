@@ -3,11 +3,15 @@ Copyright (c) 2025 Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim. All r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim
 -/
-/-
-Hadamard operations and entrywise exponential for matrices.
+/-!
+# Entrywise Exponential of PSD Matrices
 
-This module contains continuity properties, Hadamard powers, and the proof that
-the entrywise exponential preserves positive definiteness via Hadamard series.
+Develops Hadamard (entrywise) operations on real matrices and proves that the entrywise
+exponential preserves positive semidefiniteness. The key tool is the Schur product theorem
+(from `SchurProduct.lean`): Hadamard powers of a PD matrix remain PD, so summing them with
+coefficients `1/n!` yields a PD matrix. The PSD case follows by a continuity argument:
+`R + ε I` is PD for every `ε > 0`, and the limit `ε → 0` uses continuity of the entrywise
+exponential.
 -/
 
 import OSforGFF.General.SchurProduct

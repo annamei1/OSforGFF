@@ -16,6 +16,17 @@ import Mathlib.Data.Matrix.Basic
 import Mathlib.Data.Matrix.Mul
 import OSforGFF.General.HadamardExp
 
+/-!
+# Gaussian RBF Kernel is Positive Definite
+
+Proves that the Gaussian radial basis function kernel `h ↦ exp(-‖h‖² / 2)` is a positive
+definite function on any real inner product space. The proof uses three steps: (1) the inner
+product kernel `⟨x, y⟩` is positive definite; (2) exponentiation preserves positive
+definiteness via the Hadamard series in `HadamardExp.lean`; (3) the Gaussian kernel factors as
+`exp(-‖x - y‖² / 2) = exp(-‖x‖² / 2) · exp(-‖y‖² / 2) · exp(⟨x, y⟩)`, reducing from
+the RBF to the inner product kernel.
+-/
+
 open Complex BigOperators Real InnerProductSpace Matrix
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H]

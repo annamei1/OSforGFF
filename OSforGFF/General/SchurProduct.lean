@@ -3,14 +3,15 @@ Copyright (c) 2025 Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim. All r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim
 -/
-/-
-Schur product theorem (Hadamard product preserves positive semidefiniteness).
+/-!
+# Schur Product Theorem
 
-We prove/record that if A and B are positive semidefinite Hermitian matrices, then their
-entrywise (Hadamard) product D with entries D i j = A i j * B i j is also positive semidefinite.
-
-This is used in the OS3 reflection positivity argument to deduce positivity of exp(R) from
-positivity of R via power series and Schur products.
+Proves the Schur product theorem (real, finite-index case): if `A` and `B` are positive
+semidefinite Hermitian matrices, then their entrywise (Hadamard) product `D` with entries
+`D i j = A i j * B i j` is also positive semidefinite. The proof reduces positivity of the
+Hadamard form `x ᵀ (A ∘ B) x` to positivity of the Kronecker product `A ⊗ B` applied to
+the diagonal embedding of `x` into `ι × ι`. Used in the OS3 reflection positivity argument
+to transfer PSD properties through the matrix exponential via `HadamardExp.lean`.
 -/
 
 import Mathlib.LinearAlgebra.Matrix.Hadamard

@@ -3,11 +3,13 @@ Copyright (c) 2025 Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim. All r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael R. Douglas, Sarah Hoback, Anna Mei, Ron Nissim
 -/
-/-
-Frobenius positivity: if G is PSD and nonzero, and B is PD, then
-⟪G, B⟫ = ∑ j ∑ l G j l * B j l > 0.
+/-!
+# Frobenius Positivity
 
-We work over ℝ with finite index type ι.
+If `G` is positive semidefinite and nonzero, and `B` is positive definite, then the Frobenius
+inner product `⟪G, B⟫ = ∑ j l, G j l * B j l` is strictly positive. The proof diagonalizes
+`B = U D Uᵀ` via the spectral theorem, conjugates `G` to `H = Uᵀ G U` (which remains PSD and
+nonzero), and reduces to `⟪G, B⟫ = tr(H D) = ∑ i, λᵢ Hᵢᵢ > 0`.
 -/
 
 import Mathlib.Data.Matrix.Basic
