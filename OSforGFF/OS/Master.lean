@@ -53,7 +53,7 @@ theorem gaussianFreeField_satisfies_all_OS_axioms (m : ℝ) [Fact (0 < m)] :
   os2 := gaussian_satisfies_OS2 (μ_GFF m)
     (by exact isGaussianGJ_gaussianFreeField_free m)
     (QFT.CovarianceEuclideanInvariantℂ_μ_GFF m)
-  -- OS3 from the Schur-Hadamard argument (complex star formulation, sorry in gff_complexOS3_matrix)
+  -- OS3 from the Schur-Hadamard argument (complex star formulation)
   os3 := QFT.gaussianFreeField_OS3 m
   -- OS4 Clustering (Gaussian factorization and covariance decay)
   os4_clustering := QFT.gaussianFreeField_satisfies_OS4 m
