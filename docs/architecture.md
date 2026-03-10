@@ -32,22 +32,38 @@ shows exactly these three plus the standard Lean/Mathlib axioms (propext, Quot.s
 ## OS3: the longest proof chain
 
 OS3 (reflection positivity) is the most technically involved axiom, spanning
-4 files and ~6000 lines. The logical chain:
+4 files and ~7100 lines. The logical chain:
 
-1. **MixedRepInfra**: Schwinger parametrization makes all integrals absolutely
-   convergent (the naive momentum-space approach fails because 1/√(k²+m²) is
-   not L¹ in 3D). Proves ~20 Fubini exchange lemmas.
+1. **MixedRepInfra** (~3800 lines): Schwinger parametrization makes all
+   integrals absolutely convergent (the naive momentum-space approach fails
+   because 1/√(k²+m²) is not L¹ in 3D). Proves ~36 Fubini exchange and
+   integrability lemmas.
 
-2. **MixedRep**: Chains the exchanges to reach the mixed representation
-   ⟨Θf, Cf⟩ = ∫ (1/ω)|F_ω(k̄)|² dk̄, going through heat kernel → Fourier →
-   Gaussian k₀ integral → Laplace transform.
+2. **MixedRep** (~1900 lines): Chains the exchanges to reach the mixed
+   representation ⟨Θf, Cf⟩ = ∫ (1/ω)|F_ω(k̄)|² dk̄, going through
+   heat kernel → Fourier → Gaussian k₀ integral → Laplace transform.
 
-3. **CovarianceRP**: For positive-time f, |x₀+y₀| = x₀+y₀, so the bilinear
-   form factors as a perfect square → non-negative.
+3. **CovarianceRP** (~460 lines): Defines the star operation
+   `(star f)(x) = conj(f(Θx))` on complex test functions and proves
+   `Re⟨star f, Cf⟩ ≥ 0` for positive-time f.  The factorization
+   |−x₀−y₀| = x₀+y₀ for positive-time support makes the integrand a
+   perfect square.  Bridges to real test functions via
+   `star (toComplex f) = compTimeReflection (toComplex f)`.
 
-4. **ReflectionPositivity**: Schur–Hadamard lift: R_ij = ⟨Θfᵢ, Cfⱼ⟩ is PSD
-   → exp(R) is PSD (Schur product theorem + entrywise exponential) →
+4. **ReflectionPositivity** (~1020 lines): Two independent proofs.
+
+   **Real version** (lines 52–530): Schur–Hadamard lift for real coefficients:
+   R_ij = ⟨Θfᵢ, Cfⱼ⟩ is PSD → exp(R) is PSD (Hadamard series) →
    ∑ cᵢcⱼ Z[fᵢ−Θfⱼ] ≥ 0.
+
+   **Complex version** (lines 532–1023): Full Osterwalder–Schrader formulation
+   with complex test functions and complex coefficients.  The matrix entry
+   factorizes as Z_ℂ[fᵢ − star fⱼ] = Aᵢ · conj(Aⱼ) · exp(Rᵢⱼ) where
+   Rᵢⱼ = C(fᵢ, star fⱼ) is Hermitian PSD.  Key ingredients:
+   - `star` antilinearity: star(∑ c̄ⱼfⱼ) = ∑ cⱼ star(fⱼ)
+   - Hermiticity: R_{ji} = conj(R_{ij}) via C(star f, star g) = conj(C(f,g))
+   - Complex Schur product theorem (Kronecker ⊗ diagonal submatrix)
+   - Complex entrywise exponential PSD via Hadamard power series limit
 
 ## OS4: two-stage argument
 

@@ -1,0 +1,317 @@
+# Definitions Entering the OS Axiom Statements
+
+The master theorem is:
+
+```lean
+theorem gaussianFreeField_satisfies_all_OS_axioms (m : ℝ) [Fact (0 < m)] :
+    SatisfiesAllOS (μ_GFF m)
+```
+
+A correct proof guarantees the *theorem statement* is true — but only relative to the
+definitions it references. If a definition encodes the wrong mathematical concept, the
+theorem proves the wrong thing regardless of the proof. This document lists every
+definition entering the statements of OS0–OS4 and assesses correctness.
+
+---
+
+## 1. `GJGeneratingFunctional` — sign of i
+
+**Definition** ([Spacetime/Basic.lean:163](../OSforGFF/Spacetime/Basic.lean#L163)):
+```lean
+def GJGeneratingFunctional (dμ_config : ProbabilityMeasure FieldConfiguration)
+  (J : TestFunction) : ℂ :=
+  ∫ ω, Complex.exp (Complex.I * (distributionPairing ω J : ℂ)) ∂dμ_config.toMeasure
+```
+
+**Used in**: OS3, OS4_Clustering.
+
+**Assessment**: This is `Z[J] = ∫ exp(i⟨ω,J⟩) dμ(ω)`, matching the standard Glimm–Jaffe
+convention (Quantum Physics, p. 89). The sign `+i` is correct — the opposite sign `−i`
+would give the complex conjugate `Z̄[J]`, which would break OS3 (the reflection positivity
+matrix would be conjugate-transposed). **Correct.**
+
+---
+
+## 2. `GJGeneratingFunctionalℂ` and `distributionPairingℂ_real` — complex extension
+
+**Definitions** ([Spacetime/Basic.lean:249,256](../OSforGFF/Spacetime/Basic.lean#L249)):
+```lean
+def distributionPairingℂ_real (ω : FieldConfiguration) (f : TestFunctionℂ) : ℂ :=
+  let ⟨f_re, f_im⟩ := complex_testfunction_decompose f
+  (ω f_re : ℂ) + Complex.I * (ω f_im : ℂ)
+
+def GJGeneratingFunctionalℂ (dμ_config : ProbabilityMeasure FieldConfiguration)
+  (J : TestFunctionℂ) : ℂ :=
+  ∫ ω, Complex.exp (Complex.I * (distributionPairingℂ_real ω J)) ∂dμ_config.toMeasure
+```
+
+**Used in**: OS0, OS1, OS2, OS4_Ergodicity.
+
+**Assessment**: `distributionPairingℂ_real` extends the real pairing ⟨ω, f⟩ to complex
+test functions via `⟨ω, f⟩_ℂ = ⟨ω, Re(f)⟩ + i⟨ω, Im(f)⟩`. This is ℂ-linear in f
+(verify: scaling f by z = a+ib sends Re(zf) = a·Re(f) − b·Im(f) and
+Im(zf) = a·Im(f) + b·Re(f), giving z·⟨ω,f⟩_ℂ). It is ℝ-linear in ω (inherited from
+WeakDual). This is the unique ℂ-linear extension of the real pairing, which is the
+standard construction. **Correct.**
+
+---
+
+## 3. `distributionPairing` — evaluation
+
+**Definition** ([Spacetime/Basic.lean:122](../OSforGFF/Spacetime/Basic.lean#L122)):
+```lean
+def distributionPairing (ω : FieldConfiguration) (f : TestFunction) : ℝ := ω f
+```
+
+**Assessment**: Just the WeakDual evaluation map. No convention choices. **Trivially correct.**
+
+---
+
+## 4. `OS3_ReflectionPositivity` — complex coefficients and test functions
+
+**Definition** ([OS/Axioms.lean:96](../OSforGFF/OS/Axioms.lean#L96)):
+```lean
+def OS3_ReflectionPositivity (dμ_config : ProbabilityMeasure FieldConfiguration) : Prop :=
+  ∀ (n : ℕ) (f : Fin n → PositiveTimeTestFunctionℂ) (c : Fin n → ℂ),
+    0 ≤ (∑ i, ∑ j, starRingEnd ℂ (c i) * c j *
+      GJGeneratingFunctionalℂ dμ_config
+        ((f i).val - QFT.compTimeReflection ((f j).val))).re
+```
+
+**Used in**: SatisfiesAllOS.
+
+**Assessment**: Three points to check.
+
+**(a) Matrix entry `Z_ℂ[fᵢ − Θfⱼ]`**: The standard GJ formulation (p. 90) uses the matrix
+M_{ij} = Z[fᵢ − θfⱼ] where fᵢ are supported in {t > 0}. This matches, now using the
+complex generating functional `GJGeneratingFunctionalℂ` and complex time reflection
+`compTimeReflection`.
+
+**(b) Complex coefficients and test functions**: This formulation now uses complex-valued
+test functions (`PositiveTimeTestFunctionℂ = Submodule ℂ TestFunctionℂ`) with complex
+coefficients (`c : Fin n → ℂ`) and explicit conjugation (`starRingEnd ℂ`). This is the
+standard Osterwalder–Schrader formulation (1975, axiom E2) restricted to the 1-particle
+sector of the generating functional.
+
+The `OSreconstruction` project (xiyin137/OSreconstruction) uses the full Borchers algebra:
+```lean
+E2_reflection_positive : ∀ (F : BorchersSequence d),
+    (∀ n, ∀ x : NPointDomain d n, (F.funcs n).toFun x ≠ 0 → x ∈ PositiveTimeRegion d n) →
+    (OSInnerProduct d S F F).re ≥ 0
+```
+
+| Aspect | OSforGFF (this project) | OSreconstruction (standard) |
+|--------|------------------------|-----------------------------|
+| Test functions | Complex-valued, 1-particle | Complex-valued, n-particle (Borchers) |
+| Coefficients | Complex `c : Fin n → ℂ` | Implicit in complex test functions |
+| Involution | `compTimeReflection` (Θf) | `osConj` = time-reflect + conjugate |
+| Inner product | `Re(∑ c̄ᵢcⱼ Z_ℂ[fᵢ − Θfⱼ])` | `Re(∑ S_{m+n}(f̄_m^θ ⊗ f_n))` |
+
+The real-coefficient version is retained as `OS3_ReflectionPositivity_real` for
+compatibility and as a stepping stone in the GFF proof.
+
+**(c) `compTimeReflection`**: This is the complex version `(Θf)(x) = f(Θx) = f(−t, x̄)`
+acting on complex-valued test functions. It is an ℝ-linear (not ℂ-linear) map on
+`TestFunctionℂ`. For the OS star operation f★ = conj(Θf), complex conjugation is
+handled separately via `starRingEnd ℂ` in the coefficients.  **Correct.**
+
+---
+
+## 5. `QFT.timeReflection` — negates time coordinate
+
+**Definition** ([Spacetime/DiscreteSymmetry.lean:58](../OSforGFF/Spacetime/DiscreteSymmetry.lean#L58)):
+```lean
+abbrev timeReflection (x : SpaceTime) : SpaceTime :=
+  (WithLp.equiv 2 _).symm (Function.update x.ofLp 0 (-x.ofLp 0))
+```
+
+**Assessment**: `Function.update x 0 (−x₀)` replaces coordinate 0 with its negation,
+leaving coordinates 1,2,3 unchanged. This gives (t, x̄) ↦ (−t, x̄). The time coordinate
+is index 0 throughout the project (`getTimeComponent x = x ⟨0, _⟩` in Basic.lean:61,
+`timeIndex = ⟨0, _⟩` in TimeTranslation.lean:63). **Correct and consistent.**
+
+---
+
+## 6. `QFT.euclidean_action` — pullback by inverse
+
+**Definition** ([Spacetime/Euclidean.lean:350](../OSforGFF/Spacetime/Euclidean.lean#L350)):
+```lean
+noncomputable def euclidean_action (g : E) (f : TestFunctionℂ) : TestFunctionℂ :=
+  SchwartzMap.compCLM ... f    -- composes f with euclidean_pullback g = act g⁻¹
+```
+
+The inverse of `g = ⟨R, t⟩` is `g⁻¹ = ⟨R⁻¹, −R⁻¹t⟩` (Euclidean.lean:137).
+
+**Verification**: act(g⁻¹, act(g, x)) = R⁻¹(Rx + t) + (−R⁻¹t) = x + R⁻¹t − R⁻¹t = x. ✓
+
+The group action `(g·f)(x) = f(g⁻¹x)` is the standard left-action by pullback,
+ensuring `(gh)·f = g·(h·f)`. This is standard in the OS literature. **Correct.**
+
+---
+
+## 7. `QFT.E` — Euclidean group structure
+
+**Definition** ([Spacetime/Euclidean.lean:56](../OSforGFF/Spacetime/Euclidean.lean#L56)):
+```lean
+structure E where
+  R : O4        -- O4 = LinearIsometry ℝ SpaceTime SpaceTime
+  t : SpaceTime
+
+instance : Mul E where
+  mul g h := ⟨g.R.comp h.R, g.R h.t + g.t⟩
+```
+
+**Assessment**: Multiplication is (R₁, t₁)·(R₂, t₂) = (R₁R₂, R₁t₂ + t₁), the
+standard semidirect product ℝ⁴ ⋊ O(4). The group axioms (associativity, identity,
+inverse) are all proved in Lean. **Correct.**
+
+---
+
+## 8. `OS4_Clustering` — translation direction
+
+**Definition** ([OS/Axioms.lean:123](../OSforGFF/OS/Axioms.lean#L123)):
+```lean
+def OS4_Clustering (dμ_config : ProbabilityMeasure FieldConfiguration) : Prop :=
+  ∀ (f g : TestFunction) (ε : ℝ), ε > 0 → ∃ (R : ℝ), R > 0 ∧ ∀ (a : SpaceTime),
+    ‖a‖ > R →
+    ‖GJGeneratingFunctional dμ_config (f + g.translate a) -
+     GJGeneratingFunctional dμ_config f * GJGeneratingFunctional dμ_config g‖ < ε
+```
+
+**Assessment**: The clustering condition quantifies over all `a : SpaceTime` with
+`‖a‖ > R`, i.e., separation in *any* spacetime direction, not just time. This is
+potentially stronger than the time-only version in some references. However, given
+OS2 (Euclidean invariance), the measure is invariant under rotations mixing time and
+space, so clustering in any single direction implies clustering in all directions at the
+same rate. The two formulations are therefore **equivalent given OS2**, and using all
+directions is cleaner. **Correct.**
+
+`SchwartzMap.translate` is defined as `f.translate a x = f (x − a)` (FunctionalAnalysis.lean:808),
+which is standard: translating the function by +a means evaluating at x − a. **Correct.**
+
+---
+
+## 9. `OS4_Ergodicity` — observable class and convergence
+
+**Definition** ([OS/Axioms.lean:136](../OSforGFF/OS/Axioms.lean#L136)):
+```lean
+def OS4_Ergodicity (dμ_config : ProbabilityMeasure FieldConfiguration) : Prop :=
+  ∀ (n : ℕ) (z : Fin n → ℂ) (f : Fin n → TestFunctionℂ),
+    let μ := dμ_config.toMeasure
+    let A : FieldConfiguration → ℂ := fun ω =>
+      ∑ j, z j * Complex.exp (distributionPairingℂ_real ω (f j))
+    Filter.Tendsto
+      (fun T : ℝ =>
+        ∫ ω, ‖(1 / T) * ∫ s in Set.Icc (0 : ℝ) T,
+          A (TimeTranslation.timeTranslationDistribution s ω)
+          - ∫ ω', A ω' ∂μ‖^2 ∂μ)
+      Filter.atTop (nhds 0)
+```
+
+**Assessment**: The observable A(ω) = ∑ zⱼ exp(⟨ω, fⱼ⟩_ℂ) is a finite linear combination
+of exponential functionals — these span a dense subset of L²(μ) (via Stone–Weierstrass–type
+arguments), so ergodicity for this class implies ergodicity in general.
+
+The convergence is ∫ ‖time-average − space-average‖² dμ → 0, i.e., L²(μ) convergence
+of the Cesàro mean to the ensemble mean. The normalization `1/T` with `Icc 0 T`
+(averaging over [0,T]) is standard. This matches GJ's formulation. **Correct.**
+
+`timeTranslationDistribution s ω = ω ∘ T_{−s}` (TimeTranslation.lean:874), giving
+⟨T_s ω, f⟩ = ⟨ω, T_{−s}f⟩ = ⟨ω, f(· − se₀)⟩, which shifts by time s via duality.
+The sign convention (positive s = forward time) is correct.
+**Correct.**
+
+---
+
+## 10. `PositiveTimeTestFunction` — support condition
+
+**Definition** ([Spacetime/PositiveTimeTestFunction.lean:52](../OSforGFF/Spacetime/PositiveTimeTestFunction.lean#L52)):
+```lean
+def PositiveTimeTestFunctions.submodule : Submodule ℝ TestFunction where
+  carrier := { f : TestFunction | tsupport f ⊆ positiveTimeSet }
+```
+
+where `positiveTimeSet = {x | getTimeComponent x > 0}` is open.
+
+**Assessment**: `tsupport f = closure(support f)` ⊆ {t > 0} (open) means f and all its
+derivatives vanish in a neighborhood of {t = 0}. This is the correct and standard
+requirement: test functions must be supported strictly away from the time-zero hyperplane.
+Using `tsupport` rather than `support` is the proper Lean/Mathlib convention for
+Schwartz functions, and the two are equivalent here since {t > 0} is open (closure of
+support inside an open set implies support inside that set). **Correct.**
+
+---
+
+## 11. `OS0_Analyticity`
+
+**Definition** ([OS/Axioms.lean:73](../OSforGFF/OS/Axioms.lean#L73)):
+```lean
+def OS0_Analyticity (dμ_config : ProbabilityMeasure FieldConfiguration) : Prop :=
+  ∀ (n : ℕ) (J : Fin n → TestFunctionℂ),
+    AnalyticOn ℂ (fun z : Fin n → ℂ =>
+      GJGeneratingFunctionalℂ dμ_config (∑ i, z i • J i)) Set.univ
+```
+
+**Assessment**: For any finite collection J₁,...,Jₙ of complex test functions, the map
+z ↦ Z[∑ zᵢJᵢ] is analytic on all of ℂⁿ (entire). This is the standard OS0 axiom:
+the generating functional is analytic when restricted to finite-dimensional complex
+subspaces of the test function space. **Correct.**
+
+---
+
+## 12. `OS1_Regularity`
+
+**Definition** ([OS/Axioms.lean:83](../OSforGFF/OS/Axioms.lean#L83)):
+```lean
+def OS1_Regularity (dμ_config : ProbabilityMeasure FieldConfiguration) : Prop :=
+  ∃ (p : ℝ) (c : ℝ), 1 ≤ p ∧ p ≤ 2 ∧ c > 0 ∧
+    (∀ (f : TestFunctionℂ),
+      ‖GJGeneratingFunctionalℂ dμ_config f‖ ≤
+        Real.exp (c * (∫ x, ‖f x‖ ∂volume + ∫ x, ‖f x‖^p ∂volume))) ∧
+    (p = 2 → TwoPointIntegrable dμ_config)
+```
+
+**Assessment**: The bound ‖Z[f]‖ ≤ exp(c·(‖f‖_L¹ + ‖f‖_Lp^p)) for some 1 ≤ p ≤ 2
+encodes temperedness: Z extends continuously to Lp. The subsidiary condition
+(p = 2 ⟹ local integrability of S₂) matches the GJ statement. **Correct.**
+
+---
+
+## 13. `OS2_EuclideanInvariance`
+
+**Definition** ([OS/Axioms.lean:91](../OSforGFF/OS/Axioms.lean#L91)):
+```lean
+def OS2_EuclideanInvariance (dμ_config : ProbabilityMeasure FieldConfiguration) : Prop :=
+  ∀ (g : QFT.E) (f : TestFunctionℂ),
+    GJGeneratingFunctionalℂ dμ_config f =
+    GJGeneratingFunctionalℂ dμ_config (QFT.euclidean_action g f)
+```
+
+**Assessment**: Z[f] = Z[g·f] for all g ∈ E(4) and all complex test functions f. This is
+the standard formulation of Euclidean invariance for the generating functional. **Correct.**
+
+---
+
+## Summary
+
+| # | Definition | Verdict |
+|---|-----------|---------|
+| 1 | `GJGeneratingFunctional` (sign of i) | ✓ Correct, matches GJ |
+| 2 | `distributionPairingℂ_real` (ℂ-linearity) | ✓ Correct, unique ℂ-linear extension |
+| 3 | `distributionPairing` (evaluation) | ✓ Trivially correct |
+| 4 | `OS3_ReflectionPositivity` (complex coeff + test fns) | ✓ Correct. Now uses complex test functions (`PositiveTimeTestFunctionℂ`), complex coefficients with conjugation (`starRingEnd`), and the complex generating functional (`GJGeneratingFunctionalℂ`). Compatible with OS reconstruction. Real version retained as `OS3_ReflectionPositivity_real`. |
+| 5 | `timeReflection` (negates coord 0) | ✓ Correct and consistent |
+| 6 | `euclidean_action` (pullback by g⁻¹) | ✓ Correct, standard left-action |
+| 7 | `QFT.E` (semidirect product) | ✓ Correct group structure, proved in Lean |
+| 8 | `OS4_Clustering` (all directions) | ✓ Equivalent to time-only given OS2 |
+| 9 | `OS4_Ergodicity` (observable class) | ✓ Correct, dense observable class |
+| 10 | `PositiveTimeTestFunction` (tsupport) | ✓ Correct, standard support condition |
+| 11 | `OS0_Analyticity` (entire on ℂⁿ) | ✓ Standard OS0 |
+| 12 | `OS1_Regularity` (Lp bound) | ✓ Standard OS1 with subsidiary condition |
+| 13 | `OS2_EuclideanInvariance` (Z[f] = Z[g·f]) | ✓ Standard OS2 |
+
+**Note on OS3**: Item 4 now uses the standard complex formulation with complex-valued
+test functions and complex coefficients, compatible with OS reconstruction. The real
+version is retained as `OS3_ReflectionPositivity_real`. The proof that the GFF satisfies
+the complex OS3 currently uses the analytic continuation of the real characteristic
+function formula (see `gff_complexOS3_matrix` in `OS3_ReflectionPositivity.lean`).
