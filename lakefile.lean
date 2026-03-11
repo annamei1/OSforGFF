@@ -9,13 +9,13 @@ package «OSforGFF» where
   -- add any additional package configuration options here
 
 require mathlib from git
-  "https://github.com/leanprover-community/mathlib4.git" @ "6dc31c12d6ffdc9a63ebddee67264ea348cc06f8"
+  "https://github.com/leanprover-community/mathlib4.git" @ "82ff5788d387"
 
 require BochnerMinlos from git
-  "https://github.com/mrdouglasny/bochner.git" @ "3a5c8fc"
+  "https://github.com/mrdouglasny/bochner.git" @ "4d73f08"
 
 require GaussianField from git
-  "https://github.com/mrdouglasny/gaussian-field.git" @ "9f86861"
+  "https://github.com/mrdouglasny/gaussian-field.git" @ "51e2368"
 
 @[default_target]
 lean_lib «OSforGFF» where

@@ -1036,10 +1036,11 @@ theorem schwartz_bilinear_translation_decay_polynomial_proof
       rw [h_swap]
       congr 1
       ext y
-      have h_rearrange : ∀ x, f x * (K (x - y) : ℂ) * g (y - a) =
-          (f x * (K (x - y) : ℂ)) * g (y - a) := fun x => by ring
-      conv_lhs => arg 2; ext x; rw [h_rearrange]
-      rw [integral_mul_const]
+      show ∫ x : E, f x * (K (x - y) : ℂ) * g (y - a) =
+          (∫ x : E, f x * (K (x - y) : ℂ)) * g (y - a)
+      simp_rw [show ∀ x, f x * (K (x - y) : ℂ) * g (y - a) =
+          (fun x => f x * (K (x - y) : ℂ)) x * g (y - a) from fun x => by ring]
+      exact integral_mul_const (g (y - a)) (fun x => f x * (K (x - y) : ℂ))
 
     -- Final calc chain: relate double integral to convolution form
     calc ‖∫ x, ∫ y, f x * ↑(K (x - y)) * g (y - a)‖

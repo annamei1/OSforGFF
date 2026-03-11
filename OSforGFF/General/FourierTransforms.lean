@@ -490,7 +490,7 @@ lemma fourier_exponential_decay' (μ : ℝ) (hμ : 0 < μ) (k : ℝ) :
   have h_split : ∫ x : ℝ, Complex.exp (Complex.I * k * x) * Real.exp (-μ * |x|) =
       (∫ x : ℝ in Set.Iic 0, Complex.exp (Complex.I * k * x) * Real.exp (-μ * |x|)) +
       (∫ x : ℝ in Set.Ioi 0, Complex.exp (Complex.I * k * x) * Real.exp (-μ * |x|)) := by
-    rw [← MeasureTheory.integral_union_ae (Set.Iic_disjoint_Ioi (le_refl (0:ℝ))).aedisjoint
+    rw [← MeasureTheory.setIntegral_union₀ (Set.Iic_disjoint_Ioi (le_refl (0:ℝ))).aedisjoint
         measurableSet_Ioi.nullMeasurableSet h_int_Iic h_int_Ioi]
     rw [Set.Iic_union_Ioi]
     exact MeasureTheory.setIntegral_univ.symm
@@ -559,7 +559,8 @@ lemma fourierIntegral_expDecayFun_eq (μ : ℝ) (hμ : 0 < μ) (ξ : ℝ) :
   -- Mathlib uses exp(-2πi⟪y, ξ⟫) = exp(-2πi y ξ)
   -- We relate this to fourier_exponential_decay' with k = -2πξ
   -- First simplify inner product to multiplication
-  have h_inner : ∀ v : ℝ, @inner ℝ ℝ _ v ξ = v * ξ := fun v => by simp [mul_comm]
+  have h_inner : ∀ v : ℝ, @inner ℝ ℝ _ v ξ = v * ξ := fun v => by
+    rw [show @inner ℝ ℝ _ v ξ = ξ * v from RCLike.inner_apply v ξ]; ring
   simp_rw [h_inner]
   -- Rewrite integral to match fourier_exponential_decay'
   have h_int_eq : ∫ v : ℝ, Complex.exp (↑(-2 * π * (v * ξ)) * I) * ↑(Real.exp (-μ * |v|)) =
@@ -637,7 +638,8 @@ theorem fourier_inversion_exp_decay (μ : ℝ) (hμ : 0 < μ) (x : ℝ) :
   simp_rw [hFT, smul_eq_mul] at hinv
   -- hinv is now: ∫ ξ, exp(2πi⟪ξ, x⟫) * (2μ/(4π²ξ² + μ²)) = exp(-μ|x|)
   -- Simplify inner product on ℝ: ⟪ξ, x⟫ = ξ * x
-  have h_inner : ∀ ξ : ℝ, @inner ℝ ℝ _ ξ x = ξ * x := fun ξ => by simp [mul_comm]
+  have h_inner : ∀ ξ : ℝ, @inner ℝ ℝ _ ξ x = ξ * x := fun ξ => by
+    rw [show @inner ℝ ℝ _ ξ x = x * ξ from RCLike.inner_apply ξ x]; ring
   simp_rw [h_inner] at hinv
   -- Now hinv: ∫ ξ, exp(2πi ξ x) * (2μ/(4π²ξ² + μ²)) = exp(-μ|x|)
   -- Simplify the exponential: exp(2πi(ξ*x)) = exp(2πi x ξ)
@@ -657,7 +659,7 @@ theorem fourier_inversion_exp_decay (μ : ℝ) (hμ : 0 < μ) (x : ℝ) :
   -- Key: ∫ G(2π * v) dv = |2π|⁻¹ * ∫ G(k) dk
   have h_cv : ∫ v : ℝ, G ((2 * π) * v) = |2 * π|⁻¹ * ∫ k, G k := by
     have h := MeasureTheory.Measure.integral_comp_smul volume G (2 * π)
-    simp only [Module.finrank_self, pow_one, smul_eq_mul, abs_inv, Complex.real_smul] at h
+    simp only [Module.finrank_self, pow_one, smul_eq_mul, abs_inv] at h
     exact h
   -- Show that G(2π * v) equals the integrand in hinv
   have hG_eq : ∀ v : ℝ, G ((2 * π) * v) =
@@ -713,10 +715,12 @@ theorem fourier_lorentzian_1d (μ : ℝ) (hμ : 0 < μ) (x : ℝ) :
   -- Rewrite the integral: ∫ e^{ikx} * (2μ/(k² + μ²)) = (2μ) * ∫ e^{ikx} / (k² + μ²)
   have h_factor : ∫ k : ℝ, Complex.exp (Complex.I * k * x) * (2 * μ / (k^2 + μ^2)) =
                   (2 * μ : ℂ) * ∫ k : ℝ, Complex.exp (Complex.I * k * x) / (k^2 + μ^2) := by
-    rw [← MeasureTheory.integral_const_mul]
-    congr 1
-    ext k
-    ring
+    trans (2 * (μ : ℂ)) * ∫ k : ℝ, Complex.exp (Complex.I * k * x) / (k^2 + μ^2)
+    · rw [show (fun k : ℝ => Complex.exp (Complex.I * k * x) * (2 * μ / (k^2 + μ^2))) =
+          (fun k : ℝ => (2 * (μ : ℂ)) * (Complex.exp (Complex.I * k * x) / (k^2 + μ^2))) from
+        funext (fun k => by ring)]
+      exact integral_const_mul _ _
+    · rfl
   rw [h_factor] at hinv
   -- hinv : (1/2π) * (2μ * ∫ ...) = e^{-μ|x|}
   -- Rearrange: (μ/π) * ∫ ... = e^{-μ|x|}

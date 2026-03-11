@@ -490,7 +490,8 @@ theorem freeCovarianceℂ_bilinear_add_smul_left
     ∫ x, F x ∂volume
         = ∫ x, (c * F₁ x + F₂ x) ∂volume := h_int_eq
     _ = (∫ x, c * F₁ x ∂volume) + (∫ x, F₂ x ∂volume) := h_sum
-    _ = c * (∫ x, F₁ x ∂volume) + (∫ x, F₂ x ∂volume) := by rw [MeasureTheory.integral_const_mul]
+    _ = c * (∫ x, F₁ x ∂volume) + (∫ x, F₂ x ∂volume) := by
+        congr 1; exact MeasureTheory.integral_const_mul _ _
 
 theorem freeCovarianceℂ_bilinear_add_left
   (m : ℝ) [Fact (0 < m)] (f₁ f₂ g : TestFunctionℂ) :

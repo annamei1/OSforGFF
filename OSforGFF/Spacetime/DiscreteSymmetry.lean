@@ -27,7 +27,7 @@ import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 import Mathlib.MeasureTheory.Function.LpSpace.Basic
 import Mathlib.MeasureTheory.Function.L2Space
 import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Measure.CharacteristicFunction
+import Mathlib.MeasureTheory.Measure.FiniteMeasureExt
 
 import Mathlib.Probability.Independence.Basic
 import Mathlib.Probability.Density
@@ -94,7 +94,7 @@ def timeReflectionLinear : SpaceTime →ₗ[ℝ] SpaceTime :=
       simp [Function.update_self]
     · simp [Function.update_of_ne h] }
 
-def timeReflectionCLM : SpaceTime →L[ℝ] SpaceTime :=
+noncomputable def timeReflectionCLM : SpaceTime →L[ℝ] SpaceTime :=
 timeReflectionLinear.toContinuousLinearMap (E := SpaceTime) (F' := SpaceTime)
 
 open InnerProductSpace

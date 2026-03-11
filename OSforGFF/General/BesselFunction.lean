@@ -750,7 +750,7 @@ lemma radial_besselK1_integrable (m : ℝ) (hm : 0 < m) :
       -- besselK1 ∘ (m * ·) is continuous on (0, ∞) since besselK1 is continuous on (0, ∞) and m > 0
       have hcont : ContinuousOn (fun r => r ^ 2 * besselK1 (m * r)) (Ioi 0) := by
         apply ContinuousOn.mul (continuous_pow 2).continuousOn
-        apply besselK1_continuousOn.comp (continuous_mul_left m).continuousOn
+        apply besselK1_continuousOn.comp (continuous_const_mul m).continuousOn
         intro r hr; simp only [mem_Ioi] at hr ⊢; exact mul_pos hm hr
       -- Ioc 0 (1/m) ⊆ Ioi 0 for the restriction
       have hsub : Ioc 0 (1/m) ⊆ Ioi 0 := fun r ⟨hr, _⟩ => hr
@@ -840,7 +840,7 @@ lemma radial_besselK1_integrable (m : ℝ) (hm : 0 < m) :
       -- besselK1 ∘ (m * ·) is continuous on (0, ∞) since besselK1 is continuous on (0, ∞) and m > 0
       have hcont : ContinuousOn (fun r => r ^ 2 * besselK1 (m * r)) (Ioi 0) := by
         apply ContinuousOn.mul (continuous_pow 2).continuousOn
-        apply besselK1_continuousOn.comp (continuous_mul_left m).continuousOn
+        apply besselK1_continuousOn.comp (continuous_const_mul m).continuousOn
         intro r hr; simp only [mem_Ioi] at hr ⊢; exact mul_pos hm hr
       -- Ioi (1/m) ⊆ Ioi 0 for the restriction
       have hsub : Ioi (1/m) ⊆ Ioi 0 := fun r hr => by simp only [mem_Ioi] at hr ⊢; linarith [one_div_pos.mpr hm]

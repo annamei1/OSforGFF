@@ -158,8 +158,9 @@ lemma freeCovariance_regulated_eq_complex_integral (α : ℝ) (m : ℝ) (x y : S
   -- So I = ∫f(k) = ∫f(-k) = ∫conj(f(k)) = conj(I)
   have h_self_conj : I = starRingEnd ℂ I := by
     have h1 : I = ∫ k, f (-k) := (integral_comp_neg_spacetime f).symm
-    conv_rhs => rw [← integral_conj]
-    rw [h1]
+    have h2 : starRingEnd ℂ I = ∫ k, conj (f k) := by
+      rw [hI]; exact (integral_conj (𝕜 := ℂ)).symm
+    rw [h2, h1]
     congr 1; funext k; exact hf_conj k
   exact conj_eq_iff_re.mp (id (Eq.symm h_self_conj))
 
@@ -452,7 +453,14 @@ lemma regulated_fubini_factorization (α : ℝ) (hα : 0 < α) (m : ℝ) [Fact (
     congr 1
     ext y
     rw [h_expand]
-    rw [← MeasureTheory.integral_const_mul, ← MeasureTheory.integral_mul_const]
+    rw [show f x * (∫ k, amplitude k * Complex.exp (-Complex.I * Complex.ofReal ⟪k, x - y⟫_ℝ)) =
+        ∫ k, f x * (amplitude k * Complex.exp (-Complex.I * Complex.ofReal ⟪k, x - y⟫_ℝ)) from
+        (MeasureTheory.integral_const_mul (f x) _).symm]
+    rw [show (∫ k, f x * (amplitude k * Complex.exp (-Complex.I * Complex.ofReal ⟪k, x - y⟫_ℝ))) *
+        starRingEnd ℂ (f y) =
+        ∫ k, f x * (amplitude k * Complex.exp (-Complex.I * Complex.ofReal ⟪k, x - y⟫_ℝ)) *
+        starRingEnd ℂ (f y) from
+        (MeasureTheory.integral_mul_const (starRingEnd ℂ (f y)) _).symm]
     congr 1
     ext k
     ring
@@ -483,24 +491,21 @@ lemma regulated_fubini_factorization (α : ℝ) (hα : 0 < α) (m : ℝ) [Fact (
           congr 1; ext x; congr 1; ext y; ring
       _ = (∫ x, amplitude k * f x * Complex.exp (-Complex.I * Complex.ofReal ⟪k, x⟫_ℝ)) *
             (∫ y, starRingEnd ℂ (f y) * Complex.exp (Complex.I * Complex.ofReal ⟪k, y⟫_ℝ)) := by
-          let g : SpaceTime → ℂ := fun x => amplitude k * f x * Complex.exp (-Complex.I * Complex.ofReal ⟪k, x⟫_ℝ)
-          let h : SpaceTime → ℂ := fun y => starRingEnd ℂ (f y) * Complex.exp (Complex.I * Complex.ofReal ⟪k, y⟫_ℝ)
-          have h_eq : ∀ x y, g x * h y = amplitude k * f x * Complex.exp (-Complex.I * Complex.ofReal ⟪k, x⟫_ℝ) *
-                (starRingEnd ℂ (f y) * Complex.exp (Complex.I * Complex.ofReal ⟪k, y⟫_ℝ)) := fun x y => rfl
-          have h_integrable : Integrable (fun p : SpaceTime × SpaceTime => g p.1 * h p.2) (volume.prod volume) := by
-            apply Integrable.mul_prod
-            · have h_prod := schwartz_mul_phase_integrable f k
-              have h_const := h_prod.const_mul (amplitude k)
-              convert h_const using 1
-              ext x; ring
-            · exact schwartz_conj_mul_phase_integrable f k
-          rw [MeasureTheory.integral_integral h_integrable, MeasureTheory.integral_prod_mul g h]
+          have h_inner : ∀ x, ∫ y, amplitude k * f x * Complex.exp (-Complex.I * Complex.ofReal ⟪k, x⟫_ℝ) *
+              (starRingEnd ℂ (f y) * Complex.exp (Complex.I * Complex.ofReal ⟪k, y⟫_ℝ)) =
+              amplitude k * f x * Complex.exp (-Complex.I * Complex.ofReal ⟪k, x⟫_ℝ) *
+              ∫ y, starRingEnd ℂ (f y) * Complex.exp (Complex.I * Complex.ofReal ⟪k, y⟫_ℝ) :=
+            fun x => MeasureTheory.integral_const_mul _ _
+          simp_rw [h_inner]
+          exact MeasureTheory.integral_mul_const _ _
       _ = amplitude k * (∫ x, f x * Complex.exp (-Complex.I * Complex.ofReal ⟪k, x⟫_ℝ)) *
             (∫ y, starRingEnd ℂ (f y) * Complex.exp (Complex.I * Complex.ofReal ⟪k, y⟫_ℝ)) := by
-          have heq : ∀ x, amplitude k * f x * Complex.exp (-Complex.I * Complex.ofReal ⟪k, x⟫_ℝ) =
-              amplitude k * (f x * Complex.exp (-Complex.I * Complex.ofReal ⟪k, x⟫_ℝ)) := by
-            intro x; ring
-          simp_rw [heq, MeasureTheory.integral_const_mul]
+          have heq : (fun x => amplitude k * f x * Complex.exp (-Complex.I * Complex.ofReal ⟪k, x⟫_ℝ)) =
+              (fun x => amplitude k * (f x * Complex.exp (-Complex.I * Complex.ofReal ⟪k, x⟫_ℝ))) := by
+            ext x; ring
+          rw [heq]
+          congr 1
+          exact MeasureTheory.integral_const_mul _ _
   rw [h_lhs_triple, h_fubini]
   congr 1
   apply MeasureTheory.integral_congr_ae
@@ -517,7 +522,10 @@ lemma y_integral_eq_physicsFT_conj (f : TestFunctionℂ) (k : SpaceTime) :
     ∫ y, starRingEnd ℂ (f y) * Complex.exp (Complex.I * Complex.ofReal ⟪k, y⟫_ℝ) ∂volume =
     starRingEnd ℂ (physicsFT f k) := by
   unfold physicsFT
-  rw [← integral_conj]
+  have h_conj : starRingEnd ℂ (∫ x, f x * Complex.exp (-Complex.I * ↑⟪k, x⟫_ℝ)) =
+      ∫ x, starRingEnd ℂ (f x * Complex.exp (-Complex.I * ↑⟪k, x⟫_ℝ)) :=
+    (integral_conj (𝕜 := ℂ)).symm
+  rw [h_conj]
   congr 1
   ext y
   simp only [starRingEnd_apply, map_mul]

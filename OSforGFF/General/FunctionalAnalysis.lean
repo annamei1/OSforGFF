@@ -18,7 +18,7 @@ import Mathlib.Topology.Algebra.Module.LinearMapPiProd
 
 import Mathlib.MeasureTheory.Function.Holder
 import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Measure.CharacteristicFunction
+import Mathlib.MeasureTheory.Measure.FiniteMeasureExt
 
 import Mathlib.Analysis.RCLike.Basic
 import Mathlib.Analysis.Normed.Module.RCLike.Basic

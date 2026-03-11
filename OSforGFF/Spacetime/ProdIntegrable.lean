@@ -55,10 +55,8 @@ theorem schwartz_vanishing_linear_bound (f : TestFunctionℂ)
   constructor
   · -- C_deriv + 1 > 0 because C_deriv ≥ 0 (it bounds a norm)
     have h_nonneg : 0 ≤ C_deriv := by
-      -- hC_deriv 0 gives: ‖0‖^0 * ‖iteratedFDeriv...‖ ≤ C_deriv, i.e., ‖...‖ ≤ C_deriv
-      have h1 := hC_deriv 0
-      simp only [pow_zero, one_mul] at h1
-      exact le_trans (norm_nonneg _) h1
+      have := h_deriv_bound 0
+      exact le_trans (norm_nonneg _) this
     linarith
 
   -- Step 2: For each x with x₀ > 0, show ‖f x‖ ≤ (C_deriv + 1) * x₀

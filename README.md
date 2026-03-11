@@ -20,7 +20,7 @@ theorem gaussianFreeField_satisfies_all_OS_axioms (m : ℝ) [Fact (0 < m)] :
   OS4_Ergodicity (μ_GFF m)
 ```
 
-**Status:** Version 1.0, February 2026. 0 sorries, 3 assumed axioms (see below), ~32,000 lines of Lean across 47 files.
+**Status:** Version 1.0, February 2026. 0 sorries, 2 assumed axioms (see below), ~32,000 lines of Lean across 47 files.
 
 ### Assumed Axioms
 
@@ -28,7 +28,6 @@ theorem gaussianFreeField_satisfies_all_OS_axioms (m : ℝ) [Fact (0 < m)] :
 |-------|------|---------------------|
 | [`schwartz_nuclear`](OSforGFF/Measure/NuclearSpace.lean) | [NuclearSpace](OSforGFF/Measure/NuclearSpace.lean) | [Schwartz space is nuclear (Treves, Ch. 51)](summary/OSforGFF/Measure/NuclearSpace.md) |
 | [`minlos_theorem`](OSforGFF/Measure/Minlos.lean) | [Minlos](OSforGFF/Measure/Minlos.lean) | [Minlos theorem: nuclear char. functional → unique measure (Gel'fand-Vilenkin IV)](summary/OSforGFF/Measure/Minlos.md) |
-| [`differentiable_analyticAt_finDim`](OSforGFF/OS/OS0_Analyticity.lean) | [OS0_Analyticity](OSforGFF/OS/OS0_Analyticity.lean) | [Hartogs' theorem in n dimensions: ℂ-differentiable implies analytic](summary/OSforGFF/OS/OS0_Analyticity.md) |
 
 ## Project Structure
 
@@ -128,7 +127,7 @@ Axiom definitions, individual proofs, and master theorem.
 | File | Contents |
 |------|----------|
 | [Axioms](OSforGFF/OS/Axioms.lean) | [Formal Lean definitions of OS0 through OS4](summary/OSforGFF/OS/Axioms.md) |
-| [OS0_Analyticity](OSforGFF/OS/OS0_Analyticity.lean) | [Hartogs + Fernique: derivative–integral interchange](summary/OSforGFF/OS/OS0_Analyticity.md) |
+| [OS0_Analyticity](OSforGFF/OS/OS0_Analyticity.lean) | [Closed-form Z[f] = exp(-½ C(f,f)) via identity theorem + Fernique](summary/OSforGFF/OS/OS0_Analyticity.md) |
 | [OS1_Regularity](OSforGFF/OS/OS1_Regularity.lean) | Plancherel + momentum-space bound: \|Z[f]\| ≤ exp(‖f‖²/2m²) |
 | [OS2_Invariance](OSforGFF/OS/OS2_Invariance.lean) | C(x,y) depends only on \|x−y\|, Lebesgue measure invariance |
 | [OS3_MixedRepInfra](OSforGFF/OS/OS3_MixedRepInfra.lean) | [Schwinger parametrization and Fubini theorems for absolute integrability](summary/OSforGFF/OS/OS3_MixedRepInfra.md) |

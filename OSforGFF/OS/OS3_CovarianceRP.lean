@@ -190,7 +190,14 @@ lemma xIntegralFactor_eq_conj_neg (f : TestFunctionℂ) (k_sp : SpatialCoords)
   have h_exp_neg : ∀ (a : ℝ), Complex.exp (-Complex.I * -↑a) = Complex.exp (Complex.I * ↑a) := by
     intro a; congr 1; ring
   simp only [h_exp_neg]
-  rw [← integral_conj]
+  have h_ic : starRingEnd ℂ (∫ x : SpaceTime,
+    f x * Complex.exp (-↑(Real.sqrt (‖k_sp‖ ^ 2 + m ^ 2)) * ↑(x.ofLp 0)) *
+    Complex.exp (Complex.I * ↑(spatialDot k_sp (spatialPart x)))) =
+    ∫ x : SpaceTime, starRingEnd ℂ (
+    f x * Complex.exp (-↑(Real.sqrt (‖k_sp‖ ^ 2 + m ^ 2)) * ↑(x.ofLp 0)) *
+    Complex.exp (Complex.I * ↑(spatialDot k_sp (spatialPart x)))) :=
+      integral_conj (𝕜 := ℂ) |>.symm
+  rw [h_ic]
   congr 1; ext x; simp only [map_mul]
   have h_star_exp : ∀ z : ℂ, starRingEnd ℂ (Complex.exp z) = Complex.exp (starRingEnd ℂ z) := by
     intro z

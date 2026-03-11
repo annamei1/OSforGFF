@@ -118,9 +118,8 @@ lemma integral_neg_invariance
     rw [h_neg_pairing]
     have h_neg_eq : ∀ ω : FieldConfiguration, distributionPairing (-ω) g = -distributionPairing ω g := by
       intro ω
-      have h_neg_smul : -ω = (-1 : ℝ) • ω := (neg_one_smul ℝ ω).symm
-      rw [h_neg_smul, distributionPairing_smul]
-      ring
+      show (-ω) g = -(ω g)
+      exact ContinuousLinearMap.neg_apply ω g
     have h_lhs_eq : (fun ω => Complex.exp (Complex.I * (distributionPairing (-ω) g : ℂ))) =
                     (fun ω => Complex.exp (-(Complex.I * (distributionPairing ω g : ℂ)))) := by
       funext ω
@@ -138,7 +137,11 @@ lemma integral_neg_invariance
       funext ω
       exact h_exp_neg_conj (distributionPairing ω g)
     conv_lhs => rw [h_integrand_conj]
-    rw [integral_conj]
+    have h_pull_conj : ∫ ω : FieldConfiguration, (starRingEnd ℂ)
+        (Complex.exp (Complex.I * (distributionPairing ω g : ℂ))) ∂μ.toMeasure
+        = (starRingEnd ℂ) (∫ ω, Complex.exp (Complex.I * (distributionPairing ω g : ℂ)) ∂μ.toMeasure) :=
+      integral_conj
+    rw [h_pull_conj]
     simp only [distributionPairing] at *
     rw [h_realCF g]
     have h_CF_is_real : (Complex.exp (-(1/2 : ℂ) * (C.Q g g : ℂ))).im = 0 := by
@@ -192,8 +195,8 @@ lemma moment_zero_from_realCF
   -- Flip integrand: ((-ω) a : ℂ) = - (ω a : ℂ)
   have hflip : (fun ω : FieldConfiguration => ((-ω) a : ℂ)) = (fun ω => - (ω a : ℂ)) := by
     funext ω
-    rw [ContinuousLinearMap.neg_apply]
-    simp
+    have : (-ω) a = -(ω a) := ContinuousLinearMap.neg_apply ω a
+    simp [this]
   -- Hence ∫ X = ∫ -X = -∫ X
   have : ∫ ω, (ω a : ℂ) ∂μ.toMeasure = - ∫ ω, (ω a : ℂ) ∂μ.toMeasure := by
     simpa [hflip, integral_neg, hInt1] using hInv

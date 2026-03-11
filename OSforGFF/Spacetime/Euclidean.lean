@@ -17,7 +17,7 @@ import Mathlib.Analysis.Distribution.SchwartzSpace.Deriv
 import Mathlib.Analysis.Complex.Exponential
 import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 import Mathlib.MeasureTheory.Function.L2Space
-import Mathlib.MeasureTheory.Measure.CharacteristicFunction
+import Mathlib.MeasureTheory.Measure.FiniteMeasureExt
 import Mathlib.Topology.MetricSpace.Isometry
 import Mathlib.MeasureTheory.Function.LpSpace.ContinuousCompMeasurePreserving
 

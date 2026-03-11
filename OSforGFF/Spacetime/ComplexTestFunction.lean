@@ -226,6 +226,7 @@ def toComplex (f : TestFunction) : TestFunctionℂ :=
     use C
     intro x
     -- Use the fact that iteratedFDeriv commutes with continuous linear maps
+    show ‖x‖ ^ k * ‖iteratedFDeriv ℝ n (fun x ↦ (f x : ℂ)) x‖ ≤ C
     rw [iteratedFDeriv_ofReal_norm_eq]
     exact hC x
   )
@@ -253,7 +254,7 @@ def toComplex (f : TestFunction) : TestFunctionℂ :=
 @[simp] lemma toComplex_smul (c : ℝ) (f : TestFunction) :
   toComplex (c • f) = (c : ℂ) • toComplex f := by
   ext x
-  simp [toComplex_apply]
+  simp only [toComplex_apply, SchwartzMap.smul_apply, smul_eq_mul, Complex.ofReal_mul]
 
 /-- The embedding of real Schwartz functions into complex Schwartz functions is a continuous
     ℝ-linear map. This follows from `SchwartzMap.mkCLM` since:
@@ -262,17 +263,18 @@ def toComplex (f : TestFunction) : TestFunctionℂ :=
     3. Derivative norms are preserved (iteratedFDeriv_ofReal_norm_eq)
     so the Schwartz seminorm bounds are satisfied. -/
 noncomputable def toComplexCLM : TestFunction →L[ℝ] TestFunctionℂ :=
-  SchwartzMap.mkCLM (𝕜 := ℝ) (𝕜' := ℝ) (σ := RingHom.id ℝ) (fun f x => (f x : ℂ))
+  SchwartzMap.mkCLM (𝕜 := ℝ) (𝕜' := ℝ) (G := ℂ) (σ := RingHom.id ℝ) (fun f x => (f x : ℂ))
     (fun f g x => by simp only [SchwartzMap.add_apply]; exact Complex.ofReal_add _ _)
     (fun c f x => by
       simp only [SchwartzMap.smul_apply, RingHom.id_apply]
-      rw [Complex.real_smul]
-      exact Complex.ofReal_mul c (f x))
+      show (((c • f x : ℝ) : ℂ)) = c • ((f x : ℝ) : ℂ)
+      rw [smul_eq_mul, Complex.ofReal_mul, ← Complex.real_smul])
     (fun f => ContDiff.comp Complex.ofRealCLM.contDiff f.smooth')
     (fun ⟨k, n⟩ => by
       use {(k, n)}, 1, zero_le_one
       intro f x
       simp only [Finset.sup_singleton, one_mul]
+      show ‖x‖ ^ k * ‖iteratedFDeriv ℝ n (fun x ↦ (f x : ℂ)) x‖ ≤ _
       rw [iteratedFDeriv_ofReal_norm_eq]
       exact SchwartzMap.le_seminorm ℝ k n f x)
 
@@ -364,11 +366,15 @@ lemma distributionPairingℂ_real_conj (ω : FieldConfiguration) (f : TestFuncti
   have h_conj_re : (complex_testfunction_decompose (conjSchwartz f)).1 =
       (complex_testfunction_decompose f).1 := by
     ext x
-    simp [complex_testfunction_decompose, conjSchwartz_apply, Complex.conj_re]
+    simp only [complex_testfunction_decompose_fst_apply]
+    change (starRingEnd ℂ (f x)).re = (f x).re
+    exact Complex.conj_re (f x)
   have h_conj_im : (complex_testfunction_decompose (conjSchwartz f)).2 =
       -(complex_testfunction_decompose f).2 := by
     ext x
-    simp [complex_testfunction_decompose, conjSchwartz_apply, Complex.conj_im]
+    simp only [complex_testfunction_decompose_snd_apply, SchwartzMap.neg_apply]
+    change (starRingEnd ℂ (f x)).im = -(f x).im
+    exact Complex.conj_im (f x)
   rw [h_conj_re, h_conj_im]
   simp only [map_neg, Complex.ofReal_neg]
   -- Now: conj(⟨ω, f_re⟩ + i⟨ω, f_im⟩) = ⟨ω, f_re⟩ - i⟨ω, f_im⟩

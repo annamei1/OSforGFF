@@ -768,8 +768,12 @@ theorem fubini_schwinger_integrand (α : ℝ) (hα : 0 < α) (m : ℝ) (hm : 0 <
       Complex.exp (-Complex.I * ⟪k, x - y⟫_ℝ)).re =
       (∫ k : SpaceTime, ∫ t in Set.Ioi 0, f (k, t)).re := by
     congr 1; apply integral_congr_ae; filter_upwards with k
-    rw [← integral_complex_ofReal]
-    conv_lhs => rw [mul_comm, ← MeasureTheory.integral_const_mul]
+    rw [← integral_complex_ofReal, mul_comm]
+    rw [show Complex.exp (-Complex.I * ⟪k, x - y⟫_ℝ) *
+        ∫ t in Set.Ioi 0, (↑(Real.exp (-(α + t) * ‖k‖^2) * Real.exp (-t * m^2)) : ℂ) =
+        ∫ t in Set.Ioi 0, Complex.exp (-Complex.I * ⟪k, x - y⟫_ℝ) *
+          ↑(Real.exp (-(α + t) * ‖k‖^2) * Real.exp (-t * m^2)) from
+      (MeasureTheory.integral_const_mul _ _).symm]
     refine setIntegral_congr_fun measurableSet_Ioi fun t ht => ?_
     simp only [Set.mem_Ioi] at ht
     simp only [hf_def, ht, ↓reduceIte, Complex.ofReal_mul, Complex.ofReal_exp]
@@ -903,7 +907,7 @@ theorem fubini_schwinger_fourier (α : ℝ) (hα : 0 < α) (m : ℝ) (hm : 0 < m
       _ = (↑(Real.exp (-t * m^2) / normalisation) : ℂ) *
             ∫ k : SpaceTime, ↑(Real.exp (-(α + t) * ‖k‖^2)) *
               Complex.exp (-Complex.I * ⟪k, x - y⟫_ℝ) := by
-          rw [MeasureTheory.integral_const_mul]
+          exact MeasureTheory.integral_const_mul _ _
       _ = (↑(Real.exp (-t * m^2) / normalisation) : ℂ) *
             ∫ k : SpaceTime, Complex.exp (-↑(α + t) * ‖k‖^2) *
               Complex.exp (-Complex.I * ⟪k, x - y⟫_ℝ) := by
@@ -1020,7 +1024,13 @@ theorem fubini_schwinger_fourier (α : ℝ) (hα : 0 < α) (m : ℝ) (hm : 0 < m
         ↑(∫ t in Set.Ioi 0, Real.exp (-(α + t) * ‖k‖^2) * Real.exp (-t * m^2)) *
           Complex.exp (-Complex.I * ⟪k, x - y⟫_ℝ)).re := by
     congr 2
-    rw [← MeasureTheory.integral_const_mul]
+    rw [show (↑(1 / normalisation : ℝ) : ℂ) * ∫ k : SpaceTime,
+        ↑(∫ t in Set.Ioi 0, Real.exp (-(α + t) * ‖k‖^2) * Real.exp (-t * m^2)) *
+          Complex.exp (-Complex.I * ⟪k, x - y⟫_ℝ) =
+        ∫ k : SpaceTime, ↑(1 / normalisation : ℝ) *
+          (↑(∫ t in Set.Ioi 0, Real.exp (-(α + t) * ‖k‖^2) * Real.exp (-t * m^2)) *
+            Complex.exp (-Complex.I * ⟪k, x - y⟫_ℝ)) from
+      (MeasureTheory.integral_const_mul _ _).symm]
     congr 1 with k
     simp only [Complex.ofReal_div, Complex.ofReal_one]
     ring

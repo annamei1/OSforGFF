@@ -27,7 +27,7 @@ import Mathlib.LinearAlgebra.BilinearMap
 import Mathlib.LinearAlgebra.BilinearForm.Basic
 import Mathlib.Analysis.Calculus.Deriv.Basic
 import Mathlib.Probability.Distributions.Gaussian.Fernique
-import Mathlib.MeasureTheory.Measure.CharacteristicFunction
+import Mathlib.MeasureTheory.Measure.FiniteMeasureExt
 
 import OSforGFF.Spacetime.Basic
 import OSforGFF.Schwinger.Defs
@@ -200,6 +200,7 @@ private lemma charFun_implies_gaussian
   rw [h t, charFun_gaussianReal]
   ring_nf
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The characteristic function of a pushforward measure by `distributionPairingCLM φ`
     equals the generating functional at a scaled test function. -/
 private lemma charFun_eq_GJGeneratingFunctional

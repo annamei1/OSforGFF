@@ -571,8 +571,10 @@ private lemma freeCovarianceℂ_bilinear_star_star_conj
   simp_rw [hstarf, hstarg]
   -- Now LHS = ∫∫ conj(f(Θx)) · ↑K(x,y) · conj(g(Θy))
   -- Step 2: Pull conj inside the RHS integrals.
-  rw [← integral_conj]
-  simp_rw [← integral_conj, map_mul, Complex.conj_ofReal]
+  have h_ic : ∀ (g : SpaceTime → ℂ), starRingEnd ℂ (∫ x, g x) = ∫ x, starRingEnd ℂ (g x) :=
+    fun g => (integral_conj (𝕜 := ℂ)).symm
+  rw [h_ic]
+  simp_rw [h_ic, map_mul, Complex.conj_ofReal]
   -- Now goal: ∫∫ conj(f(Θx)) · ↑K(x,y) · conj(g(Θy))
   --         = ∫∫ conj(f(x)) · ↑K(x,y) · conj(g(y))
   -- Step 3: Use double_integral_timeReflection (in reverse).
@@ -614,7 +616,10 @@ private lemma freeCovarianceℂ_bilinear_star_star_conj
        fun k n => by
         obtain ⟨C, hC⟩ := f.decay' k n
         use C; intro x
-        rw [starRingEnd_iteratedFDeriv_norm_eq]; exact hC x⟩
+        calc ‖x‖ ^ k * ‖iteratedFDeriv ℝ n (fun x => starRingEnd ℂ (f x)) x‖
+            = ‖x‖ ^ k * ‖iteratedFDeriv ℝ n f x‖ := by
+              rw [starRingEnd_iteratedFDeriv_norm_eq]
+          _ ≤ C := hC x⟩
     let g_conj : TestFunctionℂ :=
       ⟨fun x => starRingEnd ℂ (g x), by
         apply ContDiff.comp
@@ -623,7 +628,10 @@ private lemma freeCovarianceℂ_bilinear_star_star_conj
        fun k n => by
         obtain ⟨C, hC⟩ := g.decay' k n
         use C; intro x
-        rw [starRingEnd_iteratedFDeriv_norm_eq]; exact hC x⟩
+        calc ‖x‖ ^ k * ‖iteratedFDeriv ℝ n (fun x => starRingEnd ℂ (g x)) x‖
+            = ‖x‖ ^ k * ‖iteratedFDeriv ℝ n g x‖ := by
+              rw [starRingEnd_iteratedFDeriv_norm_eq]
+          _ ≤ C := hC x⟩
     exact freeCovarianceℂ_bilinear_integrable m f_conj g_conj
   exact double_integral_timeReflection
     (fun x y => starRingEnd ℂ (f x) * (freeCovariance m x y : ℂ) * starRingEnd ℂ (g y)) h_int

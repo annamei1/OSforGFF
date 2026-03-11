@@ -72,15 +72,52 @@ theorem freeCovarianceℂ_bilinear_agrees_on_reals
 noncomputable def momentumWeightMeasure (m : ℝ) : Measure SpaceTime :=
   volume.withDensity (fun k => ENNReal.ofReal (momentumWeight m k))
 
-/-- ℝ-linear view of the complex Fourier transform on Schwartz space. -/
+/-- For `c : ℝ` and Schwartz functions over ℂ, ℝ-smul equals ℂ-smul by the canonical coercion. -/
+private lemma schwartz_real_smul_eq_complex (c : ℝ) (f : SchwartzMap SpaceTime ℂ) :
+    c • f = (c : ℂ) • f := by
+  ext x; simp [SchwartzMap.smul_apply]
+
+/-- For `c : ℝ` and `Lp ℂ 2`, ℝ-smul equals ℂ-smul by the canonical coercion. -/
+private lemma lp_real_smul_eq_complex (c : ℝ) (g : Lp ℂ 2 (volume : Measure SpaceTime)) :
+    c • g = (c : ℂ) • g := by
+  ext1; filter_upwards [Lp.coeFn_smul c g, Lp.coeFn_smul (c : ℂ) g] with x h1 h2
+  rw [h1, h2]
+  have : c • (g : SpaceTime → ℂ) x = (c : ℂ) • (g : SpaceTime → ℂ) x := by
+    rw [Complex.real_smul, smul_eq_mul]
+  exact this
+
+/-- ℝ-linear view of the complex Fourier transform on Schwartz space.
+
+Note: we build this manually instead of using `restrictScalars` because the
+`LinearMap.CompatibleSMul` instance is not found automatically in mathlib v4.29. -/
 noncomputable def fourierTransformCLM_real :
-    TestFunctionℂ →L[ℝ] TestFunctionℂ :=
-  (SchwartzMap.fourierTransformCLM ℂ).restrictScalars ℝ
+    TestFunctionℂ →L[ℝ] TestFunctionℂ where
+  toLinearMap :=
+    { toFun := SchwartzMap.fourierTransformCLM ℂ
+      map_add' := fun x y => map_add _ x y
+      map_smul' := fun c x => by
+        show SchwartzMap.fourierTransformCLM ℂ (c • x) = c • SchwartzMap.fourierTransformCLM ℂ x
+        have hcx : c • x = (c : ℂ) • x := schwartz_real_smul_eq_complex c x
+        have hmap : SchwartzMap.fourierTransformCLM ℂ ((c : ℂ) • x) =
+            (c : ℂ) • SchwartzMap.fourierTransformCLM ℂ x :=
+          ContinuousLinearMap.map_smul _ _ _
+        rw [hcx, hmap, ← schwartz_real_smul_eq_complex] }
+  cont := (SchwartzMap.fourierTransformCLM ℂ).continuous
 
 /-- ℝ-linear view of the Schwartz-to-`L²` embedding. -/
 noncomputable def schwartzToL2CLM_real (_m : ℝ) :
-    TestFunctionℂ →L[ℝ] Lp ℂ 2 (volume : Measure SpaceTime) :=
-  ((SchwartzMap.toLpCLM ℂ ℂ 2 (volume : Measure SpaceTime))).restrictScalars ℝ
+    TestFunctionℂ →L[ℝ] Lp ℂ 2 (volume : Measure SpaceTime) where
+  toLinearMap :=
+    { toFun := SchwartzMap.toLpCLM ℂ ℂ 2 (volume : Measure SpaceTime)
+      map_add' := fun x y => map_add _ x y
+      map_smul' := fun c x => by
+        show SchwartzMap.toLpCLM ℂ ℂ 2 volume (c • x) = c • SchwartzMap.toLpCLM ℂ ℂ 2 volume x
+        have hcx : c • x = (c : ℂ) • x := schwartz_real_smul_eq_complex c x
+        have hmap : SchwartzMap.toLpCLM ℂ ℂ 2 volume ((c : ℂ) • x) =
+            (c : ℂ) • SchwartzMap.toLpCLM ℂ ℂ 2 volume x :=
+          ContinuousLinearMap.map_smul _ _ _
+        rw [hcx, hmap, ← lp_real_smul_eq_complex] }
+  cont := (SchwartzMap.toLpCLM ℂ ℂ 2 volume).continuous
 
 /-! ## The Embedding Map -/
 
@@ -173,16 +210,24 @@ lemma sqrtPropagatorMap_linear_add (m : ℝ) [Fact (0 < m)] (f g : TestFunction)
     sqrtPropagatorMap m (f + g) = sqrtPropagatorMap m f + sqrtPropagatorMap m g := by
   ext k
   unfold sqrtPropagatorMap
-  rw [toComplex_add, map_add]
-  simp [add_mul]
+  have hadd : toComplex (f + g) = toComplex f + toComplex g := toComplex_add f g
+  have hmap : SchwartzMap.fourierTransformCLM ℂ (toComplex f + toComplex g) =
+      SchwartzMap.fourierTransformCLM ℂ (toComplex f) +
+        SchwartzMap.fourierTransformCLM ℂ (toComplex g) :=
+    map_add _ _ _
+  simp only [hadd, hmap, SchwartzMap.add_apply, Pi.add_apply, add_mul]
 
 /-- The map is ℝ-linear (scalar multiplication). -/
 lemma sqrtPropagatorMap_linear_smul (m : ℝ) [Fact (0 < m)] (c : ℝ) (f : TestFunction) :
     sqrtPropagatorMap m (c • f) = c • sqrtPropagatorMap m f := by
   ext k
   unfold sqrtPropagatorMap
-  rw [toComplex_smul, ContinuousLinearMap.map_smul]
-  simp [mul_comm, mul_left_comm]
+  have hsmul : toComplex (c • f) = (c : ℂ) • toComplex f := toComplex_smul c f
+  have hmap : SchwartzMap.fourierTransformCLM ℂ ((c : ℂ) • toComplex f) =
+      (c : ℂ) • SchwartzMap.fourierTransformCLM ℂ (toComplex f) :=
+    ContinuousLinearMap.map_smul _ _ _
+  simp only [hsmul, hmap, SchwartzMap.smul_apply, smul_eq_mul, Pi.smul_apply, Complex.real_smul]
+  ring
 
 /-! ## Connection to Covariance -/
 
@@ -293,10 +338,27 @@ noncomputable def embeddingMap (m : ℝ) [Fact (0 < m)] :
       rw [this]
       exact MeasureTheory.MemLp.toLp_const_smul c hf }
 
+/-- ℝ-linear view of the Lp multiplication CLM (avoiding `restrictScalars`). -/
+private noncomputable def momentumWeightSqrt_mathlib_mul_CLM_real (m : ℝ) [Fact (0 < m)] :
+    Lp ℂ 2 (volume : Measure SpaceTime) →L[ℝ]
+      Lp ℂ 2 (volume : Measure SpaceTime) where
+  toLinearMap :=
+    { toFun := momentumWeightSqrt_mathlib_mul_CLM m
+      map_add' := fun x y => map_add _ x y
+      map_smul' := fun c x => by
+        show momentumWeightSqrt_mathlib_mul_CLM m (c • x)
+            = c • momentumWeightSqrt_mathlib_mul_CLM m x
+        have hcx : c • x = (c : ℂ) • x := lp_real_smul_eq_complex c x
+        have hmap : momentumWeightSqrt_mathlib_mul_CLM m ((c : ℂ) • x) =
+            (c : ℂ) • momentumWeightSqrt_mathlib_mul_CLM m x :=
+          ContinuousLinearMap.map_smul _ _ _
+        rw [hcx, hmap, ← lp_real_smul_eq_complex] }
+  cont := (momentumWeightSqrt_mathlib_mul_CLM m).continuous
+
 /-- Continuous linear map obtained by composing the proven building blocks. -/
 noncomputable def embeddingMapCLM (m : ℝ) [Fact (0 < m)] :
     TestFunction →L[ℝ] Lp ℂ 2 (volume : Measure SpaceTime) :=
-  (((momentumWeightSqrt_mathlib_mul_CLM m).restrictScalars ℝ).comp (schwartzToL2CLM_real m)).comp
+  ((momentumWeightSqrt_mathlib_mul_CLM_real m).comp (schwartzToL2CLM_real m)).comp
     ((fourierTransformCLM_real).comp toComplexCLM)
 
 lemma embeddingMapCLM_apply (m : ℝ) [Fact (0 < m)] (f : TestFunction) :
@@ -305,9 +367,7 @@ lemma embeddingMapCLM_apply (m : ℝ) [Fact (0 < m)] (f : TestFunction) :
   set g := SchwartzMap.fourierTransformCLM ℂ (toComplex f) with hg
   set A := (SchwartzMap.toLpCLM ℂ ℂ 2 (volume : Measure SpaceTime)) g with hA
   have h_eval : embeddingMapCLM m f = (momentumWeightSqrt_mathlib_mul_CLM m) A := by
-    simp only [embeddingMapCLM, g, A, ContinuousLinearMap.comp_apply, toComplexCLM_apply,
-      fourierTransformCLM_real, schwartzToL2CLM_real,
-      ContinuousLinearMap.coe_restrictScalars']
+    rfl
   have h_mul := momentumWeightSqrt_mathlib_mul_CLM_spec (m := m) A
   have h_mul' : embeddingMapCLM m f =ᵐ[volume]
       fun k => (momentumWeightSqrt_mathlib m k : ℂ) * A k := by

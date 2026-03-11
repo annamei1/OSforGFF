@@ -1342,10 +1342,10 @@ theorem schwartz_bilinear_translation_decay_proof
     -- Goal: ∫ x, f(x) * K(x-y) * g(y-a) = g(y-a) * H(y)
     -- where H(y) = ∫ x, f(x) * K(x-y)
     -- Rewrite: f * K * g = (f * K) * g, then pull out g
-    have h_rearrange : ∀ x, f x * (K (x - y) : ℂ) * g (y - a) =
-        (f x * (K (x - y) : ℂ)) * g (y - a) := fun x => by ring
-    conv_lhs => arg 2; ext x; rw [h_rearrange]
-    rw [integral_mul_const]
+    have : ∫ x, f x * (K (x - y) : ℂ) * g (y - a) =
+        (∫ x, f x * (K (x - y) : ℂ)) * g (y - a) :=
+      integral_mul_const _ _
+    rw [this]
     ring
 
   -- Step 10e-ii: Translation y ↦ w = y - a

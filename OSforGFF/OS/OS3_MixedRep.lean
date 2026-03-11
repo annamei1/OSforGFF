@@ -328,10 +328,13 @@ theorem heatKernel_bilinear_fourier_form (m : ℝ) [Fact (0 < m)] (f : TestFunct
       ring
     -- Now show the full equality
     simp_rw [h_ksp_reorder]
-    rw [← MeasureTheory.integral_const_mul]
+    have h_icm : ∀ (c : ℂ) (g : SpaceTime → ℂ),
+        c * ∫ a, g a = ∫ a, c * g a :=
+      fun c g => (MeasureTheory.integral_const_mul (L := ℂ) c g).symm
+    rw [h_icm]
     apply integral_congr_ae
     filter_upwards with x
-    rw [← MeasureTheory.integral_const_mul]
+    rw [h_icm]
     apply integral_congr_ae
     filter_upwards with y
     ring
@@ -400,13 +403,19 @@ theorem heatKernel_bilinear_fourier_form (m : ℝ) [Fact (0 < m)] (f : TestFunct
     apply MeasureTheory.setIntegral_congr_ae measurableSet_Ioi
     filter_upwards with s hs
     -- First push exp(-sm²) into all the integrals
-    rw [← MeasureTheory.integral_const_mul]
+    have h_icm_sc : ∀ (c : ℂ) (g : SpatialCoords → ℂ),
+        c * ∫ a, g a = ∫ a, c * g a :=
+      fun c g => (MeasureTheory.integral_const_mul (L := ℂ) c g).symm
+    have h_icm_st : ∀ (c : ℂ) (g : SpaceTime → ℂ),
+        c * ∫ a, g a = ∫ a, c * g a :=
+      fun c g => (MeasureTheory.integral_const_mul (L := ℂ) c g).symm
+    rw [h_icm_sc]
     apply integral_congr_ae
     filter_upwards with k_sp
-    rw [← MeasureTheory.integral_const_mul]
+    rw [h_icm_st]
     apply integral_congr_ae
     filter_upwards with x
-    rw [← MeasureTheory.integral_const_mul]
+    rw [h_icm_st]
     apply integral_congr_ae
     filter_upwards with y
     -- Combine exp(-sm²) with exp(-s‖k_sp‖²) to get exp(-s(‖k_sp‖² + m²))
@@ -615,7 +624,10 @@ lemma s_integral_complex_eval (k_sp : SpatialCoords) (x y : SpaceTime) (m : ℝ)
     intro s _
     ring
   rw [setIntegral_congr_fun measurableSet_Ioi h_factor]
-  rw [MeasureTheory.integral_const_mul]
+  have h_icm_r : ∀ (c : ℂ) (g : ℝ → ℂ) (μ : MeasureTheory.Measure ℝ),
+      ∫ a, c * g a ∂μ = c * ∫ a, g a ∂μ :=
+    fun c g μ => MeasureTheory.integral_const_mul (L := ℂ) c g
+  rw [h_icm_r]
   -- Goal: C * ∫ a, [√(π/a) * cexp(-t²/(4a)) * cexp(-↑a*(↑‖k_sp‖²+↑m²))] = C * (π/ω) * cexp(-ω|t|) * phase
   -- where C = f̄f * cexp(-I*...) and ω = √(‖k_sp‖² + m²)
   --
@@ -1173,7 +1185,10 @@ theorem schwinger_fubini_swap (m : ℝ) [Fact (0 < m)] (f : TestFunctionℂ) :
       ∫ s in Set.Ioi 0, (starRingEnd ℂ (f x)) * f y *
         (Real.exp (-s * m^2) : ℂ) * heatKernelPositionSpace s ‖timeReflection x - y‖ := by
     intro x y
-    rw [← MeasureTheory.integral_const_mul]
+    have h_icm : ∀ (c : ℂ) (g : ℝ → ℂ) (μ : MeasureTheory.Measure ℝ),
+        c * ∫ a, g a ∂μ = ∫ a, c * g a ∂μ :=
+      fun c g μ => (MeasureTheory.integral_const_mul (L := ℂ) c g).symm
+    rw [h_icm]
     congr 1
     ext s
     ring
@@ -1188,10 +1203,13 @@ theorem schwinger_fubini_swap (m : ℝ) [Fact (0 < m)] (f : TestFunctionℂ) :
         (starRingEnd ℂ (f x)) * f y *
           (Real.exp (-s * m^2) : ℂ) * heatKernelPositionSpace s ‖timeReflection x - y‖ := by
     intro s
-    rw [← MeasureTheory.integral_const_mul]
+    have h_icm : ∀ (c : ℂ) (g : SpaceTime → ℂ),
+        c * ∫ a, g a = ∫ a, c * g a :=
+      fun c g => (MeasureTheory.integral_const_mul (L := ℂ) c g).symm
+    rw [h_icm]
     congr 1
     ext x
-    rw [← MeasureTheory.integral_const_mul]
+    rw [h_icm]
     congr 1
     ext y
     ring
@@ -1780,14 +1798,20 @@ theorem bilinear_to_k0_inside (m : ℝ) [Fact (0 < m)] (f : TestFunctionℂ)
   congr 1
   -- Need to show: π * ∫_{k_sp} ... (mixed rep integrand) = ∫_{k_sp} ... (k₀-inside integrand)
   -- Pull π into the integral
-  rw [← MeasureTheory.integral_const_mul (π : ℂ)]
+  have h_icm_sc : ∀ (c : ℂ) (g : SpatialCoords → ℂ),
+      c * ∫ a, g a = ∫ a, c * g a :=
+    fun c g => (MeasureTheory.integral_const_mul (L := ℂ) c g).symm
+  have h_icm_st : ∀ (c : ℂ) (g : SpaceTime → ℂ),
+      c * ∫ a, g a = ∫ a, c * g a :=
+    fun c g => (MeasureTheory.integral_const_mul (L := ℂ) c g).symm
+  rw [h_icm_sc]
   apply MeasureTheory.integral_congr_ae
   filter_upwards with k_spatial
   -- For each k_spatial, show the inner integrals are equal
-  rw [← MeasureTheory.integral_const_mul (π : ℂ)]
+  rw [h_icm_st]
   apply MeasureTheory.integral_congr_ae
   filter_upwards with x
-  rw [← MeasureTheory.integral_const_mul (π : ℂ)]
+  rw [h_icm_st]
   apply MeasureTheory.integral_congr_ae
   filter_upwards with y
 
@@ -1817,7 +1841,10 @@ theorem bilinear_to_k0_inside (m : ℝ) [Fact (0 < m)] (f : TestFunctionℂ)
         (k0^2 + ω^2) =
       (Complex.exp (-Complex.I * spatialDot k_spatial r_spatial)) *
       ∫ k0 : ℝ, Complex.exp (-Complex.I * k0 * t) / (k0^2 + ω^2) := by
-    rw [← MeasureTheory.integral_const_mul]
+    have h_icm : ∀ (c : ℂ) (g : ℝ → ℂ),
+        c * ∫ a, g a = ∫ a, c * g a :=
+      fun c g => (MeasureTheory.integral_const_mul (L := ℂ) c g).symm
+    rw [h_icm]
     apply MeasureTheory.integral_congr_ae
     filter_upwards with k0
     rw [h_phase_factor]

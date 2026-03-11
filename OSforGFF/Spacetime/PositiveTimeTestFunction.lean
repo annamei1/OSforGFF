@@ -149,10 +149,11 @@ noncomputable def starTestFunction (f : TestFunctionℂ) : TestFunctionℂ :=
      -- Since starRingEnd ℂ is complex conjugation, which is an isometry,
      -- it preserves the norms of derivatives. This follows from standard properties
      -- of linear isometries and the chain rule for derivatives.
-     have : ‖iteratedFDeriv ℝ n (fun x => starRingEnd ℂ (f_reflected x)) x‖ = ‖iteratedFDeriv ℝ n f_reflected x‖ :=
+     have h_eq : ‖iteratedFDeriv ℝ n (fun x => starRingEnd ℂ (f_reflected x)) x‖ = ‖iteratedFDeriv ℝ n f_reflected x‖ :=
        starRingEnd_iteratedFDeriv_norm_eq f_reflected n x
-     rw [this]
-     exact hC x⟩
+     calc ‖x‖ ^ k * ‖iteratedFDeriv ℝ n (fun x => starRingEnd ℂ (f_reflected x)) x‖
+         = ‖x‖ ^ k * ‖iteratedFDeriv ℝ n f_reflected x‖ := by rw [h_eq]
+       _ ≤ C := hC x⟩
 
 /-- Star instance for complex test functions -/
 noncomputable instance : Star TestFunctionℂ where

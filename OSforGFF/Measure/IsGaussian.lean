@@ -211,7 +211,7 @@ lemma gff_cf_agrees_on_reals_OS0 (f g : TestFunction) (t s : ℝ) :
   -- First note: t • f + s • g is real, so toComplex (t • f + s • g) = t • toComplex f + s • toComplex g
   have h_eq_test : (t : ℂ) • toComplex f + (s : ℂ) • toComplex g = toComplex (t • f + s • g) := by
     ext x
-    simp [toComplex_apply]
+    simp
   rw [h_eq_test]
   -- GJGeneratingFunctionalℂ on a real test function equals GJGeneratingFunctional
   rw [GJGeneratingFunctionalℂ_toComplex, h]

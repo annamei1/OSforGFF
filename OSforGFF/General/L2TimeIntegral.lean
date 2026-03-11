@@ -765,9 +765,16 @@ theorem L2_variance_time_average_bound (μ : Measure Ω) [IsProbabilityMeasure �
     filter_upwards [h_slice_int] with ω hω
     have h_sum : ∫ s in Icc 0 T, (A s ω - EA) =
         (∫ s in Icc 0 T, A s ω) - ↑T * EA := by
-      rw [integral_sub hω (integrable_const EA), integral_const]
-      simp [Measure.real, Real.volume_Icc, Complex.real_smul]; left; linarith
-    rw [← h_sum, ← integral_conj (f := fun u => A u ω - EA), ← integral_prod_mul]
+      rw [integral_sub hω (integrable_const EA), integral_const, measureReal_def,
+        Measure.restrict_apply_univ, Real.volume_Icc, ENNReal.toReal_ofReal (by linarith),
+        sub_zero]; congr 1
+    rw [← h_sum]
+    have : starRingEnd ℂ (∫ s in Icc 0 T, A s ω - EA) =
+        ∫ s in Icc 0 T, starRingEnd ℂ (A s ω - EA) := by
+      exact ((@RCLike.conjLIE ℂ _).toLinearIsometry.integral_comp_comm _).symm
+    rw [this]
+    exact (integral_prod_mul (μ := volume.restrict (Icc 0 T)) (ν := volume.restrict (Icc 0 T))
+      (fun s => A s ω - EA) (fun u => starRingEnd ℂ (A u ω - EA))).symm
   -- Step A: Integrability of Z * conj Z (from h_Fubini via Fubini marginal)
   have h_int_Zconj : Integrable
       (fun ω => ((∫ s in Icc 0 T, A s ω) - ↑T * EA) *
@@ -792,8 +799,14 @@ theorem L2_variance_time_average_bound (μ : Measure Ω) [IsProbabilityMeasure �
     rw [integral_sub hf hg]
     simp_rw [sub_mul]
     rw [integral_sub hsu hEA_conjA,
-        integral_sub (hs.mul_const _) (integrable_const _),
-        integral_mul_const, integral_const_mul, integral_conj, integral_const,
+        integral_sub (hs.mul_const _) (integrable_const _)]
+    have h1 : ∫ a, A s a * starRingEnd ℂ EA ∂μ = (∫ a, A s a ∂μ) * starRingEnd ℂ EA :=
+      integral_mul_const _ _
+    have h2 : ∫ a, EA * starRingEnd ℂ (A u a) ∂μ = EA * ∫ a, starRingEnd ℂ (A u a) ∂μ :=
+      integral_const_mul _ _
+    have h3 : ∫ a, starRingEnd ℂ (A u a) ∂μ = starRingEnd ℂ (∫ a, A u a ∂μ) :=
+      ((@RCLike.conjLIE ℂ _).toLinearIsometry.integral_comp_comm _)
+    rw [h1, h2, h3, integral_const,
         h_mean s, h_mean u, show μ.real univ = (1 : ℝ) from probReal_univ,
         one_smul]; ring
   have h_complex_eq :
@@ -860,7 +873,7 @@ private lemma memLp_two_lintegral_nnnorm_sq {α ε : Type*} [MeasurableSpace α]
     [NormedAddCommGroup ε] {f : α → ε} {μ : Measure α} (hf : MemLp f 2 μ) :
     ∫⁻ x, ↑‖f x‖₊ ^ (2 : ℕ) ∂μ < ⊤ := by
   have h := hf.eLpNorm_lt_top
-  rw [eLpNorm_eq_lintegral_rpow_enorm (by norm_num : (2 : ℝ≥0∞) ≠ 0)
+  rw [eLpNorm_eq_lintegral_rpow_enorm_toReal (by norm_num : (2 : ℝ≥0∞) ≠ 0)
     (by norm_num : (2 : ℝ≥0∞) ≠ ⊤)] at h
   simp only [toReal_ofNat] at h
   rw [rpow_lt_top_iff_of_pos (by positivity : (0:ℝ) < 1/2)] at h

@@ -176,7 +176,8 @@ lemma gff_exp_time_translated_memLp_two (m : ℝ) [Fact (0 < m)] (s : ℝ) (f : 
 lemma timeTranslationSchwartzℂ_conj_comm (t : ℝ) (f : TestFunctionℂ) :
     timeTranslationSchwartzℂ t (conjSchwartz f) = conjSchwartz (timeTranslationSchwartzℂ t f) := by
   ext x
-  simp only [timeTranslationSchwartzℂ_apply, conjSchwartz_apply]
+  simp only [timeTranslationSchwartzℂ_apply]
+  rfl
 
 /-- The product exp(⟨ω, T_t g₁⟩) · conj(exp(⟨ω, T_t g₂⟩)) integral is time-shift invariant.
     This follows from the GFF characteristic function and covariance time-translation invariance. -/
@@ -209,7 +210,8 @@ lemma gff_exp_product_time_shift_invariant (m : ℝ) [Fact (0 < m)] (g₁ g₂ :
     ext x; simp [timeTranslationSchwartzℂ_apply]
   simp_rw [h_T_add]
   -- Now both are ∫ exp(⟨ω, T_t h⟩) and ∫ exp(⟨ω, h⟩) for h = g₁ + conjSchwartz g₂
-  exact gff_generating_time_invariant m t (g₁ + conjSchwartz g₂)
+  exact gff_generating_time_invariant m t
+    (Add.add g₁ (conjSchwartz g₂) : TestFunctionℂ)
 
 /-- The L² norm of A_s is constant in s by stationarity.
     Proof: Uses OS2 → gff_exp_product_time_shift_invariant → this result. -/
@@ -798,7 +800,11 @@ lemma clustering_implies_covariance_decay (m : ℝ) [Fact (0 < m)] (f : TestFunc
     -- Taking conjugate swaps A(s-u) and A(0), then use commutativity
     have h_norm_eq : ‖∫ ω, A (s - u) ω * starRingEnd ℂ (A 0 ω) ∂μ - EA * starRingEnd ℂ EA‖ =
         ‖∫ ω, A 0 ω * starRingEnd ℂ (A (s - u) ω) ∂μ - EA * starRingEnd ℂ EA‖ := by
-      rw [← Complex.norm_conj, map_sub, ← integral_conj]
+      rw [← Complex.norm_conj, map_sub]
+      have h_ic : starRingEnd ℂ (∫ ω, A (s - u) ω * starRingEnd ℂ (A 0 ω) ∂μ) =
+          ∫ ω, starRingEnd ℂ (A (s - u) ω * starRingEnd ℂ (A 0 ω)) ∂μ :=
+        (integral_conj (𝕜 := ℂ)).symm
+      rw [h_ic]
       -- conj(a * conj(b)) = conj(a) * b and conj(EA * conj(EA)) = conj(EA) * EA = EA * conj(EA)
       have h_int_eq : ∫ ω, starRingEnd ℂ (A (s - u) ω * starRingEnd ℂ (A 0 ω)) ∂μ =
           ∫ ω, A 0 ω * starRingEnd ℂ (A (s - u) ω) ∂μ := by
@@ -1010,8 +1016,7 @@ lemma variance_decay_from_clustering (m : ℝ) [Fact (0 < m)] (f : TestFunction�
         have h_vol : MeasureTheory.volume.real (Set.Icc (0 : ℝ) T) = T := by
           simp only [MeasureTheory.Measure.real, Real.volume_Icc, sub_zero]
           exact ENNReal.toReal_ofReal (le_of_lt hT)
-        rw [h_vol]
-        simp only [Complex.real_smul]
+        rw [h_vol]; rfl
       -- Step 3: Algebra: (1/T) * (∫A - T*EA) = (1/T)*∫A - EA
       rw [h_split, h_const_int]
       have hT_ne : T ≠ 0 := ne_of_gt hT
@@ -1118,7 +1123,10 @@ theorem OS4'_implies_OS4 (m : ℝ) [Fact (0 < m)] :
       have h_mean_sum : ∫ ω', ∑ j, z j * Complex.exp (distributionPairingℂ_real ω' (f j)) ∂μ =
           ∑ j, z j * ∫ ω', Complex.exp (distributionPairingℂ_real ω' (f j)) ∂μ := by
         rw [MeasureTheory.integral_finset_sum Finset.univ (fun j _ => h_exp_int j)]
-        simp_rw [MeasureTheory.integral_const_mul]
+        have h_icm : ∀ (c : ℂ) (g : FieldConfiguration → ℂ),
+            ∫ a, c * g a ∂μ = c * ∫ a, g a ∂μ :=
+          fun c g => MeasureTheory.integral_const_mul (L := ℂ) c g
+        simp_rw [h_icm]
 
       -- Rewrite integrand: (∑_j z_j * exp_j) - (∑_j z_j * mean_j) = ∑_j z_j * (exp_j - mean_j)
       have h_integrand_eq : ∀ s,
@@ -1145,7 +1153,10 @@ theorem OS4'_implies_OS4 (m : ℝ) [Fact (0 < m)] :
       -- Now rewrite LHS
       simp_rw [h_integrand_eq]
       rw [MeasureTheory.integral_finset_sum Finset.univ (fun j _ => h_diff_int j)]
-      simp_rw [MeasureTheory.integral_const_mul]
+      have h_icm2 : ∀ (c : ℂ) (g : ℝ → ℂ),
+          ∫ s in Set.Icc (0 : ℝ) T, c * g s = c * ∫ s in Set.Icc (0 : ℝ) T, g s :=
+        fun c g => MeasureTheory.integral_const_mul (L := ℂ) c g
+      simp_rw [h_icm2]
       rw [Finset.mul_sum]
       congr 1 with j
       ring
@@ -1172,8 +1183,10 @@ theorem OS4'_implies_OS4 (m : ℝ) [Fact (0 < m)] :
         simp only [Real.volume_Icc, sub_zero, ne_eq]; exact ENNReal.ofReal_ne_top
       have h_const : ∫ s in Set.Icc (0 : ℝ) T, mean = T * mean := by
         rw [MeasureTheory.setIntegral_const]
-        simp only [Measure.real, Real.volume_Icc, sub_zero]
-        rw [ENNReal.toReal_ofReal (le_of_lt hT), Complex.real_smul]
+        have h_vol : MeasureTheory.volume.real (Set.Icc (0 : ℝ) T) = T := by
+          simp only [MeasureTheory.Measure.real, Real.volume_Icc, sub_zero]
+          exact ENNReal.toReal_ofReal (le_of_lt hT)
+        rw [h_vol]; rfl
       have h_exp_cont : Continuous exp_s :=
         Complex.continuous_exp.comp (continuous_distributionPairingℂ_timeTranslation ω (f j))
       have h_exp_int : MeasureTheory.IntegrableOn exp_s (Set.Icc 0 T) := h_exp_cont.integrableOn_Icc

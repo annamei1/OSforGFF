@@ -68,7 +68,7 @@ noncomputable def spatialDot (k_spatial x_spatial : SpatialCoords) : ℝ :=
 
 /-- Inner product on ℝ equals multiplication. -/
 lemma real_inner_eq_mul (x y : ℝ) : @inner ℝ ℝ _ x y = x * y := by
-  rw [RCLike.inner_apply, starRingEnd_apply, star_trivial, mul_comm]
+  simp [inner, mul_comm]
 
 /-- spatialDot equals the real inner product on SpatialCoords. -/
 lemma spatialDot_eq_inner (k_spatial x_spatial : SpatialCoords) :
@@ -2109,7 +2109,17 @@ lemma spacetime_fubini_linear_vanishing_bound (f : TestFunctionℂ)
           ‖f x‖ * ‖f y‖ * Real.sqrt (π / s) * Real.exp (-(x 0 + y 0)^2 / (4 * s))
       = ∫ x : SpaceTime, ∫ y : SpaceTime, ‖f x‖ * ‖f y‖ * K (x 0) (y 0) := by
         congr 1; ext x; congr 1; ext y; exact h_integrand x y
-    _ = ∫ t₁ : ℝ, ∫ t₂ : ℝ, K t₁ t₂ * G t₁ * G t₂ := by rw [h_tonelli, hG_eq]
+    _ = ∫ t₁ : ℝ, ∫ t₂ : ℝ, K t₁ t₂ * G t₁ * G t₂ := by
+        have h := h_tonelli
+        dsimp only at h
+        -- h : LHS = ∫ t₁ t₂, (K t₁ t₂ * ∫ v, ...) * ∫ v, ...
+        -- goal: LHS = ∫ t₁ t₂, K t₁ t₂ * G t₁ * G t₂
+        exact h.trans (by
+          congr 1; ext t₁; congr 1; ext t₂
+          congr 1
+          · congr 1
+            exact congr_fun hG_eq t₁
+          · exact congr_fun hG_eq t₂)
     _ ≤ C_sp^2 * (10 * s^(3/2 : ℝ)) := by
         -- The proof uses:
         -- (1) G(t) = 0 for t ≤ 0, so ∫_{ℝ²} = ∫_{(0,∞)²}
@@ -3543,7 +3553,10 @@ theorem fubini_ksp_xy_swap (s : ℝ) (hs : 0 < s) (f : TestFunctionℂ) :
           Complex.exp (-(s : ℂ) * ‖k_sp‖^2) *
           Complex.exp (-Complex.I * spatialDot k_sp (spatialPart x - spatialPart y)) := by
     intro x y
-    rw [← MeasureTheory.integral_const_mul]
+    have : ∀ r : ℂ, ∀ g : SpatialCoords → ℂ,
+        r * ∫ a, g a = ∫ a, r * g a :=
+      fun r g => (MeasureTheory.integral_const_mul r g).symm
+    rw [this]
     congr 1
     ext k_sp
     ring
