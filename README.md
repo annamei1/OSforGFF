@@ -206,3 +206,4 @@ This project is licensed under the Apache License, Version 2.0. See [LICENSE](LI
 - Osterwalder, Schrader: *Axioms for Euclidean Green's functions* I & II (1973, 1975)
 - Gel'fand, Vilenkin: *Generalized Functions*, Vol. 4 (Academic Press, 1964)
 - Reed, Simon: *Methods of Modern Mathematical Physics*, Vol. II (1975)
+- Degenne, Pfaffelhuber: *Formalizing the Kolmogorov Extension Theorem in Lean* ([kolmogorov_extension4](https://github.com/remydegenne/kolmogorov_extension4))
