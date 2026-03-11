@@ -64,10 +64,14 @@ open TopologicalSpace SchwartzMap
 
 /-! ## Dependencies
 
-No axioms declared here. Transitively uses `schwartz_nuclear` and `minlos_theorem`.
+No axioms declared here. Transitively uses `schwartz_isHilbertNuclear, schwartz_separableSpace` and `minlos_theorem (proven)`.
 -/
 
 noncomputable section
+
+private lemma distributionPairingCLM_measurable (φ : TestFunction) :
+    Measurable (distributionPairingCLM φ) :=
+  WeakDual.eval_measurable φ
 
 /-! ## Gaussian Measures on Field Configurations
 -/
@@ -95,10 +99,14 @@ def isGaussianGJ (dμ_config : ProbabilityMeasure FieldConfiguration) : Prop :=
 
 /-! ## Construction via Minlos Theorem -/
 
-/-- Nuclear space structure for real test functions.
-    This is derived from the general `schwartz_nuclear` axiom in Minlos.lean
-    applied to `TestFunction = SchwartzMap SpaceTime ℝ`. -/
-instance instNuclear_TestFunction : NuclearSpace TestFunction := schwartz_nuclear
+/-- Hilbert-nuclear structure for real test functions, from `schwartz_isHilbertNuclear`. -/
+instance instIsHilbertNuclear_TestFunction : IsHilbertNuclear TestFunction := schwartz_isHilbertNuclear
+
+/-- Separability of real test functions, from `schwartz_separableSpace`. -/
+instance instSeparableSpace_TestFunction : SeparableSpace TestFunction := schwartz_separableSpace
+
+/-- Nonemptiness of real test functions (the zero function). -/
+instance instNonempty_TestFunction : Nonempty TestFunction := ⟨0⟩
 
 /-- Specialized Minlos construction for the free field using the square-root propagator embedding. -/
 noncomputable def constructGaussianMeasureMinlos_free (m : ℝ) [Fact (0 < m)] :
@@ -114,15 +122,19 @@ noncomputable def constructGaussianMeasureMinlos_free (m : ℝ) [Fact (0 < m)] :
   have ex4 := Classical.choose_spec ex3
   let T : TestFunction →ₗ[ℝ] H := Classical.choose ex4
   have h_eq : ∀ f : TestFunction, freeCovarianceFormR m f f = ‖T f‖^2 := Classical.choose_spec ex4
-  -- Continuity and normalization
+  -- Continuity, symmetry, and normalization
   have h_cont := freeCovarianceFormR_continuous m
+  have h_symm : ∀ f, freeCovarianceFormR m (-f) (-f) = freeCovarianceFormR m f f := by
+    intro f
+    have h1 : -f = (-1 : ℝ) • f := (neg_one_smul ℝ f).symm
+    rw [h1, freeCovarianceFormR_smul_left, freeCovarianceFormR_smul_right]; ring
   have h_zero : freeCovarianceFormR m (0) (0) = 0 := by simp [freeCovarianceFormR]
   -- Use Minlos: directly obtain a ProbabilityMeasure with the Gaussian characteristic functional
   have h_minlos :=
     gaussian_measure_characteristic_functional
       (E := TestFunction) (H := H) T (freeCovarianceFormR m)
       (by intro f; simpa using h_eq f)
-      True.intro h_zero h_cont
+      h_symm True.intro h_zero h_cont
   exact Classical.choose h_minlos
 
 /-- The Gaussian Free Field with mass m > 0, constructed via specialized Minlos -/
@@ -150,12 +162,16 @@ theorem gff_real_characteristic (m : ℝ) [Fact (0 < m)] :
   let T : TestFunction →ₗ[ℝ] H := Classical.choose ex4
   have h_eq : ∀ f : TestFunction, freeCovarianceFormR m f f = ‖T f‖^2 := Classical.choose_spec ex4
   have h_cont := freeCovarianceFormR_continuous m
+  have h_symm : ∀ f, freeCovarianceFormR m (-f) (-f) = freeCovarianceFormR m f f := by
+    intro f
+    have h1 : -f = (-1 : ℝ) • f := (neg_one_smul ℝ f).symm
+    rw [h1, freeCovarianceFormR_smul_left, freeCovarianceFormR_smul_right]; ring
   have h_zero : freeCovarianceFormR m (0) (0) = 0 := by simp [freeCovarianceFormR]
   have h_minlos :=
     gaussian_measure_characteristic_functional
       (E := TestFunction) (H := H) T (freeCovarianceFormR m)
       (by intro f; simpa using h_eq f)
-      True.intro h_zero h_cont
+      h_symm True.intro h_zero h_cont
   -- Unfold the definition of our chosen ProbabilityMeasure to reuse the spec
   have hchar := (Classical.choose_spec h_minlos)
   intro f
@@ -192,7 +208,7 @@ private lemma charFun_eq_GJGeneratingFunctional
   charFun (μ.toMeasure.map (distributionPairingCLM φ)) t =
     GJGeneratingFunctional μ (t • φ) := by
   rw [charFun]
-  rw [integral_map (by fun_prop) (by fun_prop)]
+  rw [integral_map (distributionPairingCLM_measurable φ).aemeasurable (by fun_prop)]
   rw [GJGeneratingFunctional]
   congr 1
   ext ω
@@ -210,7 +226,7 @@ private lemma gff_pushforward_charFun
   charFun ((gaussianFreeField_free m).toMeasure.map (distributionPairingCLM φ)) t =
     Complex.exp (-(1/2 : ℂ) * t^2 * (freeCovarianceFormR m φ φ : ℝ)) := by
   haveI : IsProbabilityMeasure ((gaussianFreeField_free m).toMeasure.map (distributionPairingCLM φ)) :=
-    Measure.isProbabilityMeasure_map (Measurable.aemeasurable (distributionPairingCLM φ).continuous.measurable)
+    Measure.isProbabilityMeasure_map ((distributionPairingCLM_measurable φ).aemeasurable)
   rw [charFun_eq_GJGeneratingFunctional]
   have h_char := gff_real_characteristic m (t • φ)
   rw [h_char]
@@ -226,7 +242,7 @@ theorem gff_pairing_is_gaussian
   (gaussianFreeField_free m).toMeasure.map (distributionPairingCLM φ)
     = gaussianReal 0 (freeCovarianceFormR m φ φ).toNNReal := by
   haveI : IsProbabilityMeasure ((gaussianFreeField_free m).toMeasure.map (distributionPairingCLM φ)) :=
-    Measure.isProbabilityMeasure_map (Measurable.aemeasurable (distributionPairingCLM φ).continuous.measurable)
+    Measure.isProbabilityMeasure_map ((distributionPairingCLM_measurable φ).aemeasurable)
   apply charFun_implies_gaussian
   intro t
   rw [gff_pushforward_charFun]
@@ -255,7 +271,7 @@ theorem gaussianFreeField_pairing_memLp
   have h_memLp : MemLp id (ENNReal.ofNNReal p.toNNReal) (gaussianReal 0 (freeCovarianceFormR m φ φ).toNNReal) :=
     memLp_id_gaussianReal p.toNNReal
   rw [← h_gauss] at h_memLp
-  rwa [memLp_map_measure_iff (by fun_prop) (by fun_prop)] at h_memLp
+  rwa [memLp_map_measure_iff (by fun_prop) (distributionPairingCLM_measurable φ).aemeasurable] at h_memLp
 
 /-- The GFF pairing has an integrable square (is in L²).
     This follows from the fact that the pushforward is a Gaussian measure,
@@ -271,7 +287,7 @@ lemma gff_pairing_square_integrable
   -- Rewrite in terms of the pushforward measure
   rw [← h_gauss] at h_memL2
   -- MemLp id under the pushforward equals MemLp of the original function
-  rw [memLp_map_measure_iff (by fun_prop) (by fun_prop)] at h_memL2
+  rw [memLp_map_measure_iff (by fun_prop) (distributionPairingCLM_measurable φ).aemeasurable] at h_memL2
   -- For real-valued functions, MemLp 2 means square-integrable
   exact h_memL2.integrable_sq
 
@@ -287,7 +303,7 @@ lemma gff_second_moment_eq_covariance
   -- Rewrite the integral as an integral under the pushforward measure
   calc ∫ ω, (distributionPairingCLM φ ω)^2 ∂(gaussianFreeField_free m).toMeasure
     _ = ∫ x, x^2 ∂((gaussianFreeField_free m).toMeasure.map (distributionPairingCLM φ)) := by
-      rw [integral_map (by fun_prop) (by fun_prop)]
+      rw [integral_map (distributionPairingCLM_measurable φ).aemeasurable (by fun_prop)]
     _ = ∫ x, x^2 ∂(gaussianReal 0 (freeCovarianceFormR m φ φ).toNNReal) := by
       rw [h_gauss]
     _ = (freeCovarianceFormR m φ φ).toNNReal := by
@@ -316,7 +332,11 @@ lemma freeCovarianceFormR_gaussian_cf_pd (m : ℝ) [Fact (0 < m)] :
   have ex4 := Classical.choose_spec ex3
   let T : TestFunction →ₗ[ℝ] H := Classical.choose ex4
   have h_eq : ∀ f : TestFunction, freeCovarianceFormR m f f = ‖T f‖^2 := Classical.choose_spec ex4
-  exact gaussian_positive_definite_via_embedding T (freeCovarianceFormR m) h_eq
+  have h_symm : ∀ f, freeCovarianceFormR m (-f) (-f) = freeCovarianceFormR m f f := by
+    intro f
+    have h1 : -f = (-1 : ℝ) • f := (neg_one_smul ℝ f).symm
+    rw [h1, freeCovarianceFormR_smul_left, freeCovarianceFormR_smul_right]; ring
+  exact gaussian_positive_definite_bochner T (freeCovarianceFormR m) h_eq h_symm
 
 /-- The free covariance form as a MinlosAnalytic.CovarianceForm structure. -/
 def freeCovarianceForm (m : ℝ) [Fact (0 < m)] : MinlosAnalytic.CovarianceForm :=
@@ -392,7 +412,9 @@ theorem gaussianFreeField_pairing_expSq_integrable
   -- Rewrite using h_gauss: the Gaussian equals the pushforward
   rw [← h_gauss] at hC_int
   -- Pull back through the measurable pairing map
-  rw [integrable_map_measure (by fun_prop) (by fun_prop)] at hC_int
+  have h_meas : AEMeasurable (⇑(distributionPairingCLM φ)) (gaussianFreeField_free m).toMeasure :=
+    (distributionPairingCLM_measurable φ).aemeasurable
+  rw [integrable_map_measure (by fun_prop) h_meas] at hC_int
   -- Convert ‖x‖² to x² for ℝ (they are equal for real numbers)
   convert hC_int using 2
   -- Goal: exp (C * y²) = exp (C * ‖y‖²) where y : ℝ

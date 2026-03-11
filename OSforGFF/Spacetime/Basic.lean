@@ -37,6 +37,8 @@ import Mathlib.GroupTheory.GroupAction.Basic
 
 -- Import our functional analysis utilities
 import OSforGFF.General.FunctionalAnalysis
+-- Bochner library provides the cylinder σ-algebra MeasurableSpace instance on WeakDual
+import Minlos.NuclearSpace
 
 /-!
 # Basic Definitions
@@ -110,9 +112,8 @@ the existing L2 framework for comparison and gradual transition.
     Using WeakDual gives the correct weak-* topology on the dual space. -/
 abbrev FieldConfiguration := WeakDual ℝ (SchwartzMap SpaceTime ℝ)
 
--- Measurable space instance for distribution spaces
--- WeakDual already has the correct weak-* topology, we use the Borel σ-algebra
-instance : MeasurableSpace FieldConfiguration := borel _
+-- MeasurableSpace on FieldConfiguration = WeakDual ℝ TestFunction is the cylinder σ-algebra
+-- provided by the bochner library: ⨆ f, (borel ℝ).comap (eval f)
 
 /-- The fundamental pairing between a field configuration (distribution) and a test function.
     This is ⟨ω, f⟩ in the Glimm-Jaffe notation.

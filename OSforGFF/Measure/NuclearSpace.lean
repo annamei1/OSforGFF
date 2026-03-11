@@ -2,149 +2,101 @@
 Copyright (c) 2025 Michael R. Douglas, Sarah Hoback. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 
-# Nuclear Operators and Nuclear Spaces
+# Nuclear Space Infrastructure for Schwartz Space
 
-Definitions of nuclear operators, Hilbertian seminorms, and nuclear spaces
-via Hilbert-Schmidt embeddings. This characterization is adapted to
-Schwartz/Fréchet spaces where a countable Hilbertian basis is available,
-and suffices for the GFF construction via the Minlos theorem.
+This file proves that Schwartz space is Hilbert-nuclear and separable,
+bridging between the gaussian-field library (Hermite-basis proofs) and
+the bochner library (Minlos theorem).
 
-## Main definitions
+## Proof chain
 
-- `IsNuclearMap` — nuclear operator representation for maps between normed spaces
-- `Seminorm.IsHilbertian` — seminorms satisfying the parallelogram law
-- `Seminorm.innerProd` — inner product recovered from a Hilbertian seminorm
-- `Seminorm.IsOrthonormalSeq` — p-orthonormal finite sequences
-- `Seminorm.IsHilbertSchmidtEmbedding` — Hilbert-Schmidt condition on inclusions
-- `NuclearSpace` — nuclear space via Hilbertian seminorms with HS embeddings
-- `schwartz_nuclear` — axiom: Schwartz space is nuclear
+- **SeparableSpace**: directly from gaussian-field's Hermite analysis
+- **IsHilbertNuclear**: gaussian-field's `DyninMityaginSpace` → `NuclearSpace`
+  → bochner's `IsNuclear` → `isHilbertNuclear_of_nuclear`
 
 ## References
 
 - Trèves, "Topological Vector Spaces", Ch. 50-51
 - Gel'fand-Vilenkin, "Generalized Functions" Vol. 4, Ch. 3-4
-- Reed-Simon, "Methods of Modern Mathematical Physics" Vol. 1, §V.3
-- Pietsch, "Nuclear Locally Convex Spaces"
 -/
 
-import Mathlib.Analysis.LocallyConvex.WithSeminorms
-import Mathlib.Analysis.Distribution.SchwartzSpace.Deriv
+import Minlos.NuclearSpace
+import Minlos.PietschBridge
+import Minlos.Main
+import SchwartzNuclear.HermiteNuclear
+import Nuclear.NuclearSpace
 
-open scoped BigOperators
+/-! ### WithSeminorms reindexing
 
-noncomputable section
+A general reindexing lemma: if `p` generates the topology and `e` is an equivalence,
+then `p ∘ e` also generates the topology. -/
 
-/-! ### Nuclear Operators
+open TopologicalSpace
 
-The hierarchy of operator conditions between normed spaces:
-  nuclear (trace-class) ⊂ Hilbert-Schmidt ⊂ compact
--/
+section Reindex
 
-/-- A continuous linear map between normed spaces is **nuclear** if it admits a
-    representation T(x) = ∑ₙ (φₙ x) • yₙ where ∑ₙ ‖φₙ‖ · ‖yₙ‖ < ∞. -/
-def IsNuclearMap {E F : Type*}
-    [NormedAddCommGroup E] [NormedSpace ℝ E]
-    [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F]
-    (T : E →L[ℝ] F) : Prop :=
-  ∃ (φ : ℕ → (E →L[ℝ] ℝ)) (y : ℕ → F),
-    Summable (fun n => ‖φ n‖ * ‖y n‖) ∧
-    ∀ x, T x = ∑' n, (φ n x) • y n
+variable {𝕜 E ι ι' : Type*} [NormedField 𝕜] [AddCommGroup E] [Module 𝕜 E]
+  [TopologicalSpace E] [IsTopologicalAddGroup E]
 
-/-! ### Hilbertian Seminorms -/
+/-- Reindexing a seminorm family by an equivalence preserves `WithSeminorms`. -/
+theorem WithSeminorms.equiv {p : SeminormFamily 𝕜 E ι} (hp : WithSeminorms p) (e : ι' ≃ ι) :
+    WithSeminorms (p ∘ e) := by
+  rw [SeminormFamily.withSeminorms_iff_nhds_eq_iInf] at hp ⊢
+  simp_rw [Function.comp_apply, hp]
+  exact (Equiv.iInf_comp e).symm
 
-/-- A seminorm is **Hilbertian** (comes from an inner product) iff it satisfies
-    the parallelogram law: p(x+y)² + p(x-y)² = 2(p(x)² + p(y)²).
+end Reindex
 
-    The inner product can be recovered by polarization:
-    ⟨x,y⟩_p = (p(x+y)² - p(x-y)²) / 4. -/
-def Seminorm.IsHilbertian {E : Type*} [AddCommGroup E] [Module ℝ E]
-    (p : Seminorm ℝ E) : Prop :=
-  ∀ x y : E, p (x + y) ^ 2 + p (x - y) ^ 2 = 2 * (p x ^ 2 + p y ^ 2)
+/-! ### Bridge: gaussian-field NuclearSpace → bochner IsNuclear
 
-/-- The inner product induced by a Hilbertian seminorm via polarization. -/
-noncomputable def Seminorm.innerProd {E : Type*} [AddCommGroup E] [Module ℝ E]
-    (p : Seminorm ℝ E) (x y : E) : ℝ :=
-  (p (x + y) ^ 2 - p (x - y) ^ 2) / 4
+gaussian-field's `NuclearSpace` (Pietsch characterization with `‖f n x‖`) is
+equivalent to bochner's `IsNuclear` (same, with `|f n x|`), since for `ℝ`-valued
+CLFs, `‖y‖ = |y|`. -/
 
-/-- A finite sequence is **p-orthonormal**: ⟨eᵢ, eⱼ⟩_p = δᵢⱼ. -/
-def Seminorm.IsOrthonormalSeq {E : Type*} [AddCommGroup E] [Module ℝ E]
-    (p : Seminorm ℝ E) {n : ℕ} (e : Fin n → E) : Prop :=
-  ∀ i j, p.innerProd (e i) (e j) = if i = j then 1 else 0
+section Bridge
 
-/-! ### Hilbert-Schmidt Embeddings -/
+variable {E : Type*} [AddCommGroup E] [Module ℝ E] [TopologicalSpace E]
+  [IsTopologicalAddGroup E] [ContinuousSMul ℝ E]
 
-/-- The canonical inclusion Ê_p → Ê_q is **Hilbert-Schmidt**: the sum ∑ q(eₖ)²
-    is uniformly bounded over all finite p-orthonormal sequences {eₖ}.
+omit [IsTopologicalAddGroup E] [ContinuousSMul ℝ E] in
+/-- Convert gaussian-field's `NuclearSpace` to bochner's `IsNuclear`. -/
+theorem nuclearSpace_to_isNuclear [hN : GaussianField.NuclearSpace E] : IsNuclear E := by
+  intro p hp
+  obtain ⟨q, hq_cont, hq_ge, f, c, hc_nn, hc_sum, hf_bnd, hdom⟩ :=
+    hN.nuclear_dominance p hp
+  refine ⟨q, hq_cont, hq_ge, f, c, hc_nn, hc_sum, fun n x => ?_, fun x => ?_⟩
+  · -- ‖f n x‖ ≤ q x  →  |f n x| ≤ q x  (since ‖·‖ = |·| for ℝ)
+    rw [← Real.norm_eq_abs]; exact hf_bnd n x
+  · -- p x ≤ ∑' n, ‖f n x‖ * c n  →  p x ≤ ∑' n, |f n x| * c n
+    have := hdom x; simp_rw [Real.norm_eq_abs] at this; exact this
 
-    For diagonal operators with eigenvalues σₖ, this reduces to ∑ σₖ² < ∞.
-    For Schwartz space with Hermite basis and Sobolev norms ‖f‖_k² = ∑ n^{2k} |⟨f,hₙ⟩|²,
-    the inclusion from level k+s to level k has eigenvalues n^{-s}, and
-    ∑ n^{-2s} < ∞ for s > ½. -/
-def Seminorm.IsHilbertSchmidtEmbedding {E : Type*} [AddCommGroup E] [Module ℝ E]
-    (p q : Seminorm ℝ E) : Prop :=
-  q ≤ p ∧
-  ∃ (C : ℝ), ∀ (n : ℕ) (e : Fin n → E),
-    p.IsOrthonormalSeq e →
-    ∑ i, q (e i) ^ 2 ≤ C
+end Bridge
 
-/-! ### Nuclear Spaces -/
+/-! ### Main instances for Schwartz space -/
 
-/-- A **nuclear space** is a locally convex space whose topology is generated by a
-    countable family of Hilbertian seminorms with Hilbert-Schmidt inclusion maps.
+/-- Schwartz space is Hilbert-nuclear, proved via:
+1. gaussian-field: `DyninMityaginSpace (SchwartzMap D ℝ)` (Hermite basis)
+2. gaussian-field: `DyninMityaginSpace → NuclearSpace` (Pietsch characterization)
+3. bridge: `NuclearSpace → IsNuclear` (norm = abs for ℝ)
+4. bochner: `isHilbertNuclear_of_nuclear` (Pietsch → Hilbert-Schmidt embeddings) -/
+noncomputable instance schwartz_isHilbertNuclear {E : Type*}
+    [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E] [Nontrivial E] :
+    IsHilbertNuclear (SchwartzMap E ℝ) := by
+  -- Step 1: Get NuclearSpace from DyninMityaginSpace (gaussian-field)
+  letI := GaussianField.DyninMityaginSpace.toNuclearSpace (SchwartzMap E ℝ)
+  -- Step 2: Convert to bochner's IsNuclear
+  have hIN := nuclearSpace_to_isNuclear (E := SchwartzMap E ℝ)
+  -- Step 3: Get ℕ-indexed seminorms via Cantor pairing
+  let q₀ : ℕ → Seminorm ℝ (SchwartzMap E ℝ) := schwartzSeminormFamily ℝ E ℝ ∘ Nat.pairEquiv.symm
+  have hq₀ : WithSeminorms q₀ :=
+    (schwartz_withSeminorms ℝ E ℝ).equiv Nat.pairEquiv.symm
+  have hq₀_cont : ∀ n, Continuous (q₀ n) := fun n =>
+    (schwartz_withSeminorms ℝ E ℝ).continuous_seminorm (Nat.pairEquiv.symm n)
+  -- Step 4: Apply bochner's bridge theorem
+  exact isHilbertNuclear_of_nuclear hIN q₀ hq₀ hq₀_cont
 
-    **Definition**: There exists a family of seminorms {pₖ} such that:
-    1. Each pₖ is Hilbertian (comes from an inner product)
-    2. The family generates the topology of E
-    3. For every k, there exists k' > k such that the inclusion Ê_{k'} → Ê_k
-       is a Hilbert-Schmidt operator
-
-    **Why this implies nuclearity**: For Fréchet spaces, Hilbert-Schmidt inclusions
-    at every level imply that the composition of two consecutive inclusions is nuclear
-    (trace-class), since HS ∘ HS = nuclear. This gives the Grothendieck-Pietsch
-    characterization.
-
-    **Example (Schwartz space S(ℝᵈ))**: Take the Hermite basis {hₙ} (eigenfunctions
-    of the harmonic oscillator H = -Δ + |x|²) and define:
-      ‖f‖_k² = ∑ₙ (1+n)^{2k} |⟨f, hₙ⟩|²
-    The inclusion from level k+s to level k is diagonal with eigenvalues (1+n)^{-s},
-    and ∑ₙ (1+n)^{-2s} < ∞ for s > ½.
-
-    **Non-examples**: ℓ^p, L^p, and Banach spaces (except finite-dimensional) are NOT nuclear.
-
-    **Equivalences** (for Fréchet spaces):
-    - Every CLM to a Banach space is nuclear (Grothendieck-Pietsch)
-    - π-tensor product = ε-tensor product
-    - Every continuous linear map factors through trace-class operators
-
-    **Note**: This definition is not the most general characterization of nuclear spaces
-    (which uses trace-class maps between arbitrary local Banach spaces). It is adapted
-    to Schwartz/Fréchet spaces where a countable Hilbertian basis is available, which
-    suffices for the GFF construction.
-
-    **Reference:** Trèves, "Topological Vector Spaces", Ch. 50, Thm 50.1;
-    Gel'fand-Vilenkin Vol. 4, Ch. 3-4; Reed-Simon Vol. 1, §V.3. -/
-class NuclearSpace (E : Type*) [AddCommGroup E] [Module ℝ E] [TopologicalSpace E] : Prop where
-  nuclear_hilbert_embeddings :
-    ∃ (p : ℕ → Seminorm ℝ E),
-      (∀ n, (p n).IsHilbertian) ∧
-      (WithSeminorms (fun n => p n)) ∧
-      (∀ n, ∃ m, n < m ∧ (p m).IsHilbertSchmidtEmbedding (p n))
-
-/-! ### Schwartz Space is Nuclear -/
-
-/-- **Schwartz space is nuclear**: For any finite-dimensional real normed space E
-    and any real normed space F, the Schwartz space 𝓢(E, F) is a nuclear space.
-
-    **Proof sketch** (Gel'fand-Vilenkin Vol. 4, Thm 3 in Ch. 4; Trèves Ch. 51):
-    The Hermite functions {hₙ} form an ONB for L²(ℝᵈ) and are eigenfunctions of the
-    harmonic oscillator H = -Δ + |x|². The Sobolev-Hermite norms
-      ‖f‖_k² = ∑ₙ (1+n)^{2k} |⟨f, hₙ⟩|²
-    are Hilbertian and generate the Schwartz topology. The inclusion from level k+1
-    to level k has eigenvalues (1+n)^{-1}, and ∑ₙ (1+n)^{-2} = π²/6 < ∞,
-    so each inclusion is Hilbert-Schmidt. -/
-axiom schwartz_nuclear {E F : Type*}
-    [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-    [NormedAddCommGroup F] [NormedSpace ℝ F] :
-    NuclearSpace (SchwartzMap E F)
-
-end
+/-- Schwartz space is separable, proved via Hermite analysis (gaussian-field). -/
+noncomputable instance schwartz_separableSpace {E : Type*}
+    [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E] [Nontrivial E] :
+    SeparableSpace (SchwartzMap E ℝ) :=
+  GaussianField.schwartz_separableSpace
