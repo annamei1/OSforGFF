@@ -20,14 +20,11 @@ theorem gaussianFreeField_satisfies_all_OS_axioms (m : ℝ) [Fact (0 < m)] :
   OS4_Ergodicity (μ_GFF m)
 ```
 
-**Status:** Version 1.0, February 2026. 0 sorries, 2 assumed axioms (see below), ~32,000 lines of Lean across 47 files.
+**Status:** Version 1.1, March 2026. 0 sorries, 0 axioms, ~32,000 lines of Lean across 47 files.
 
-### Assumed Axioms
-
-| Axiom | File | Mathematical content |
-|-------|------|---------------------|
-| [`schwartz_nuclear`](OSforGFF/Measure/NuclearSpace.lean) | [NuclearSpace](OSforGFF/Measure/NuclearSpace.lean) | [Schwartz space is nuclear (Treves, Ch. 51)](summary/OSforGFF/Measure/NuclearSpace.md) |
-| [`minlos_theorem`](OSforGFF/Measure/Minlos.lean) | [Minlos](OSforGFF/Measure/Minlos.lean) | [Minlos theorem: nuclear char. functional → unique measure (Gel'fand-Vilenkin IV)](summary/OSforGFF/Measure/Minlos.md) |
+All results are fully proved — no assumed axioms. Nuclear space structure and the Minlos theorem
+are provided by the external libraries [bochner](https://github.com/mrdouglasny/bochner) and
+[gaussian-field](https://github.com/mrdouglasny/gaussian-field), which are themselves axiom-free.
 
 ## Project Structure
 
@@ -107,8 +104,8 @@ Construction of the GFF probability measure via the Minlos theorem.
 
 | File | Contents |
 |------|----------|
-| [NuclearSpace](OSforGFF/Measure/NuclearSpace.lean) | [Nuclear space definition (Hilbert-Schmidt embedding characterization)](summary/OSforGFF/Measure/NuclearSpace.md) |
-| [Minlos](OSforGFF/Measure/Minlos.lean) | [Minlos theorem (axiom), Gaussian measure construction](summary/OSforGFF/Measure/Minlos.md) |
+| [NuclearSpace](OSforGFF/Measure/NuclearSpace.lean) | [Schwartz space is Hilbert-nuclear and separable (bridges bochner + gaussian-field)](summary/OSforGFF/Measure/NuclearSpace.md) |
+| [Minlos](OSforGFF/Measure/Minlos.lean) | [Minlos theorem application, Gaussian measure construction](summary/OSforGFF/Measure/Minlos.md) |
 | [MinlosAnalytic](OSforGFF/Measure/MinlosAnalytic.lean) | [Symmetry and moments for Gaussian measures (sign-flip invariance, zero mean)](summary/OSforGFF/Measure/MinlosAnalytic.md) |
 | [Construct](OSforGFF/Measure/Construct.lean) | [GFF measure construction: covariance → characteristic functional → μ](summary/OSforGFF/Measure/Construct.md) |
 | [IsGaussian](OSforGFF/Measure/IsGaussian.lean) | [Verification that S₂(f,g) = C(f,g) via OS0 derivative interchange](summary/OSforGFF/Measure/IsGaussian.md) |
