@@ -92,7 +92,7 @@ The free scalar field propagator C(x,y) = (m/4π²|x−y|) K₁(m|x−y|) and it
 | File | Contents |
 |------|----------|
 | [Momentum](OSforGFF/Covariance/Momentum.lean) | [Momentum-space propagator 1/(k²+m²), decay bounds](summary/OSforGFF/Covariance/Momentum.md) |
-| [Parseval](OSforGFF/Covariance/Parseval.lean) | Parseval identity: ⟨f,Cf⟩ = ∫\|f̂(k)\|² P(k) dk |
+| [Parseval](OSforGFF/Covariance/Parseval.lean) | [Parseval identity: ⟨f,Cf⟩ = ∫\|f̂(k)\|² P(k) dk](summary/OSforGFF/Covariance/Parseval.md) |
 | [Position](OSforGFF/Covariance/Position.lean) | [Position-space covariance, Euclidean invariance, Schwinger representation](summary/OSforGFF/Covariance/Position.md) |
 | [RealForm](OSforGFF/Covariance/RealForm.lean) | [Real covariance bilinear form, square root propagator embedding](summary/OSforGFF/Covariance/RealForm.md) |
 
@@ -125,16 +125,16 @@ Axiom definitions, individual proofs, and master theorem.
 |------|----------|
 | [Axioms](OSforGFF/OS/Axioms.lean) | [Formal Lean definitions of OS0 through OS4](summary/OSforGFF/OS/Axioms.md) |
 | [OS0_Analyticity](OSforGFF/OS/OS0_Analyticity.lean) | [Closed-form Z[f] = exp(-½ C(f,f)) via identity theorem + Fernique](summary/OSforGFF/OS/OS0_Analyticity.md) |
-| [OS1_Regularity](OSforGFF/OS/OS1_Regularity.lean) | Plancherel + momentum-space bound: \|Z[f]\| ≤ exp(‖f‖²/2m²) |
-| [OS2_Invariance](OSforGFF/OS/OS2_Invariance.lean) | C(x,y) depends only on \|x−y\|, Lebesgue measure invariance |
+| [OS1_Regularity](OSforGFF/OS/OS1_Regularity.lean) | [Plancherel + momentum-space bound: \|Z[f]\| ≤ exp(‖f‖²/2m²)](summary/OSforGFF/OS/OS1_Regularity.md) |
+| [OS2_Invariance](OSforGFF/OS/OS2_Invariance.lean) | [C(x,y) depends only on \|x−y\|, Lebesgue measure invariance](summary/OSforGFF/OS/OS2_Invariance.md) |
 | [OS3_MixedRepInfra](OSforGFF/OS/OS3_MixedRepInfra.lean) | [Schwinger parametrization and Fubini theorems for absolute integrability](summary/OSforGFF/OS/OS3_MixedRepInfra.md) |
 | [OS3_MixedRep](OSforGFF/OS/OS3_MixedRep.lean) | [Mixed representation via Schwinger → heat kernel → Laplace transform](summary/OSforGFF/OS/OS3_MixedRep.md) |
-| [OS3_CovarianceRP](OSforGFF/OS/OS3_CovarianceRP.lean) | Covariance reflection positivity: ⟨Θf, Cf⟩ = ∫ (1/ω)\|F_ω\|² ≥ 0 |
+| [OS3_CovarianceRP](OSforGFF/OS/OS3_CovarianceRP.lean) | [Covariance reflection positivity: ⟨Θf, Cf⟩ = ∫ (1/ω)\|F_ω\|² ≥ 0](summary/OSforGFF/OS/OS3_CovarianceRP.md) |
 | [OS3_ReflectionPositivity](OSforGFF/OS/OS3_ReflectionPositivity.lean) | [Schur–Hadamard lifts covariance RP to generating functional](summary/OSforGFF/OS/OS3_ReflectionPositivity.md) |
 | [OS4_MGF](OSforGFF/OS/OS4_MGF.lean) | [Shared infrastructure: MGF formula, time translation duality](summary/OSforGFF/OS/OS4_MGF.md) |
 | [OS4_Clustering](OSforGFF/OS/OS4_Clustering.lean) | [Gaussian factorization + convolution decay lemma (domain split at ‖y‖=‖x‖/2)](summary/OSforGFF/OS/OS4_Clustering.md) |
 | [OS4_Ergodicity](OSforGFF/OS/OS4_Ergodicity.lean) | [Polynomial clustering (α=6) → L² convergence](summary/OSforGFF/OS/OS4_Ergodicity.md) |
-| [NonTrivial](OSforGFF/OS/NonTrivial.lean) | Nontriviality: C(f,f) > 0, positive variance, UV divergence C(x,y) → ∞ |
+| [NonTrivial](OSforGFF/OS/NonTrivial.lean) | [Nontriviality: C(f,f) > 0, positive variance, UV divergence C(x,y) → ∞](summary/OSforGFF/OS/NonTrivial.md) |
 | [Master](OSforGFF/OS/Master.lean) | [Assembles OS0–OS4 into `gaussianFreeField_satisfies_all_OS_axioms`](summary/OSforGFF/OS/Master.md) |
 
 ---
